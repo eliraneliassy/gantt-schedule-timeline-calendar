@@ -229,9 +229,7 @@ function defaultConfig(): Config {
         rightGlobal: 0,
         levels: [],
         calculatedZoomMode: false,
-        onLevelDate: [],
         onLevelDates: [],
-        onAllLevelDates: [],
         onCurrentViewLevelDates: [],
         allDates: []
       },

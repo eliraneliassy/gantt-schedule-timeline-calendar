@@ -146,25 +146,15 @@ export interface ChartTimeDate extends ChartInternalTimeLevelDate {}
 
 export type ChartTimeDates = ChartTimeDate[];
 
-export type ChartTimeOnLevelDates = (
-  dates: ChartInternalTimeLevel,
-  formatting: ChartCalendarFormat,
-  time: ChartInternalTime,
-  level: ChartCalendarLevel,
-  levelIndex: number
-) => ChartInternalTimeLevel;
+export type ChartTimeOnLevelDatesArgs = {
+  dates: ChartInternalTimeLevel;
+  time: ChartInternalTime;
+  format: ChartCalendarFormat;
+  level: ChartCalendarLevel;
+  levelIndex: number;
+};
 
-export type ChartTimeOnLevelDate = (
-  date: ChartInternalTimeLevelDate,
-  period: Period,
-  level: ChartCalendarLevel,
-  levelIndex: number
-) => ChartInternalTimeLevelDate;
-
-export type ChartTimeOnAllLevelDates = (
-  allDates: ChartTimeDates[],
-  time: ChartInternalTime
-) => ChartInternalTimeLevel[];
+export type ChartTimeOnLevelDates = (arg: ChartTimeOnLevelDatesArgs) => ChartInternalTimeLevel;
 
 export interface ChartTime {
   period?: Period;
@@ -187,9 +177,7 @@ export interface ChartTime {
   levels?: ChartTimeDates[];
   additionalSpaces?: ChartCalendarAdditionalSpaces;
   calculatedZoomMode?: boolean;
-  onLevelDate?: ChartTimeOnLevelDate[];
   onLevelDates?: ChartTimeOnLevelDates[];
-  onAllLevelDates?: ChartTimeOnAllLevelDates[];
   onCurrentViewLevelDates?: ChartTimeOnLevelDates[];
   readonly allDates?: ChartTimeDates[];
   forceUpdate?: boolean;
@@ -243,15 +231,14 @@ export interface ChartInternalTime {
   leftPx: number;
   rightPx: number;
   width?: number;
+  scrollWidth?: number;
   zoom: number;
   format: ChartCalendarFormat;
   level: number;
   levels: ChartInternalTimeLevel[];
   additionalSpaces?: ChartCalendarAdditionalSpaces;
   calculatedZoomMode?: boolean;
-  onLevelDate?: ChartTimeOnLevelDate[];
   onLevelDates?: ChartTimeOnLevelDates[];
-  onAllLevelDates?: ChartTimeOnAllLevelDates[];
   onCurrentViewLevelDates?: ChartTimeOnLevelDates[];
   allDates?: ChartTimeDates[];
   forceUpdate?: boolean;

@@ -5783,7 +5783,7 @@
 	 * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
 	 */
 	function Main(vido, props = {}) {
-	    const { api, state, onDestroy, Actions, update, createComponent, html, StyleMap, schedule } = vido;
+	    const { api, state, onDestroy, Actions, update, createComponent, html, StyleMap } = vido;
 	    const componentName = api.name;
 	    // Initialize plugins
 	    onDestroy(state.subscribe('config.plugins', plugins => {
@@ -6019,8 +6019,31 @@
 	        time.rightGlobalDate = api.time.date(time.rightGlobal).endOf(time.period);
 	        time.rightGlobal = time.rightGlobalDate.valueOf();
 	        if (updateCenter) {
-	            time.centerGlobal = time.leftGlobal + Math.round((time.rightGlobal - time.leftGlobal) / 2);
-	            time.centerGlobalDate = api.time.date(time.centerGlobal);
+	            const diffPeriod = Math.floor(time.rightGlobalDate.diff(time.leftGlobalDate, time.period, true) / 2);
+	            let amount = 0, period = 'day';
+	            switch (time.period) {
+	                case 'year':
+	                    amount = 6;
+	                    period = 'month';
+	                    break;
+	                case 'month':
+	                    amount = 15;
+	                    period = 'day';
+	                    break;
+	                case 'week':
+	                    amount = 3;
+	                    period = 'day';
+	                    break;
+	                case 'day':
+	                    amount = 12;
+	                    period = 'hour';
+	                    break;
+	                case 'hour':
+	                    amount = 30;
+	                    period = 'minute';
+	                    break;
+	            }
+	            time.centerGlobalDate = time.leftGlobalDate.add(diffPeriod, time.period).add(amount, period);
 	            time.centerGlobal = time.centerGlobalDate.valueOf();
 	        }
 	        else {
@@ -6056,20 +6079,19 @@
 	    function generateAllDates(time, levels, chartWidth) {
 	        if (!time.zoom)
 	            return 0;
-	        time.allDates = [];
+	        time.allDates = new Array(levels.length);
+	        // first of all we need to generate main dates because plugins may use it (HideWeekends for example)
+	        const mainLevel = levels[time.level];
+	        const formatting = mainLevel.formats.find(format => +time.zoom <= +format.zoomTo);
+	        time.allDates[time.level] = generatePeriodDates(formatting, time, mainLevel, time.level);
 	        let levelIndex = 0;
 	        for (const level of levels) {
-	            const formatting = level.formats.find(format => +time.zoom <= +format.zoomTo);
-	            let dates = generatePeriodDates(formatting, time, level, levelIndex);
-	            time.onLevelDates.forEach(onLevelDates => {
-	                dates = onLevelDates(dates, formatting, time, level, levelIndex);
-	            });
-	            time.allDates.push(dates);
+	            if (!level.main) {
+	                const formatting = level.formats.find(format => +time.zoom <= +format.zoomTo);
+	                time.allDates[levelIndex] = generatePeriodDates(formatting, time, level, levelIndex);
+	            }
 	            levelIndex++;
 	        }
-	        time.onAllLevelDates.forEach(onAllLevelDates => {
-	            time.allDates = onAllLevelDates(time.allDates, time);
-	        });
 	        return calculateDatesPercents(time.allDates[time.level], chartWidth);
 	    }
 	    function getPeriodDates(allLevelDates, time) {
@@ -6087,12 +6109,6 @@
 	        if (filtered[0].period !== time.period && time.leftGlobal > filtered[0].leftGlobal) {
 	            firstLeftDiff = api.time.getDatesDiffPx(time.leftGlobalDate, filtered[0].leftGlobalDate, time);
 	        }
-	        console.log({
-	            firstLeftDiff,
-	            period: filtered[0].period,
-	            firstLeft: filtered[0].leftGlobal,
-	            timeLeft: time.leftGlobal
-	        });
 	        let leftPx = 0;
 	        return filtered.map(date => {
 	            date.currentView = {
@@ -6114,15 +6130,15 @@
 	        time.levels = [];
 	        let levelIndex = 0;
 	        for (const level of levels) {
-	            const formatting = level.formats.find(format => +time.zoom <= +format.zoomTo);
+	            const format = level.formats.find(format => +time.zoom <= +format.zoomTo);
 	            if (level.main) {
-	                time.format = formatting;
+	                time.format = format;
 	                time.level = levelIndex;
 	            }
-	            if (formatting) {
+	            if (format) {
 	                let dates = getPeriodDates(time.allDates[levelIndex], time);
 	                time.onCurrentViewLevelDates.forEach(onCurrentViewLevelDates => {
-	                    dates = onCurrentViewLevelDates(dates, formatting, time, level, levelIndex);
+	                    dates = onCurrentViewLevelDates({ dates, format, time, level, levelIndex });
 	                });
 	                time.levels.push(dates);
 	            }
@@ -6153,10 +6169,7 @@
 	        }
 	        return rightGlobal;
 	    }
-	    let working = false;
 	    function recalculateTimes(reason) {
-	        if (working)
-	            return;
 	        const chartWidth = state.get('_internal.chart.dimensions.width');
 	        if (!chartWidth)
 	            return;
@@ -6200,7 +6213,7 @@
 	            time.timePerPixel = time.totalViewDurationMs / chartWidth;
 	            time.zoom = Math.log(time.timePerPixel) / Math.log(2);
 	            guessPeriod(time, calendar.levels);
-	            if (oldTime.zoom !== time.zoom || time.allDates.length === 0 || time.forceUpdate) {
+	            if (oldTime.zoom !== time.zoom || time.allDates.length === 0 || reason.name === 'forceUpdate') {
 	                scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
 	                calculateTotalViewDuration(time);
 	                const all = time.allDates[time.level];
@@ -6214,7 +6227,7 @@
 	        else {
 	            time.timePerPixel = Math.pow(2, time.zoom);
 	            time = api.time.recalculateFromTo(time);
-	            if (oldTime.zoom !== time.zoom || time.allDates.length === 0 || time.forceUpdate) {
+	            if (oldTime.zoom !== time.zoom || time.allDates.length === 0 || reason.name === 'forceUpdate') {
 	                scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
 	                calculateTotalViewDuration(time);
 	                const all = time.allDates[time.level];
@@ -6225,8 +6238,12 @@
 	                time.totalViewDurationMs = oldTime.totalViewDurationMs;
 	            }
 	        }
-	        if (scrollWidth)
-	            horizontalScroll.area = scrollWidth;
+	        if (scrollWidth) {
+	            time.scrollWidth = scrollWidth;
+	        }
+	        else {
+	            time.scrollWidth = oldTime.scrollWidth;
+	        }
 	        time.finalFromDate = api.time.date(time.finalFrom);
 	        time.finalToDate = api.time.date(time.finalTo);
 	        const allMainDates = time.allDates[mainLevelIndex];
@@ -6251,25 +6268,18 @@
 	                time.rightGlobal = calculateRightGlobal(time.leftGlobal, chartWidth, allMainDates);
 	                time.rightGlobalDate = api.time.date(time.rightGlobal).endOf(time.period);
 	                time.rightGlobal = time.rightGlobalDate.valueOf();
-	                if (allMainDates.length) {
-	                    let date = api.time.findDateAtTime(time.leftGlobal, allMainDates);
-	                    if (!date) {
-	                        date = allMainDates[0];
-	                    }
-	                    horizontalScroll.data = date;
-	                }
 	            }
 	            else {
 	                let date = horizontalScroll.data;
 	                if (!date) {
 	                    date = allMainDates[0];
 	                }
-	                time.leftGlobalDate = date.leftGlobalDate.clone();
+	                time.leftGlobalDate = date.leftGlobalDate;
 	                time.leftGlobal = time.leftGlobalDate.valueOf();
 	                time.rightGlobal = calculateRightGlobal(time.leftGlobal, chartWidth, allMainDates);
 	                time.rightGlobalDate = api.time.date(time.rightGlobal).endOf(time.period);
 	                time.rightGlobal = time.rightGlobal.valueOf();
-	                updateCenter = true;
+	                updateCenter = reason.name === 'scroll';
 	            }
 	        }
 	        limitGlobalAndSetCenter(time, updateCenter, oldTime);
@@ -6296,16 +6306,13 @@
 	            configTime.finalFrom = time.finalFrom;
 	            configTime.finalTo = time.finalTo;
 	            configTime.allDates = time.allDates;
-	            configTime.forceUpdate = false;
 	            return configTime;
 	        });
-	        state.update('config.scroll.horizontal', horizontalScroll);
 	        update().then(() => {
 	            if (!state.get('_internal.loaded.time')) {
 	                state.update('_internal.loaded.time', true);
 	            }
 	        });
-	        working = false;
 	    }
 	    const recalculationTriggerCache = {
 	        initialized: false,
@@ -6337,8 +6344,11 @@
 	            recalculationTriggerCache.initialized = true;
 	            return { name: 'all' };
 	        }
-	        if (configTime.forceUpdate === true)
+	        if (configTime.forceUpdate === true) {
+	            // prevent infinite loop because recalculate will not update this value while other things were changed
+	            state.update('config.chart.time.forceUpdate', false);
 	            return { name: 'forceUpdate' };
+	        }
 	        if (configTime.zoom !== cache.zoom)
 	            return { name: 'zoom', oldValue: cache.zoom, newValue: configTime.zoom };
 	        if (configTime.period !== cache.period)
@@ -6558,6 +6568,8 @@
 	            dataIndex = 0;
 	        }
 	        const date = allDates[dataIndex];
+	        if (!date)
+	            return;
 	        const horizontal = state.get('config.scroll.horizontal');
 	        if (horizontal.data && horizontal.data.leftGlobal === date.leftGlobal)
 	            return;
@@ -6581,6 +6593,32 @@
 	            scrollVertical.dataIndex = dataIndex;
 	            return scrollVertical;
 	        });
+	    }
+	    if (props.type === 'horizontal') {
+	        let lastDataIndex = 0;
+	        let timeWorking = false;
+	        onDestroy(state.subscribe('_internal.chart.time', time => {
+	            if (timeWorking)
+	                return;
+	            timeWorking = true;
+	            const horizontal = state.get('config.scroll.horizontal');
+	            if (horizontal.area !== time.scrollWidth) {
+	                state.update('config.scroll.horizontal.area', time.scrollWidth);
+	            }
+	            if (time.allDates && time.allDates[time.level]) {
+	                const dates = time.allDates[time.level];
+	                const date = dates.find(date => date.leftGlobal === time.leftGlobal);
+	                const dataIndex = dates.indexOf(date);
+	                if (dataIndex !== lastDataIndex) {
+	                    // console.log('center', time.centerGlobalDate.format('YYYY-MM-DD HH:mm'));
+	                    // console.log('left', time.leftGlobalDate.format('YYYY-MM-DD HH:mm'));
+	                    // console.log('right', time.rightGlobalDate.format('YYYY-MM-DD HH:mm'));
+	                    setScrollLeft(dataIndex);
+	                }
+	                lastDataIndex = dataIndex;
+	            }
+	            timeWorking = false;
+	        }));
 	    }
 	    const cache = {
 	        maxPosPx: 0,
@@ -6686,9 +6724,13 @@
 	        update();
 	        working = false;
 	    }));
+	    let oldPos = 0;
 	    onDestroy(state.subscribe(`config.scroll.${props.type}.posPx`, position => {
-	        styleMapInner.style[offsetProp] = position + 'px';
-	        update();
+	        if (position !== oldPos) {
+	            styleMapInner.style[offsetProp] = position + 'px';
+	            update();
+	            oldPos = position;
+	        }
 	    }));
 	    class OuterAction extends Action$1 {
 	        constructor(element) {
@@ -6728,6 +6770,8 @@
 	                return;
 	            if (props.type === 'horizontal' && allDates && allDates.length) {
 	                const date = allDates[dataIndex];
+	                if (!date)
+	                    return;
 	                const pos = Math.round(date.leftPercent * (invSize - sub));
 	                this.currentPos = pos;
 	                update();
@@ -8854,9 +8898,7 @@
 	                rightGlobal: 0,
 	                levels: [],
 	                calculatedZoomMode: false,
-	                onLevelDate: [],
 	                onLevelDates: [],
-	                onAllLevelDates: [],
 	                onCurrentViewLevelDates: [],
 	                allDates: []
 	            },
@@ -9186,23 +9228,14 @@
 	        let firstMatching;
 	        // find first date that is after milliseconds
 	        for (let i = 0, len = levelDates.length; i < len; i++) {
-	            const date = levelDates[i];
-	            if (date.rightGlobal >= milliseconds) {
+	            const currentDate = levelDates[i];
+	            if (currentDate.rightGlobal >= milliseconds) {
 	                firstMatching = levelDates[i];
 	                break;
 	            }
 	        }
 	        if (firstMatching) {
-	            let localDiffMs = milliseconds - firstMatching.leftGlobal;
-	            // if dates are skipped localDiffMs may be long as couple of periods
-	            // and after subtraction will land couple of periods to early
-	            // we need to define those periods and subtract them from localDiffMs
-	            const missingPeriods = Math.floor(firstMatching.leftGlobalDate.startOf(period).diff(date.startOf(period), period, true));
-	            if (missingPeriods) {
-	                localDiffMs = date.add(missingPeriods, period).valueOf() - firstMatching.leftGlobal;
-	            }
-	            const localDiffPx = Math.round(localDiffMs / time.timePerPixel);
-	            return firstMatching.currentView.leftPx + localDiffPx;
+	            return firstMatching.currentView.leftPx;
 	        }
 	        else {
 	            // date is out of the current scope (view)
@@ -9227,13 +9260,16 @@
 	        const date = this.findDateAtTime(milliseconds, time.allDates[time.level]);
 	        return Math.round(scroll.maxPosPx * date.leftPercent);
 	    }
+	    getCurrentFormatForLevel(level, time) {
+	        return level.formats.find(format => +time.zoom <= +format.zoomTo);
+	    }
 	    generatePeriodDates({ leftDate, rightDate, period, level, levelIndex, time }) {
 	        if (!time.timePerPixel)
 	            return [];
 	        let leftPx = 0;
 	        const diff = Math.ceil(rightDate.diff(leftDate, period, true));
 	        const currentDate = this.date().startOf(period);
-	        const dates = [];
+	        let dates = [];
 	        for (let i = 0; i < diff; i++) {
 	            const rightGlobalDate = leftDate.endOf(period);
 	            let date = {
@@ -9250,9 +9286,6 @@
 	                previous: leftDate.add(1, period).valueOf() === currentDate.valueOf(),
 	                next: leftDate.subtract(1, period).valueOf() === currentDate.valueOf()
 	            };
-	            for (let i = 0, len = time.onLevelDate.length; i < len; i++) {
-	                date = time.onLevelDate[i](date, period, level, levelIndex);
-	            }
 	            const diffMs = date.rightGlobal - date.leftGlobal;
 	            date.width = diffMs / time.timePerPixel;
 	            date.leftPx = leftPx;
@@ -9260,6 +9293,10 @@
 	            date.rightPx = leftPx;
 	            dates.push(date);
 	            leftDate = leftDate.add(1, period); // 'startOf' will cause bug here on summertime change
+	        }
+	        const format = this.getCurrentFormatForLevel(level, time);
+	        for (let i = 0, len = time.onLevelDates.length; i < len; i++) {
+	            dates = time.onLevelDates[i]({ dates, format, time, level, levelIndex });
 	        }
 	        return dates;
 	    }
@@ -9278,6 +9315,7 @@
 	            toTime = initialFrom;
 	            inverse = true;
 	        }
+	        let dates = [];
 	        if (fromTime.valueOf() < mainDates[0].leftGlobal) {
 	            // we need to generate some dates before
 	            const period = mainDates[0].period;
@@ -9291,27 +9329,16 @@
 	                levelIndex,
 	                time
 	            });
-	            for (const date of beforeDates) {
-	                width += date.width;
-	            }
+	            dates = beforeDates;
 	        }
-	        for (const mainDate of mainDates) {
-	            if (mainDate.leftGlobal >= fromTime.valueOf()) {
-	                startCounting = true;
-	            }
-	            if (mainDate.rightGlobal >= toTime.valueOf()) {
-	                break;
-	            }
-	            if (startCounting)
-	                width += mainDate.width;
-	        }
+	        dates = [...dates, ...mainDates];
 	        const endOfDates = mainDates[mainDates.length - 1].leftGlobalDate;
 	        if (toTime.valueOf() > endOfDates.valueOf()) {
 	            // we need to generate some dates after
 	            const period = mainDates[0].period;
 	            const levelIndex = time.level;
 	            const level = this.state.get(`config.chart.calendar.levels.${levelIndex}`);
-	            const beforeDates = this.generatePeriodDates({
+	            const afterDates = this.generatePeriodDates({
 	                leftDate: toTime,
 	                rightDate: endOfDates,
 	                period,
@@ -9319,9 +9346,23 @@
 	                levelIndex,
 	                time
 	            });
-	            for (const date of beforeDates) {
-	                width += date.width;
+	            dates = [...dates, ...afterDates];
+	        }
+	        // we have all dates collected with those missing ones
+	        const level = this.state.get(`config.chart.calendar.levels.${time.level}`);
+	        const format = this.getCurrentFormatForLevel(level, time);
+	        for (const onLevelDates of time.onLevelDates) {
+	            dates = onLevelDates({ dates, time, format, level, levelIndex: time.level });
+	        }
+	        for (const date of dates) {
+	            if (date.leftGlobal >= fromTime.valueOf()) {
+	                startCounting = true;
 	            }
+	            if (date.rightGlobal >= toTime.valueOf()) {
+	                break;
+	            }
+	            if (startCounting)
+	                width += date.width;
 	        }
 	        return inverse ? -width : width;
 	    }

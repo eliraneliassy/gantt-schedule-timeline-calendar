@@ -153,18 +153,18 @@
       let selectionApi;
       const config = {
         plugins: [
-          // ItemMovement({
-          //   moveable: true,
-          //   resizeable: true,
-          //   collisionDetection: true
-          // }),
-          // Selection({
-          //   selected(data, type) {
-          //     console.log(data, type);
-          //   }
-          // }),
-          //CalendarScroll(),
-          //WeekendHighlight()
+          ItemMovement({
+            moveable: true,
+            resizeable: true,
+            collisionDetection: true
+          }),
+          Selection({
+            selected(data, type) {
+              console.log(data, type);
+            }
+          }),
+          CalendarScroll(),
+          WeekendHighlight()
         ],
         height: 623,
         list: {

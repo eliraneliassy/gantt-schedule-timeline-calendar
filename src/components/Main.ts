@@ -10,15 +10,12 @@
 
 import ResizeObserver from 'resize-observer-polyfill';
 import {
-  ChartCalendarAdditionalSpace,
   ChartTime,
   ChartInternalTime,
-  Period,
   ChartInternalTimeLevel,
   ChartCalendar,
   ChartInternalTimeLevelDate,
   ChartCalendarLevel,
-  ChartTimeOnLevelDate,
   ChartTimeDate,
   ChartTimeDates,
   ChartCalendarFormat,
@@ -26,9 +23,10 @@ import {
   ScrollTypeHorizontal,
   ScrollType
 } from '../types';
+import { OpUnitType } from 'dayjs';
 
 export default function Main(vido, props = {}) {
-  const { api, state, onDestroy, Actions, update, createComponent, html, StyleMap, schedule } = vido;
+  const { api, state, onDestroy, Actions, update, createComponent, html, StyleMap } = vido;
   const componentName = api.name;
 
   // Initialize plugins
@@ -311,8 +309,32 @@ export default function Main(vido, props = {}) {
     time.rightGlobalDate = api.time.date(time.rightGlobal).endOf(time.period);
     time.rightGlobal = time.rightGlobalDate.valueOf();
     if (updateCenter) {
-      time.centerGlobal = time.leftGlobal + Math.round((time.rightGlobal - time.leftGlobal) / 2);
-      time.centerGlobalDate = api.time.date(time.centerGlobal);
+      const diffPeriod = Math.floor(time.rightGlobalDate.diff(time.leftGlobalDate, time.period, true) / 2);
+      let amount = 0,
+        period = 'day';
+      switch (time.period) {
+        case 'year':
+          amount = 6;
+          period = 'month';
+          break;
+        case 'month':
+          amount = 15;
+          period = 'day';
+          break;
+        case 'week':
+          amount = 3;
+          period = 'day';
+          break;
+        case 'day':
+          amount = 12;
+          period = 'hour';
+          break;
+        case 'hour':
+          amount = 30;
+          period = 'minute';
+          break;
+      }
+      time.centerGlobalDate = time.leftGlobalDate.add(diffPeriod, time.period).add(amount, period as OpUnitType);
       time.centerGlobal = time.centerGlobalDate.valueOf();
     } else {
       time.centerGlobal = oldTime.centerGlobal;
@@ -348,20 +370,21 @@ export default function Main(vido, props = {}) {
 
   function generateAllDates(time: ChartInternalTime, levels: ChartCalendarLevel[], chartWidth: number): number {
     if (!time.zoom) return 0;
-    time.allDates = [];
+    time.allDates = new Array(levels.length);
+
+    // first of all we need to generate main dates because plugins may use it (HideWeekends for example)
+    const mainLevel = levels[time.level];
+    const formatting = mainLevel.formats.find(format => +time.zoom <= +format.zoomTo);
+    time.allDates[time.level] = generatePeriodDates(formatting, time, mainLevel, time.level);
+
     let levelIndex = 0;
     for (const level of levels) {
-      const formatting = level.formats.find(format => +time.zoom <= +format.zoomTo);
-      let dates = generatePeriodDates(formatting, time, level, levelIndex);
-      time.onLevelDates.forEach(onLevelDates => {
-        dates = onLevelDates(dates, formatting, time, level, levelIndex);
-      });
-      time.allDates.push(dates);
+      if (!level.main) {
+        const formatting = level.formats.find(format => +time.zoom <= +format.zoomTo);
+        time.allDates[levelIndex] = generatePeriodDates(formatting, time, level, levelIndex);
+      }
       levelIndex++;
     }
-    time.onAllLevelDates.forEach(onAllLevelDates => {
-      time.allDates = onAllLevelDates(time.allDates, time);
-    });
     return calculateDatesPercents(time.allDates[time.level], chartWidth);
   }
 
@@ -380,12 +403,7 @@ export default function Main(vido, props = {}) {
     if (filtered[0].period !== time.period && time.leftGlobal > filtered[0].leftGlobal) {
       firstLeftDiff = api.time.getDatesDiffPx(time.leftGlobalDate, filtered[0].leftGlobalDate, time);
     }
-    console.log({
-      firstLeftDiff,
-      period: filtered[0].period,
-      firstLeft: filtered[0].leftGlobal,
-      timeLeft: time.leftGlobal
-    });
+
     let leftPx = 0;
     return filtered.map(date => {
       date.currentView = {
@@ -408,15 +426,15 @@ export default function Main(vido, props = {}) {
     time.levels = [];
     let levelIndex = 0;
     for (const level of levels) {
-      const formatting = level.formats.find(format => +time.zoom <= +format.zoomTo);
+      const format = level.formats.find(format => +time.zoom <= +format.zoomTo);
       if (level.main) {
-        time.format = formatting;
+        time.format = format;
         time.level = levelIndex;
       }
-      if (formatting) {
+      if (format) {
         let dates = getPeriodDates(time.allDates[levelIndex], time);
         time.onCurrentViewLevelDates.forEach(onCurrentViewLevelDates => {
-          dates = onCurrentViewLevelDates(dates, formatting, time, level, levelIndex);
+          dates = onCurrentViewLevelDates({ dates, format, time, level, levelIndex });
         });
         time.levels.push(dates);
       }
@@ -453,9 +471,7 @@ export default function Main(vido, props = {}) {
     return rightGlobal;
   }
 
-  let working = false;
   function recalculateTimes(reason) {
-    if (working) return;
     const chartWidth: number = state.get('_internal.chart.dimensions.width');
     if (!chartWidth) return;
     const configTime: ChartTime = state.get('config.chart.time');
@@ -516,7 +532,7 @@ export default function Main(vido, props = {}) {
       time.timePerPixel = time.totalViewDurationMs / chartWidth;
       time.zoom = Math.log(time.timePerPixel) / Math.log(2);
       guessPeriod(time, calendar.levels);
-      if (oldTime.zoom !== time.zoom || time.allDates.length === 0 || time.forceUpdate) {
+      if (oldTime.zoom !== time.zoom || time.allDates.length === 0 || reason.name === 'forceUpdate') {
         scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
         calculateTotalViewDuration(time);
         const all = time.allDates[time.level];
@@ -529,7 +545,7 @@ export default function Main(vido, props = {}) {
     } else {
       time.timePerPixel = Math.pow(2, time.zoom);
       time = api.time.recalculateFromTo(time);
-      if (oldTime.zoom !== time.zoom || time.allDates.length === 0 || time.forceUpdate) {
+      if (oldTime.zoom !== time.zoom || time.allDates.length === 0 || reason.name === 'forceUpdate') {
         scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
         calculateTotalViewDuration(time);
         const all = time.allDates[time.level];
@@ -539,7 +555,12 @@ export default function Main(vido, props = {}) {
         time.totalViewDurationMs = oldTime.totalViewDurationMs;
       }
     }
-    if (scrollWidth) horizontalScroll.area = scrollWidth;
+
+    if (scrollWidth) {
+      time.scrollWidth = scrollWidth;
+    } else {
+      time.scrollWidth = oldTime.scrollWidth;
+    }
 
     time.finalFromDate = api.time.date(time.finalFrom);
     time.finalToDate = api.time.date(time.finalTo);
@@ -568,24 +589,17 @@ export default function Main(vido, props = {}) {
         time.rightGlobal = calculateRightGlobal(time.leftGlobal, chartWidth, allMainDates);
         time.rightGlobalDate = api.time.date(time.rightGlobal).endOf(time.period);
         time.rightGlobal = time.rightGlobalDate.valueOf();
-        if (allMainDates.length) {
-          let date = api.time.findDateAtTime(time.leftGlobal, allMainDates);
-          if (!date) {
-            date = allMainDates[0];
-          }
-          horizontalScroll.data = date;
-        }
       } else {
         let date = horizontalScroll.data;
         if (!date) {
           date = allMainDates[0];
         }
-        time.leftGlobalDate = date.leftGlobalDate.clone();
+        time.leftGlobalDate = date.leftGlobalDate;
         time.leftGlobal = time.leftGlobalDate.valueOf();
         time.rightGlobal = calculateRightGlobal(time.leftGlobal, chartWidth, allMainDates);
         time.rightGlobalDate = api.time.date(time.rightGlobal).endOf(time.period);
         time.rightGlobal = time.rightGlobal.valueOf();
-        updateCenter = true;
+        updateCenter = reason.name === 'scroll';
       }
     }
 
@@ -616,16 +630,13 @@ export default function Main(vido, props = {}) {
       configTime.finalFrom = time.finalFrom;
       configTime.finalTo = time.finalTo;
       configTime.allDates = time.allDates;
-      configTime.forceUpdate = false;
       return configTime;
     });
-    state.update('config.scroll.horizontal', horizontalScroll);
     update().then(() => {
       if (!state.get('_internal.loaded.time')) {
         state.update('_internal.loaded.time', true);
       }
     });
-    working = false;
   }
 
   const recalculationTriggerCache = {
@@ -658,7 +669,11 @@ export default function Main(vido, props = {}) {
       recalculationTriggerCache.initialized = true;
       return { name: 'all' };
     }
-    if (configTime.forceUpdate === true) return { name: 'forceUpdate' };
+    if (configTime.forceUpdate === true) {
+      // prevent infinite loop because recalculate will not update this value while other things were changed
+      state.update('config.chart.time.forceUpdate', false);
+      return { name: 'forceUpdate' };
+    }
     if (configTime.zoom !== cache.zoom) return { name: 'zoom', oldValue: cache.zoom, newValue: configTime.zoom };
     if (configTime.period !== cache.period)
       return { name: 'period', oldValue: cache.period, newValue: configTime.period };

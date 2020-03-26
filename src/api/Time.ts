@@ -118,25 +118,14 @@ export default class TimeApi {
     let firstMatching;
     // find first date that is after milliseconds
     for (let i = 0, len = levelDates.length; i < len; i++) {
-      const date = levelDates[i];
-      if (date.rightGlobal >= milliseconds) {
+      const currentDate = levelDates[i];
+      if (currentDate.rightGlobal >= milliseconds) {
         firstMatching = levelDates[i];
         break;
       }
     }
     if (firstMatching) {
-      let localDiffMs = milliseconds - firstMatching.leftGlobal;
-      // if dates are skipped localDiffMs may be long as couple of periods
-      // and after subtraction will land couple of periods to early
-      // we need to define those periods and subtract them from localDiffMs
-      const missingPeriods = Math.floor(
-        firstMatching.leftGlobalDate.startOf(period).diff(date.startOf(period), period, true)
-      );
-      if (missingPeriods) {
-        localDiffMs = date.add(missingPeriods, period).valueOf() - firstMatching.leftGlobal;
-      }
-      const localDiffPx = Math.round(localDiffMs / time.timePerPixel);
-      return firstMatching.currentView.leftPx + localDiffPx;
+      return firstMatching.currentView.leftPx;
     } else {
       // date is out of the current scope (view)
       if (date.valueOf() < time.leftGlobal) return 0;
@@ -164,6 +153,10 @@ export default class TimeApi {
     return Math.round(scroll.maxPosPx * date.leftPercent);
   }
 
+  public getCurrentFormatForLevel(level: ChartCalendarLevel, time: ChartInternalTime) {
+    return level.formats.find(format => +time.zoom <= +format.zoomTo);
+  }
+
   public generatePeriodDates({
     leftDate,
     rightDate,
@@ -183,7 +176,7 @@ export default class TimeApi {
     let leftPx = 0;
     const diff = Math.ceil(rightDate.diff(leftDate, period, true));
     const currentDate = this.date().startOf(period);
-    const dates = [];
+    let dates = [];
     for (let i = 0; i < diff; i++) {
       const rightGlobalDate = leftDate.endOf(period);
       let date: ChartInternalTimeLevelDate = {
@@ -200,9 +193,6 @@ export default class TimeApi {
         previous: leftDate.add(1, period).valueOf() === currentDate.valueOf(),
         next: leftDate.subtract(1, period).valueOf() === currentDate.valueOf()
       };
-      for (let i = 0, len = time.onLevelDate.length; i < len; i++) {
-        date = time.onLevelDate[i](date, period, level, levelIndex);
-      }
       const diffMs = date.rightGlobal - date.leftGlobal;
       date.width = diffMs / time.timePerPixel;
       date.leftPx = leftPx;
@@ -210,6 +200,10 @@ export default class TimeApi {
       date.rightPx = leftPx;
       dates.push(date);
       leftDate = leftDate.add(1, period); // 'startOf' will cause bug here on summertime change
+    }
+    const format = this.getCurrentFormatForLevel(level, time);
+    for (let i = 0, len = time.onLevelDates.length; i < len; i++) {
+      dates = time.onLevelDates[i]({ dates, format, time, level, levelIndex });
     }
     return dates;
   }
@@ -227,6 +221,8 @@ export default class TimeApi {
       toTime = initialFrom;
       inverse = true;
     }
+
+    let dates = [];
     if (fromTime.valueOf() < mainDates[0].leftGlobal) {
       // we need to generate some dates before
       const period = mainDates[0].period;
@@ -240,28 +236,16 @@ export default class TimeApi {
         levelIndex,
         time
       });
-      for (const date of beforeDates) {
-        width += date.width;
-      }
+      dates = beforeDates;
     }
-
-    for (const mainDate of mainDates) {
-      if (mainDate.leftGlobal >= fromTime.valueOf()) {
-        startCounting = true;
-      }
-      if (mainDate.rightGlobal >= toTime.valueOf()) {
-        break;
-      }
-      if (startCounting) width += mainDate.width;
-    }
-
+    dates = [...dates, ...mainDates];
     const endOfDates = mainDates[mainDates.length - 1].leftGlobalDate;
     if (toTime.valueOf() > endOfDates.valueOf()) {
       // we need to generate some dates after
       const period = mainDates[0].period;
       const levelIndex = time.level;
       const level = this.state.get(`config.chart.calendar.levels.${levelIndex}`) as ChartCalendarLevel;
-      const beforeDates = this.generatePeriodDates({
+      const afterDates = this.generatePeriodDates({
         leftDate: toTime,
         rightDate: endOfDates,
         period,
@@ -269,9 +253,24 @@ export default class TimeApi {
         levelIndex,
         time
       });
-      for (const date of beforeDates) {
-        width += date.width;
+      dates = [...dates, ...afterDates];
+    }
+
+    // we have all dates collected with those missing ones
+    const level = this.state.get(`config.chart.calendar.levels.${time.level}`);
+    const format = this.getCurrentFormatForLevel(level, time);
+    for (const onLevelDates of time.onLevelDates) {
+      dates = onLevelDates({ dates, time, format, level, levelIndex: time.level });
+    }
+
+    for (const date of dates) {
+      if (date.leftGlobal >= fromTime.valueOf()) {
+        startCounting = true;
       }
+      if (date.rightGlobal >= toTime.valueOf()) {
+        break;
+      }
+      if (startCounting) width += date.width;
     }
     return inverse ? -width : width;
   }
