@@ -76,7 +76,7 @@ export default function ScrollBar(vido, props) {
     return fullSize;
   }
 
-  function setScrollLeft(dataIndex: number | undefined) {
+  function setScrollLeft(dataIndex: number | undefined, queue = false) {
     if (dataIndex === undefined) {
       dataIndex = 0;
     }
@@ -84,12 +84,16 @@ export default function ScrollBar(vido, props) {
     if (!date) return;
     const horizontal: ScrollTypeHorizontal = state.get('config.scroll.horizontal');
     if (horizontal.data && horizontal.data.leftGlobal === date.leftGlobal) return;
-    state.update('config.scroll.horizontal', (scrollHorizontal: ScrollTypeHorizontal) => {
-      scrollHorizontal.data = date;
-      scrollHorizontal.posPx = Math.round(dataIndex * itemWidth);
-      scrollHorizontal.dataIndex = dataIndex;
-      return scrollHorizontal;
-    });
+    state.update(
+      'config.scroll.horizontal',
+      (scrollHorizontal: ScrollTypeHorizontal) => {
+        scrollHorizontal.data = date;
+        scrollHorizontal.posPx = Math.round(dataIndex * itemWidth);
+        scrollHorizontal.dataIndex = dataIndex;
+        return scrollHorizontal;
+      },
+      { queue: true }
+    );
   }
 
   function setScrollTop(dataIndex: number | undefined): number {
@@ -108,29 +112,32 @@ export default function ScrollBar(vido, props) {
 
   if (props.type === 'horizontal') {
     let lastDataIndex = 0;
-    let timeWorking = false;
     onDestroy(
-      state.subscribe('_internal.chart.time', time => {
-        if (timeWorking) return;
-        timeWorking = true;
-        const horizontal = state.get('config.scroll.horizontal');
-        if (horizontal.area !== time.scrollWidth) {
-          state.update('config.scroll.horizontal.area', time.scrollWidth);
-        }
-        if (time.allDates && time.allDates[time.level]) {
-          const dates = time.allDates[time.level];
-          const date = dates.find(date => date.leftGlobal === time.leftGlobal);
-          const dataIndex = dates.indexOf(date);
-          if (dataIndex !== lastDataIndex) {
-            // console.log('center', time.centerGlobalDate.format('YYYY-MM-DD HH:mm'));
-            // console.log('left', time.leftGlobalDate.format('YYYY-MM-DD HH:mm'));
-            // console.log('right', time.rightGlobalDate.format('YYYY-MM-DD HH:mm'));
-            setScrollLeft(dataIndex);
+      state.subscribe(
+        '_internal.chart.time',
+        () => {
+          const time = state.get('_internal.chart.time');
+          if (!time.leftGlobalDate) return;
+          const horizontal = state.get('config.scroll.horizontal');
+          if (horizontal.area !== time.scrollWidth) {
+            state.update('config.scroll.horizontal.area', time.scrollWidth);
           }
-          lastDataIndex = dataIndex;
-        }
-        timeWorking = false;
-      })
+          if (time.allDates && time.allDates[time.level]) {
+            const dates = time.allDates[time.level];
+            const date = dates.find(date => date.leftGlobal === time.leftGlobal);
+            let dataIndex = dates.indexOf(date);
+            const lastPageCount = state.get('config.scroll.horizontal.lastPageCount');
+            if (dataIndex > dates.length - lastPageCount) {
+              dataIndex = dates.length - lastPageCount;
+            }
+            if (dataIndex !== lastDataIndex) {
+              setScrollLeft(dataIndex);
+            }
+            lastDataIndex = dataIndex;
+          }
+        },
+        { queue: true }
+      )
     );
   }
 
@@ -236,7 +243,8 @@ export default function ScrollBar(vido, props) {
         }
         update();
         working = false;
-      }
+      },
+      { queue: true }
     )
   );
 

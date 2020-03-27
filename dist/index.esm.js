@@ -6003,7 +6003,7 @@ function Main(vido, props = {}) {
         });
         state.update('_internal.loadedEventTriggered', true);
     }
-    function limitGlobalAndSetCenter(time, updateCenter = true, oldTime) {
+    function limitGlobalAndSetCenter(time, updateCenter = true, oldTime, reason) {
         if (time.leftGlobal < time.finalFrom)
             time.leftGlobal = time.finalFrom;
         if (time.rightGlobal > time.finalTo)
@@ -6163,6 +6163,7 @@ function Main(vido, props = {}) {
         }
         return rightGlobal;
     }
+    let timeLoadedEventFired = false;
     function recalculateTimes(reason) {
         const chartWidth = state.get('_internal.chart.dimensions.width');
         if (!chartWidth)
@@ -6248,7 +6249,7 @@ function Main(vido, props = {}) {
             // and update scroll left
             // if not then we need to calculate from scroll left
             // because change was triggered by scroll
-            if (time.zoom !== oldTime.zoom && oldTime.centerGlobal) {
+            if ((time.zoom !== oldTime.zoom || reason.name === 'period') && oldTime.centerGlobal) {
                 const chartWidthInMs = chartWidth * time.timePerPixel;
                 const halfChartInMs = Math.round(chartWidthInMs / 2);
                 const diff = Math.ceil(oldTime.centerGlobalDate.diff(oldTime.centerGlobal + halfChartInMs, time.period, true));
@@ -6303,8 +6304,9 @@ function Main(vido, props = {}) {
             return configTime;
         });
         update().then(() => {
-            if (!state.get('_internal.loaded.time')) {
+            if (!timeLoadedEventFired) {
                 state.update('_internal.loaded.time', true);
+                timeLoadedEventFired = true;
             }
         });
     }
@@ -6312,27 +6314,21 @@ function Main(vido, props = {}) {
         initialized: false,
         zoom: 0,
         period: '',
-        scrollPosPx: 0,
+        scrollDataIndex: 0,
         chartWidth: 0,
-        leftGlobal: 0,
-        centerGlobal: 0,
-        rightGlobal: 0,
         from: 0,
         to: 0
     };
     function recalculationIsNeeded() {
         const configTime = state.get('config.chart.time');
-        const posPx = state.get('config.scroll.horizontal.posPx');
+        const dataIndex = state.get('config.scroll.horizontal.dataIndex');
         const chartWidth = state.get('_internal.chart.dimensions.width');
         const cache = Object.assign({}, recalculationTriggerCache);
         recalculationTriggerCache.zoom = configTime.zoom;
         recalculationTriggerCache.period = configTime.period;
-        recalculationTriggerCache.leftGlobal = configTime.leftGlobal;
-        recalculationTriggerCache.centerGlobal = configTime.centerGlobal;
-        recalculationTriggerCache.rightGlobal = configTime.rightGlobal;
         recalculationTriggerCache.from = configTime.from;
         recalculationTriggerCache.to = configTime.to;
-        recalculationTriggerCache.scrollPosPx = posPx;
+        recalculationTriggerCache.scrollDataIndex = dataIndex;
         recalculationTriggerCache.chartWidth = chartWidth;
         if (!recalculationTriggerCache.initialized) {
             recalculationTriggerCache.initialized = true;
@@ -6347,18 +6343,12 @@ function Main(vido, props = {}) {
             return { name: 'zoom', oldValue: cache.zoom, newValue: configTime.zoom };
         if (configTime.period !== cache.period)
             return { name: 'period', oldValue: cache.period, newValue: configTime.period };
-        if (configTime.leftGlobal !== cache.leftGlobal)
-            return { name: 'leftGlobal', oldValue: cache.leftGlobal, newValue: configTime.leftGlobal };
-        if (configTime.centerGlobal !== cache.centerGlobal)
-            return { name: 'centerGlobal', oldValue: cache.centerGlobal, newValue: configTime.centerGlobal };
-        if (configTime.rightGlobal !== cache.rightGlobal)
-            return { name: 'rightGlobal', oldValue: cache.rightGlobal, newValue: configTime.rightGlobal };
         if (configTime.from !== cache.from)
             return { name: 'from', oldValue: cache.from, newValue: configTime.from };
         if (configTime.to !== cache.to)
             return { name: 'to', oldValue: cache.to, newValue: configTime.to };
-        if (posPx !== cache.scrollPosPx)
-            return { name: 'scroll', oldValue: cache.scrollPosPx, newValue: posPx };
+        if (dataIndex !== cache.scrollDataIndex)
+            return { name: 'scroll', oldValue: cache.scrollDataIndex, newValue: dataIndex };
         if (chartWidth !== cache.chartWidth)
             return { name: 'chartWidth', oldValue: cache.chartWidth, newValue: chartWidth };
         return false;
@@ -6366,7 +6356,7 @@ function Main(vido, props = {}) {
     onDestroy(state.subscribeAll([
         'config.chart.time',
         'config.chart.calendar.levels',
-        'config.scroll.horizontal.posPx',
+        'config.scroll.horizontal.dataIndex',
         '_internal.chart.dimensions.width'
     ], () => {
         let reason = recalculationIsNeeded();
@@ -6557,7 +6547,7 @@ function ScrollBar(vido, props) {
         }
         return fullSize;
     }
-    function setScrollLeft(dataIndex) {
+    function setScrollLeft(dataIndex, queue = false) {
         if (dataIndex === undefined) {
             dataIndex = 0;
         }
@@ -6572,7 +6562,7 @@ function ScrollBar(vido, props) {
             scrollHorizontal.posPx = Math.round(dataIndex * itemWidth);
             scrollHorizontal.dataIndex = dataIndex;
             return scrollHorizontal;
-        });
+        }, { queue: true });
     }
     function setScrollTop(dataIndex) {
         if (dataIndex === undefined) {
@@ -6590,11 +6580,10 @@ function ScrollBar(vido, props) {
     }
     if (props.type === 'horizontal') {
         let lastDataIndex = 0;
-        let timeWorking = false;
-        onDestroy(state.subscribe('_internal.chart.time', time => {
-            if (timeWorking)
+        onDestroy(state.subscribe('_internal.chart.time', () => {
+            const time = state.get('_internal.chart.time');
+            if (!time.leftGlobalDate)
                 return;
-            timeWorking = true;
             const horizontal = state.get('config.scroll.horizontal');
             if (horizontal.area !== time.scrollWidth) {
                 state.update('config.scroll.horizontal.area', time.scrollWidth);
@@ -6602,17 +6591,17 @@ function ScrollBar(vido, props) {
             if (time.allDates && time.allDates[time.level]) {
                 const dates = time.allDates[time.level];
                 const date = dates.find(date => date.leftGlobal === time.leftGlobal);
-                const dataIndex = dates.indexOf(date);
+                let dataIndex = dates.indexOf(date);
+                const lastPageCount = state.get('config.scroll.horizontal.lastPageCount');
+                if (dataIndex > dates.length - lastPageCount) {
+                    dataIndex = dates.length - lastPageCount;
+                }
                 if (dataIndex !== lastDataIndex) {
-                    // console.log('center', time.centerGlobalDate.format('YYYY-MM-DD HH:mm'));
-                    // console.log('left', time.leftGlobalDate.format('YYYY-MM-DD HH:mm'));
-                    // console.log('right', time.rightGlobalDate.format('YYYY-MM-DD HH:mm'));
                     setScrollLeft(dataIndex);
                 }
                 lastDataIndex = dataIndex;
             }
-            timeWorking = false;
-        }));
+        }, { queue: true }));
     }
     const cache = {
         maxPosPx: 0,
@@ -6717,7 +6706,7 @@ function ScrollBar(vido, props) {
         }
         update();
         working = false;
-    }));
+    }, { queue: true }));
     let oldPos = 0;
     onDestroy(state.subscribe(`config.scroll.${props.type}.posPx`, position => {
         if (position !== oldPos) {
@@ -9573,23 +9562,29 @@ const defaultOptions$1 = {
     notRecursive: `;`,
     param: `:`,
     wildcard: `*`,
+    queue: false,
+    maxSimultaneousJobs: 1000,
     log
 };
 const defaultListenerOptions = {
     bulk: false,
     debug: false,
     source: "",
-    data: undefined
+    data: undefined,
+    queue: false
 };
 const defaultUpdateOptions = {
     only: [],
     source: "",
     debug: false,
     data: undefined,
-    updateAfter: false
+    queue: false
 };
 class DeepState {
     constructor(data = {}, options = defaultOptions$1) {
+        this.jobsRunning = 0;
+        this.updateQueue = [];
+        this.subscribeQueue = [];
         this.listeners = new Map();
         this.waitingListeners = new Map();
         this.data = data;
@@ -9811,6 +9806,7 @@ class DeepState {
         return listenersCollection;
     }
     subscribe(listenerPath, fn, options = defaultListenerOptions, type = "subscribe") {
+        this.jobsRunning++;
         let listener = this.getCleanListener(fn, options);
         const listenersCollection = this.getListenersCollection(listenerPath, listener);
         listenersCollection.count++;
@@ -9871,6 +9867,7 @@ class DeepState {
             }
         }
         this.debugSubscribe(listener, listenersCollection, listenerPath);
+        this.jobsRunning--;
         return this.unsubscribe(listenerPath, this.id);
     }
     unsubscribe(path, id) {
@@ -9888,6 +9885,21 @@ class DeepState {
         return ((["number", "string", "undefined", "boolean"].includes(typeof newValue) || newValue === null) &&
             oldValue === newValue);
     }
+    runQueuedListeners() {
+        if (this.subscribeQueue.length === 0)
+            return;
+        const queue = [...this.subscribeQueue];
+        for (let i = 0, len = queue.length; i < len; i++) {
+            const remove = queue[i]();
+            if (remove) {
+                const index = this.subscribeQueue.indexOf(queue[i]);
+                if (index > -1) {
+                    this.subscribeQueue.splice(index, 1);
+                }
+            }
+        }
+        Promise.resolve().then(() => this.runQueuedListeners());
+    }
     notifyListeners(listeners, exclude = [], returnNotified = true) {
         const alreadyNotified = [];
         for (const path in listeners) {
@@ -9896,7 +9908,18 @@ class DeepState {
                 if (exclude.includes(singleListener))
                     continue;
                 const time = this.debugTime(singleListener);
-                singleListener.listener.fn(singleListener.value(), singleListener.eventInfo);
+                if (singleListener.listener.options.queue && this.jobsRunning) {
+                    this.subscribeQueue.push(() => {
+                        if (!this.jobsRunning) {
+                            singleListener.listener.fn(singleListener.value(), singleListener.eventInfo);
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+                else {
+                    singleListener.listener.fn(singleListener.value(), singleListener.eventInfo);
+                }
                 if (returnNotified)
                     alreadyNotified.push(singleListener);
                 this.debugListener(time, singleListener);
@@ -9909,12 +9932,24 @@ class DeepState {
                 for (const bulk of bulkListener.value) {
                     bulkValue.push(Object.assign(Object.assign({}, bulk), { value: bulk.value() }));
                 }
-                bulkListener.listener.fn(bulkValue, bulkListener.eventInfo);
+                if (bulkListener.listener.options.queue && this.jobsRunning) {
+                    this.subscribeQueue.push(() => {
+                        if (!this.jobsRunning) {
+                            bulkListener.listener.fn(bulkValue, bulkListener.eventInfo);
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+                else {
+                    bulkListener.listener.fn(bulkValue, bulkListener.eventInfo);
+                }
                 if (returnNotified)
                     alreadyNotified.push(bulkListener);
                 this.debugListener(time, bulkListener);
             }
         }
+        Promise.resolve().then(() => this.runQueuedListeners());
         return alreadyNotified;
     }
     getSubscribedListeners(updatePath, newValue, options, type = "update", originalPath = null) {
@@ -10154,8 +10189,26 @@ class DeepState {
         for (const path of waitingPaths) {
             this.executeWaitingListeners(path);
         }
+        this.jobsRunning--;
+    }
+    runUpdateQueue() {
+        while (this.updateQueue.length) {
+            const params = this.updateQueue.shift();
+            this.update(params.updatePath, params.fn, params.options);
+        }
     }
     update(updatePath, fn, options = defaultUpdateOptions) {
+        const jobsRunning = this.jobsRunning;
+        if ((this.options.queue || options.queue) && jobsRunning) {
+            if (jobsRunning > this.options.maxSimultaneousJobs) {
+                throw new Error("Maximal simultaneous jobs limit reached.");
+            }
+            this.updateQueue.push({ updatePath, fn, options });
+            return Promise.resolve().then(() => {
+                this.runUpdateQueue();
+            });
+        }
+        this.jobsRunning++;
         if (this.isWildcard(updatePath)) {
             return this.wildcardUpdate(updatePath, fn, options);
         }
@@ -10168,18 +10221,19 @@ class DeepState {
             });
         }
         if (this.same(newValue, oldValue)) {
+            this.jobsRunning--;
             return newValue;
         }
-        if (!options.updateAfter) {
-            this.pathSet(split, newValue, this.data);
-        }
+        this.pathSet(split, newValue, this.data);
         options = Object.assign(Object.assign({}, defaultUpdateOptions), options);
         if (options.only === null) {
+            this.jobsRunning--;
             return newValue;
         }
         if (options.only.length) {
             this.notifyOnly(updatePath, newValue, options);
             this.executeWaitingListeners(updatePath);
+            this.jobsRunning--;
             return newValue;
         }
         const alreadyNotified = this.notifySubscribedListeners(updatePath, newValue, options);
@@ -10187,9 +10241,7 @@ class DeepState {
             this.notifyNestedListeners(updatePath, newValue, options, "update", alreadyNotified);
         }
         this.executeWaitingListeners(updatePath);
-        if (options.updateAfter) {
-            this.pathSet(split, newValue, this.data);
-        }
+        this.jobsRunning--;
         return newValue;
     }
     get(userPath = undefined) {

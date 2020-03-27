@@ -301,7 +301,7 @@ export default function Main(vido, props = {}) {
     state.update('_internal.loadedEventTriggered', true);
   }
 
-  function limitGlobalAndSetCenter(time: ChartInternalTime, updateCenter = true, oldTime: ChartInternalTime) {
+  function limitGlobalAndSetCenter(time: ChartInternalTime, updateCenter = true, oldTime: ChartInternalTime, reason) {
     if (time.leftGlobal < time.finalFrom) time.leftGlobal = time.finalFrom;
     if (time.rightGlobal > time.finalTo) time.rightGlobal = time.finalTo;
     time.leftGlobalDate = api.time.date(time.leftGlobal).startOf(time.period);
@@ -471,7 +471,19 @@ export default function Main(vido, props = {}) {
     return rightGlobal;
   }
 
+  let timeLoadedEventFired = false;
+  let working = false;
   function recalculateTimes(reason) {
+    //if (working && reason.name === 'scroll') return;
+
+    // ^ very important because scroll will
+    // trigger recalculate on zoom change
+    // triggered by updating _internal.chart.time here (somewhere below)
+    // on which scrollbar will update config.scroll.horizontal
+    // which will trigger recalculate times but with wrong config.chart.time (not saved yet)
+    // recalculate times -> _internal.chart.time -> (scrollbar) config.scroll.horizontal -> recalculate times
+
+    working = true;
     const chartWidth: number = state.get('_internal.chart.dimensions.width');
     if (!chartWidth) return;
     const configTime: ChartTime = state.get('config.chart.time');
@@ -576,7 +588,7 @@ export default function Main(vido, props = {}) {
       // if not then we need to calculate from scroll left
       // because change was triggered by scroll
 
-      if (time.zoom !== oldTime.zoom && oldTime.centerGlobal) {
+      if ((time.zoom !== oldTime.zoom || reason.name === 'period') && oldTime.centerGlobal) {
         const chartWidthInMs = chartWidth * time.timePerPixel;
         const halfChartInMs = Math.round(chartWidthInMs / 2);
         const diff = Math.ceil(oldTime.centerGlobalDate.diff(oldTime.centerGlobal + halfChartInMs, time.period, true));
@@ -603,7 +615,7 @@ export default function Main(vido, props = {}) {
       }
     }
 
-    limitGlobalAndSetCenter(time, updateCenter, oldTime);
+    limitGlobalAndSetCenter(time, updateCenter, oldTime, reason);
 
     time.leftInner = time.leftGlobal - time.finalFrom;
     time.rightInner = time.rightGlobal - time.finalFrom;
@@ -633,37 +645,33 @@ export default function Main(vido, props = {}) {
       return configTime;
     });
     update().then(() => {
-      if (!state.get('_internal.loaded.time')) {
+      if (!timeLoadedEventFired) {
         state.update('_internal.loaded.time', true);
+        timeLoadedEventFired = true;
       }
     });
+    working = false;
   }
 
   const recalculationTriggerCache = {
     initialized: false,
     zoom: 0,
     period: '',
-    scrollPosPx: 0,
+    scrollDataIndex: 0,
     chartWidth: 0,
-    leftGlobal: 0,
-    centerGlobal: 0,
-    rightGlobal: 0,
     from: 0,
     to: 0
   };
   function recalculationIsNeeded() {
     const configTime = state.get('config.chart.time');
-    const posPx = state.get('config.scroll.horizontal.posPx');
+    const dataIndex = state.get('config.scroll.horizontal.dataIndex');
     const chartWidth = state.get('_internal.chart.dimensions.width');
     const cache = { ...recalculationTriggerCache };
     recalculationTriggerCache.zoom = configTime.zoom;
     recalculationTriggerCache.period = configTime.period;
-    recalculationTriggerCache.leftGlobal = configTime.leftGlobal;
-    recalculationTriggerCache.centerGlobal = configTime.centerGlobal;
-    recalculationTriggerCache.rightGlobal = configTime.rightGlobal;
     recalculationTriggerCache.from = configTime.from;
     recalculationTriggerCache.to = configTime.to;
-    recalculationTriggerCache.scrollPosPx = posPx;
+    recalculationTriggerCache.scrollDataIndex = dataIndex;
     recalculationTriggerCache.chartWidth = chartWidth;
     if (!recalculationTriggerCache.initialized) {
       recalculationTriggerCache.initialized = true;
@@ -677,15 +685,10 @@ export default function Main(vido, props = {}) {
     if (configTime.zoom !== cache.zoom) return { name: 'zoom', oldValue: cache.zoom, newValue: configTime.zoom };
     if (configTime.period !== cache.period)
       return { name: 'period', oldValue: cache.period, newValue: configTime.period };
-    if (configTime.leftGlobal !== cache.leftGlobal)
-      return { name: 'leftGlobal', oldValue: cache.leftGlobal, newValue: configTime.leftGlobal };
-    if (configTime.centerGlobal !== cache.centerGlobal)
-      return { name: 'centerGlobal', oldValue: cache.centerGlobal, newValue: configTime.centerGlobal };
-    if (configTime.rightGlobal !== cache.rightGlobal)
-      return { name: 'rightGlobal', oldValue: cache.rightGlobal, newValue: configTime.rightGlobal };
     if (configTime.from !== cache.from) return { name: 'from', oldValue: cache.from, newValue: configTime.from };
     if (configTime.to !== cache.to) return { name: 'to', oldValue: cache.to, newValue: configTime.to };
-    if (posPx !== cache.scrollPosPx) return { name: 'scroll', oldValue: cache.scrollPosPx, newValue: posPx };
+    if (dataIndex !== cache.scrollDataIndex)
+      return { name: 'scroll', oldValue: cache.scrollDataIndex, newValue: dataIndex };
     if (chartWidth !== cache.chartWidth)
       return { name: 'chartWidth', oldValue: cache.chartWidth, newValue: chartWidth };
     return false;
@@ -696,7 +699,7 @@ export default function Main(vido, props = {}) {
       [
         'config.chart.time',
         'config.chart.calendar.levels',
-        'config.scroll.horizontal.posPx',
+        'config.scroll.horizontal.dataIndex',
         '_internal.chart.dimensions.width'
       ],
       () => {

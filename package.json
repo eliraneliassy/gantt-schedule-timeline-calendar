@@ -21,7 +21,7 @@
   "dependencies": {
     "@neuronet.io/vido": "^2.5.15",
     "dayjs": "^1.8.23",
-    "deep-state-observer": "^3.3.0",
+    "deep-state-observer": "^3.6.0",
     "pepjs": "^0.5.2",
     "resize-observer-polyfill": "^1.5.1"
   },
