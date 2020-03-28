@@ -6512,12 +6512,10 @@ function ScrollBar(vido, props) {
     const styleMapOuter = new StyleMap({});
     const styleMapInner = new StyleMap({});
     let maxPos = 0;
-    let itemsCount = 0;
     let allDates = [];
     let rows = [];
     let rowsOffsets = [];
     let rowsPercents = [];
-    let itemWidth = 0;
     let innerSize = 0, invSize = 0, invSizeInner = 0, sub = 0;
     function generateRowsOffsets() {
         const len = rows.length;
@@ -6529,7 +6527,7 @@ function ScrollBar(vido, props) {
         for (let i = 0; i < len; i++) {
             const row = rows[i];
             rowsOffsets.push(top);
-            top += row.height;
+            top += row.outerHeight;
         }
         const verticalHeight = state.get('config.scroll.vertical.area');
         for (const offsetTop of rowsOffsets) {
@@ -6580,7 +6578,7 @@ function ScrollBar(vido, props) {
             return;
         state.update('config.scroll.vertical', (scrollVertical) => {
             scrollVertical.data = rows[dataIndex];
-            scrollVertical.posPx = scrollVertical.data.top;
+            scrollVertical.posPx = rowsPercents[dataIndex] * (scrollVertical.maxPosPx - scrollVertical.innerSize);
             scrollVertical.dataIndex = dataIndex;
             return scrollVertical;
         });
@@ -6654,7 +6652,6 @@ function ScrollBar(vido, props) {
         if (props.type === 'horizontal') {
             if (time.allDates && time.allDates[time.level]) {
                 allDates = time.allDates[time.level];
-                itemsCount = allDates.length;
             }
             else {
                 allDates = [];
@@ -6669,7 +6666,6 @@ function ScrollBar(vido, props) {
                 rows = [];
             }
             if (rows.length) {
-                itemsCount = rows.length;
                 generateRowsOffsets();
             }
             else {
@@ -6697,7 +6693,6 @@ function ScrollBar(vido, props) {
         }
         styleMapInner.style[invSizeProp] = innerSize + 'px';
         maxPos = Math.round(invSize - sub);
-        itemWidth = (invSize - innerSize) / (itemsCount - scroll.lastPageCount);
         if (shouldUpdate(maxPos, innerSize, sub, invSize)) {
             cache.maxPosPx = maxPos;
             cache.innerSize = innerSize;
