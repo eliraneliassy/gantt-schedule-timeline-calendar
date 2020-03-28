@@ -10665,7 +10665,12 @@ function getInternalApi(state) {
                     leftGlobal = toTime - halfChartTime;
                 }
                 scrollHorizontal.data = this.time.findDateAtTime(leftGlobal, time.allDates[time.level]);
-                scrollHorizontal.dataIndex = time.allDates[time.level].indexOf(scrollHorizontal.data);
+                let dataIndex = time.allDates[time.level].indexOf(scrollHorizontal.data);
+                const max = time.allDates[time.level].length - scrollHorizontal.lastPageCount;
+                if (dataIndex > max) {
+                    dataIndex = max;
+                }
+                scrollHorizontal.dataIndex = dataIndex;
                 scrollHorizontal.posPx = this.time.calculateScrollPosPxFromTime(scrollHorizontal.data.leftGlobal, time, scrollHorizontal);
                 return scrollHorizontal;
             });
