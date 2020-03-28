@@ -82,7 +82,7 @@ export default function ChartTimelineGridRow(vido, props) {
     props = changedProps;
     reuseComponents(rowsBlocksComponents, props.blocks, block => block, GridBlockComponent);
     styleMap.setStyle({});
-    styleMap.style.height = props.row.height + 'px';
+    styleMap.style.height = props.row.outerHeight + 'px';
     styleMap.style.width = props.width + 'px';
     const rows = state.get('config.list.rows');
     for (const parentId of props.row._internal.parents) {

@@ -116,8 +116,8 @@ export default function ListColumnRow(vido, props) {
         const expander = state.get('config.list.expander');
         // @ts-ignore
         styleMap.setStyle({}); // we must reset style because of user specified styling
-        styleMap.style['height'] = row.height + 'px';
-        styleMap.style['--height'] = row.height + 'px';
+        styleMap.style['height'] = row.outerHeight + 'px';
+        styleMap.style['--height'] = row.outerHeight + 'px';
         if (column.expander) {
           styleMap.style['--expander-padding-width'] = expander.padding * (row._internal.parents.length + 1) + 'px';
         }

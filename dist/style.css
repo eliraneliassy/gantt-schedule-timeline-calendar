@@ -413,6 +413,7 @@
 }
 .gantt-schedule-timeline-calendar__chart-timeline-items-row {
   overflow: hidden;
+  position: relative;
   pointer-events: none !important;
   will-change: opacity, height;
   touch-action: none;
@@ -427,11 +428,8 @@
   background: #e74c3c;
   border-radius: 18px;
   color: #fff;
+  line-height: 22px;
   display: flex;
-  height: calc(var(--row-height) - 8px);
-  margin-top: 4px;
-  line-height: calc(var(--row-height) - 18px);
-  will-change: contents;
 }
 .gantt-schedule-timeline-calendar__chart-timeline-items-row-item--left-cut {
   border-top-left-radius: 0px;

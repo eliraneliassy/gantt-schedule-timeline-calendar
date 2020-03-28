@@ -5887,7 +5887,7 @@ function Main(vido, props = {}) {
     function prepareExpanded() {
         const configRows = state.get('config.list.rows');
         const rowsWithParentsExpanded = api.getRowsFromIds(api.getRowsWithParentsExpanded(state.get('_internal.flatTreeMap'), state.get('_internal.flatTreeMapById'), configRows), configRows);
-        rowsHeight = api.getRowsHeight(rowsWithParentsExpanded);
+        rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
         state.update('_internal.list', list => {
             list.rowsHeight = rowsHeight;
             list.rowsWithParentsExpanded = rowsWithParentsExpanded;
@@ -5903,9 +5903,9 @@ function Main(vido, props = {}) {
         let count = 0;
         for (let i = rowsWithParentsExpanded.length - 1; i >= 0; i--) {
             const row = rowsWithParentsExpanded[i];
-            currentHeight += row.height;
+            currentHeight += row.outerHeight;
             if (currentHeight >= innerHeight) {
-                currentHeight = currentHeight - row.height;
+                currentHeight = currentHeight - row.outerHeight;
                 break;
             }
             count++;
@@ -6459,6 +6459,7 @@ function Main(vido, props = {}) {
             }
         }
     }));
+    function onWheel(ev) { }
     function LoadedEventAction() {
         state.update('_internal.loaded.main', true);
     }
@@ -6472,6 +6473,7 @@ function Main(vido, props = {}) {
           class=${className}
           style=${styleMap}
           data-actions=${mainActions}
+          @wheel=${onWheel}
         >
           ${List.html()}${Chart.html()}
         </div>
@@ -7369,8 +7371,8 @@ function ListColumnRow(vido, props) {
             const expander = state.get('config.list.expander');
             // @ts-ignore
             styleMap.setStyle({}); // we must reset style because of user specified styling
-            styleMap.style['height'] = row.height + 'px';
-            styleMap.style['--height'] = row.height + 'px';
+            styleMap.style['height'] = row.outerHeight + 'px';
+            styleMap.style['--height'] = row.outerHeight + 'px';
             if (column.expander) {
                 styleMap.style['--expander-padding-width'] = expander.padding * (row._internal.parents.length + 1) + 'px';
             }
@@ -8209,7 +8211,7 @@ function ChartTimelineGridRow(vido, props) {
         props = changedProps;
         reuseComponents(rowsBlocksComponents, props.blocks, block => block, GridBlockComponent);
         styleMap.setStyle({});
-        styleMap.style.height = props.row.height + 'px';
+        styleMap.style.height = props.row.outerHeight + 'px';
         styleMap.style.width = props.width + 'px';
         const rows = state.get('config.list.rows');
         for (const parentId of props.row._internal.parents) {
@@ -8322,7 +8324,7 @@ const ChartTimelineGridRowBlock = (vido, props) => {
         updateClassName(props.time);
         styleMap.setStyle({});
         styleMap.style.width = (((_b = (_a = props) === null || _a === void 0 ? void 0 : _a.time) === null || _b === void 0 ? void 0 : _b.width) || 0) + 'px';
-        styleMap.style.height = (((_d = (_c = props) === null || _c === void 0 ? void 0 : _c.row) === null || _d === void 0 ? void 0 : _d.height) || 0) + 'px';
+        styleMap.style.height = (((_d = (_c = props) === null || _c === void 0 ? void 0 : _c.row) === null || _d === void 0 ? void 0 : _d.outerHeight) || 0) + 'px';
         const rows = state.get('config.list.rows');
         for (const parentId of props.row._internal.parents) {
             const parent = rows[parentId];
@@ -8448,8 +8450,8 @@ const ChartTimelineItemsRow = (vido, props) => {
             shouldDetach = true;
             return;
         }
-        styleMap.style.height = props.row.height + 'px';
-        styleMap.style['--row-height'] = props.row.height + 'px';
+        styleMap.style.height = props.row.actualHeight + 'px';
+        styleMap.style['--row-height'] = props.row.actualHeight + 'px';
     };
     function updateRow(row) {
         itemsPath = `_internal.flatTreeMapById.${row.id}._internal.items`;
@@ -8555,7 +8557,7 @@ function ChartTimelineItemsRowItem(vido, props) {
     let wrapper;
     onDestroy(state.subscribe('config.wrappers.ChartTimelineItemsRowItem', value => (wrapper = value)));
     let itemLeftPx = 0, itemWidthPx = 0, leave = false, classNameCurrent = '';
-    const styleMap = new StyleMap({ width: '', height: '', left: '' }), leftCutStyleMap = new StyleMap({}), rightCutStyleMap = new StyleMap({}), actionProps = {
+    const styleMap = new StyleMap({ width: '', height: '', left: '', top: '' }), leftCutStyleMap = new StyleMap({}), rightCutStyleMap = new StyleMap({}), actionProps = {
         item: props.item,
         row: props.row,
         left: itemLeftPx,
@@ -8570,8 +8572,8 @@ function ChartTimelineItemsRowItem(vido, props) {
             shouldDetach = true;
             return;
         }
-        itemLeftPx = api.time.getOffsetPxFromDates(api.time.date(props.item.time.start), time.levels[time.level], time.period, time);
-        const itemRightPx = api.time.getOffsetPxFromDates(api.time.date(props.item.time.end), time.levels[time.level], time.period, time);
+        itemLeftPx = api.time.getOffsetPxFromDates(api.time.date(props.item.time.start), time.levels[time.level], time, true);
+        const itemRightPx = api.time.getOffsetPxFromDates(api.time.date(props.item.time.end), time.levels[time.level], time, false);
         itemWidthPx = itemRightPx - itemLeftPx;
         itemWidthPx -= state.get('config.chart.spacing') || 0;
         if (itemWidthPx <= 0) {
@@ -8595,6 +8597,8 @@ function ChartTimelineItemsRowItem(vido, props) {
         }
         const oldWidth = styleMap.style.width;
         const oldLeft = styleMap.style.left;
+        const oldTop = styleMap.style.top;
+        const oldHeight = styleMap.style.height;
         styleMap.setStyle({});
         const inViewPort = api.isItemInViewport(props.item, time.leftGlobal, time.rightGlobal);
         shouldDetach = !inViewPort;
@@ -8602,10 +8606,14 @@ function ChartTimelineItemsRowItem(vido, props) {
             // update style only when visible to prevent browser's recalculate style
             styleMap.style.width = itemWidthPx + 'px';
             styleMap.style.left = itemLeftPx + 'px';
+            styleMap.style.top = props.item.gap.top + props.item.top + 'px';
+            styleMap.style.height = props.item.actualHeight + 'px';
         }
         else {
             styleMap.style.width = oldWidth;
             styleMap.style.left = oldLeft;
+            styleMap.style.top = oldTop;
+            styleMap.style.height = oldHeight;
         }
         const rows = state.get('config.list.rows');
         for (const parentId of props.row._internal.parents) {
@@ -8818,7 +8826,13 @@ function defaultConfig() {
         },
         list: {
             rows: {},
-            rowHeight: 40,
+            row: {
+                height: 40,
+                gap: {
+                    top: 0,
+                    bottom: 0
+                }
+            },
             columns: {
                 percent: 100,
                 resizer: {
@@ -9060,6 +9074,14 @@ function defaultConfig() {
                     onCreate: []
                 }
             },
+            item: {
+                gap: {
+                    top: 4,
+                    bottom: 4
+                },
+                top: 0,
+                height: 40 - 8
+            },
             items: {},
             spacing: 1
         },
@@ -9206,7 +9228,7 @@ class TimeApi {
     getCenter(time) {
         return time.leftGlobal + (time.rightGlobal - time.leftGlobal) / 2;
     }
-    getOffsetPxFromDates(date, levelDates, period, time) {
+    getOffsetPxFromDates(date, levelDates, time, fromLeft = true) {
         const milliseconds = date.valueOf();
         let firstMatching;
         // find first date that is after milliseconds
@@ -9218,7 +9240,7 @@ class TimeApi {
             }
         }
         if (firstMatching) {
-            return firstMatching.currentView.leftPx;
+            return fromLeft ? firstMatching.currentView.leftPx : firstMatching.currentView.rightPx;
         }
         else {
             // date is out of the current scope (view)
@@ -10412,10 +10434,23 @@ function getInternalApi(state) {
                 (item.time.start <= left && item.time.end >= right));
         },
         prepareItems(items) {
+            const defaultItemHeight = state.get('config.chart.item.height');
             for (const item of items) {
                 item.time.start = +item.time.start;
                 item.time.end = +item.time.end;
                 item.id = String(item.id);
+                if (typeof item.height !== 'number')
+                    item.height = defaultItemHeight;
+                item.actualHeight = item.height;
+                if (typeof item.top !== 'number')
+                    item.top = 0;
+                if (!item.gap)
+                    item.gap = {};
+                if (typeof item.gap.top !== 'number')
+                    item.gap.top = state.get('config.chart.item.gap.top');
+                if (typeof item.gap.bottom !== 'number')
+                    item.gap.bottom = state.get('config.chart.item.gap.bottom');
+                item.outerHeight = item.actualHeight + item.gap.top + item.gap.bottom;
             }
             return items;
         },
@@ -10429,15 +10464,86 @@ function getInternalApi(state) {
                     items: []
                 };
                 if (typeof row.height !== 'number') {
-                    row.height = $state.config.list.rowHeight;
+                    row.height = $state.config.list.row.height;
                 }
+                row.actualHeight = row.height;
                 if (typeof row.expanded !== 'boolean') {
                     row.expanded = false;
                 }
                 row.top = top;
-                top += row.height;
+                if (typeof row.gap !== 'object')
+                    row.gap = {};
+                if (typeof row.gap.top !== 'number')
+                    row.gap.top = 0;
+                if (typeof row.gap.bottom !== 'number')
+                    row.gap.bottom = 0;
+                row.outerHeight = row.actualHeight + row.gap.top + row.gap.bottom;
+                top += row.outerHeight;
             }
             return rows;
+        },
+        itemsOnTheSameLevel(item1, item2) {
+            const item1Bottom = item1.top + item1.outerHeight;
+            const item2Bottom = item2.top + item2.outerHeight;
+            if (item2.top <= item1.top && item2Bottom > item1.top)
+                return true;
+            if (item2.top >= item1.top && item2.top < item1Bottom)
+                return true;
+            if (item2.top >= item1.top && item2Bottom < item1Bottom)
+                return true;
+            return false;
+        },
+        itemsOverlaps(item1, item2) {
+            if (this.itemsOnTheSameLevel(item1, item2)) {
+                if (item2.time.start >= item1.time.start && item2.time.start <= item1.time.end)
+                    return true;
+                if (item2.time.end >= item1.time.start && item2.time.end <= item1.time.end)
+                    return true;
+                if (item2.time.start >= item1.time.start && item2.time.end <= item1.time.end)
+                    return true;
+                if (item2.time.start <= item1.time.start && item2.time.end >= item1.time.end)
+                    return true;
+                return false;
+            }
+            return false;
+        },
+        itemOverlapsWithOthers(item, items) {
+            for (const item2 of items) {
+                if (item.id !== item2.id && this.itemsOverlaps(item, item2))
+                    return true;
+            }
+            return false;
+        },
+        fixOverlappedItems(items) {
+            if (items.length === 0)
+                return;
+            let index = 0;
+            for (let item of items) {
+                if (index && this.itemOverlapsWithOthers(item, items)) {
+                    item.top = 0;
+                    while (this.itemOverlapsWithOthers(item, items)) {
+                        item.top += 1;
+                    }
+                }
+                index++;
+            }
+        },
+        recalculateRowsHeights(rows) {
+            let top = 0;
+            for (const row of rows) {
+                let actualHeight = 0;
+                this.fixOverlappedItems(row._internal.items);
+                for (const item of row._internal.items) {
+                    actualHeight = Math.max(actualHeight, item.top + item.outerHeight);
+                }
+                if (actualHeight < row.height)
+                    actualHeight = row.height;
+                row.actualHeight = actualHeight;
+                row.outerHeight = row.actualHeight + row.gap.top + row.gap.bottom;
+                row.top = top;
+                top += row.outerHeight;
+            }
+            return top;
         },
         generateParents(rows, parentName = 'parentId') {
             const parents = {};
@@ -10593,66 +10699,6 @@ function getInternalApi(state) {
             y *= scale;
             z *= scale;
             return { x, y, z, event };
-        },
-        normalizePointerEvent(event) {
-            const result = { x: 0, y: 0, pageX: 0, pageY: 0, clientX: 0, clientY: 0, screenX: 0, screenY: 0 };
-            switch (event.type) {
-                case 'wheel':
-                    const wheel = this.normalizeMouseWheelEvent(event);
-                    result.x = wheel.x;
-                    result.y = wheel.y;
-                    result.pageX = result.x;
-                    result.pageY = result.y;
-                    result.screenX = result.x;
-                    result.screenY = result.y;
-                    result.clientX = result.x;
-                    result.clientY = result.y;
-                    break;
-                case 'touchstart':
-                case 'touchmove':
-                case 'touchend':
-                case 'touchcancel':
-                    result.x = event.changedTouches[0].screenX;
-                    result.y = event.changedTouches[0].screenY;
-                    result.pageX = event.changedTouches[0].pageX;
-                    result.pageY = event.changedTouches[0].pageY;
-                    result.screenX = event.changedTouches[0].screenX;
-                    result.screenY = event.changedTouches[0].screenY;
-                    result.clientX = event.changedTouches[0].clientX;
-                    result.clientY = event.changedTouches[0].clientY;
-                    break;
-                default:
-                    result.x = event.x;
-                    result.y = event.y;
-                    result.pageX = event.pageX;
-                    result.pageY = event.pageY;
-                    result.screenX = event.screenX;
-                    result.screenY = event.screenY;
-                    result.clientX = event.clientX;
-                    result.clientY = event.clientY;
-                    break;
-            }
-            return result;
-        },
-        limitScrollLeft(totalViewDurationPx, chartWidth, scrollLeft) {
-            const width = totalViewDurationPx - chartWidth;
-            if (scrollLeft < 0) {
-                scrollLeft = 0;
-            }
-            else if (scrollLeft > width) {
-                scrollLeft = width;
-            }
-            return Math.round(scrollLeft);
-        },
-        limitScrollTop(rowsHeight, internalHeight, scrollTop) {
-            const height = rowsHeight - internalHeight;
-            if (scrollTop < 0) {
-                scrollTop = 0;
-            }
-            else if (scrollTop > height) {
-                scrollTop = height;
-            }
-            return Math.round(scrollTop);
         },
         time: new TimeApi(state),
         scrollToTime(toTime, centered = true) {

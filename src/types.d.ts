@@ -1,11 +1,22 @@
 import { lithtml } from '@neuronet.io/vido';
 import { Dayjs, OpUnitType } from 'dayjs/index.d';
 
+export interface RowInternal {
+  parents: Row[];
+  children: Row[];
+  items: Item[];
+}
+
 export interface Row {
   id: string;
   parentId?: string;
   expanded?: boolean;
   height?: number;
+  actualHeight?: number;
+  outerHeight?: number;
+  _internal?: RowInternal;
+  top?: number;
+  gap?: RowGap;
 }
 
 export interface Rows {
@@ -22,6 +33,11 @@ export interface Item {
   rowId: string;
   time: ItemTime;
   label: string;
+  height?: number;
+  actualHeight?: number;
+  outerHeight?: number;
+  top?: number;
+  gap?: ItemGap;
 }
 
 export interface Items {
@@ -101,9 +117,20 @@ export interface ListToggle {
   display?: boolean;
   icons?: ListToggleIcons;
 }
+
+export interface RowGap {
+  top?: number;
+  bottom?: number;
+}
+
+export interface ListRow {
+  height?: number;
+  gap?: RowGap;
+}
+
 export interface List {
   rows?: Rows;
-  rowHeight?: number;
+  row?: ListRow;
   columns?: Columns;
   expander?: Expander;
   toggle?: ListToggle;
@@ -287,11 +314,21 @@ export interface ChartGridBlock {
 export interface ChartGrid {
   block?: ChartGridBlock;
 }
+export interface ItemGap {
+  top?: number;
+  bottom?: number;
+}
+export interface DefaultItem {
+  gap?: ItemGap;
+  height?: number;
+  top?: number;
+}
 export interface Chart {
   time?: ChartTime;
   calendar?: ChartCalendar;
   grid?: ChartGrid;
   items?: Items;
+  item?: DefaultItem;
   spacing?: number;
 }
 

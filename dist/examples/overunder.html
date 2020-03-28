@@ -8,14 +8,17 @@
       body {
         font-family: Roboto, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       }
+
       .gantt-shedule-timeline-calendar__chart-gantt-items-row-item-content {
         padding: 0px 5px !important;
         border-radius: 14px;
       }
+
       h1 {
         font-size: 20px;
         line-height: 20px;
       }
+
       .resizing {
         background: rgb(33, 188, 235) !important;
       }
@@ -24,7 +27,7 @@
   </head>
 
   <body>
-    <h1>Gantt Schedule Timeline Calendar example #1</h1>
+    <h1>Over Under example</h1>
     <div>
       <input type="range" min="0" max="100" value="100" id="percent" />
       <input type="range" min="12" max="23" value="20" id="zoom" />
@@ -38,13 +41,11 @@
       <button onclick="replaceData()">replace</button>
     </div>
     <div id="app"></div>
-    <script src="../ItemMovement.plugin.js"></script>
-    <script src="../Selection.plugin.js"></script>
-    <script src="../CalendarScroll.plugin.js"></script>
     <script src="../WeekendHighlight.plugin.js"></script>
-    <script src="../index.umd.js?12345"></script>
+    <script src="../CalendarScroll.plugin.js"></script>
+    <script src="../index.umd.js"></script>
     <script>
-      const iterations = 10000;
+      const iterations = 100;
 
       const pallete = [
         '#E74C3C',
@@ -86,23 +87,57 @@
         let startDayjs = GSTC.api
           .date(startDate)
           .startOf('day')
-          .add(Math.floor(Math.random() * 90), 'days');
+          .add(Math.floor(Math.random() * 90), 'day');
         items[id] = {
           id,
           label: 'item id ' + id,
           time: {
-            start: startDayjs.valueOf(),
+            start: startDayjs.startOf('day').valueOf(),
             end: startDayjs
-              .clone()
-              .add(Math.floor(Math.random() * 10) + 4, 'days')
+              .add(Math.floor(Math.random() * 10) + 4, 'day')
+              .endOf('day')
               .valueOf()
           },
-          progress: 50,
           rowId,
-          lines: i > 0 && i % 2 === 0 ? [(i + 1).toString()] : [],
           style: { background: pallete[Math.floor(Math.random() * pallete.length)] }
         };
+        items[id + '-2'] = {
+          id: id + '-2',
+          label: 'item id ' + id + '-2',
+          time: {
+            start: startDayjs
+              .add(Math.floor(Math.random() * 3), 'day')
+              .startOf('day')
+              .valueOf(),
+            end: startDayjs
+              .add(Math.floor(Math.random() * 10) + 4, 'day')
+              .endOf('day')
+              .valueOf()
+          },
+          rowId,
+          style: { background: pallete[Math.floor(Math.random() * pallete.length)] }
+        };
+        if (Math.random() >= 0.5) {
+          items[id + '-3'] = {
+            id: id + '-3',
+            label: 'item id ' + id + '-3',
+            time: {
+              start: startDayjs
+                .add(Math.floor(Math.random() * 6), 'day')
+                .startOf('day')
+                .valueOf(),
+              end: startDayjs
+                .add(Math.floor(Math.random() * 10) + 7, 'day')
+                .endOf('day')
+                .valueOf()
+            },
+            rowId,
+            style: { background: pallete[Math.floor(Math.random() * pallete.length)] }
+          };
+        }
       }
+
+      items['1'].top = 150;
 
       const columns = {
         percent: 100,
@@ -139,47 +174,27 @@
         }
       };
 
-      class ResizingItemClass {
-        update(element, data) {
-          const hasClass = element.classList.contains('resizing');
-          if (data.item.isResizing && !hasClass) {
-            element.classList.add('resizing');
-          } else if (!data.item.isResizing && hasClass) {
-            element.classList.remove('resizing');
-          }
-        }
-      }
-
       let selectionApi;
       const config = {
-        plugins: [WeekendHighlight()],
-        height: 623,
+        plugins: [WeekendHighlight(), CalendarScroll()],
+        height: 500,
         list: {
           rows,
           columns
         },
         chart: {
           items
-        },
-        classNames: {},
-        actions: {
-          'chart-timeline-items-row-item': [ResizingItemClass]
         }
       };
 
       let GSTCState = (window.state = GSTC.api.stateFromConfig(config));
-      GSTCState.subscribe('config.plugin.ItemMovement', itemMovement => {
-        if (!itemMovement || !itemMovement.item) return;
-        state.update(`config.chart.items.${itemMovement.item.id}.isResizing`, itemMovement.item.resizing);
-      });
-
       GSTCState.subscribe('_internal.chart.time.format.period', period => {
-        //document.getElementById('period').innerText = period;
+        document.getElementById('period').innerText = period;
       });
 
       const element = document.getElementById('app');
       element.addEventListener('gstc-loaded', () => {
-        //gstc.api.scrollToTime(new Date().getTime());
+        gstc.api.scrollToTime(new Date().getTime());
       });
       const gstc = GSTC({
         element,

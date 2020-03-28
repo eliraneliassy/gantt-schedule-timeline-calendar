@@ -160,7 +160,7 @@ export default function Main(vido, props = {}) {
       ),
       configRows
     );
-    rowsHeight = api.getRowsHeight(rowsWithParentsExpanded);
+    rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
     state.update('_internal.list', list => {
       list.rowsHeight = rowsHeight;
       list.rowsWithParentsExpanded = rowsWithParentsExpanded;
@@ -182,9 +182,9 @@ export default function Main(vido, props = {}) {
     let count = 0;
     for (let i = rowsWithParentsExpanded.length - 1; i >= 0; i--) {
       const row = rowsWithParentsExpanded[i];
-      currentHeight += row.height;
+      currentHeight += row.outerHeight;
       if (currentHeight >= innerHeight) {
-        currentHeight = currentHeight - row.height;
+        currentHeight = currentHeight - row.outerHeight;
         break;
       }
       count++;
@@ -472,18 +472,7 @@ export default function Main(vido, props = {}) {
   }
 
   let timeLoadedEventFired = false;
-  let working = false;
   function recalculateTimes(reason) {
-    //if (working && reason.name === 'scroll') return;
-
-    // ^ very important because scroll will
-    // trigger recalculate on zoom change
-    // triggered by updating _internal.chart.time here (somewhere below)
-    // on which scrollbar will update config.scroll.horizontal
-    // which will trigger recalculate times but with wrong config.chart.time (not saved yet)
-    // recalculate times -> _internal.chart.time -> (scrollbar) config.scroll.horizontal -> recalculate times
-
-    working = true;
     const chartWidth: number = state.get('_internal.chart.dimensions.width');
     if (!chartWidth) return;
     const configTime: ChartTime = state.get('config.chart.time');
@@ -650,7 +639,6 @@ export default function Main(vido, props = {}) {
         timeLoadedEventFired = true;
       }
     });
-    working = false;
   }
 
   const recalculationTriggerCache = {
@@ -815,6 +803,8 @@ export default function Main(vido, props = {}) {
     })
   );
 
+  function onWheel(ev) {}
+
   function LoadedEventAction() {
     state.update('_internal.loaded.main', true);
   }
@@ -831,6 +821,7 @@ export default function Main(vido, props = {}) {
           class=${className}
           style=${styleMap}
           data-actions=${mainActions}
+          @wheel=${onWheel}
         >
           ${List.html()}${Chart.html()}
         </div>

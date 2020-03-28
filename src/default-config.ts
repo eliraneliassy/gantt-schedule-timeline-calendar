@@ -163,7 +163,13 @@ function defaultConfig(): Config {
     },
     list: {
       rows: {},
-      rowHeight: 40,
+      row: {
+        height: 40,
+        gap: {
+          top: 0,
+          bottom: 0
+        }
+      },
       columns: {
         percent: 100,
         resizer: {
@@ -431,6 +437,14 @@ function defaultConfig(): Config {
         block: {
           onCreate: []
         }
+      },
+      item: {
+        gap: {
+          top: 4,
+          bottom: 4
+        },
+        top: 0,
+        height: 40 - 8
       },
       items: {},
       spacing: 1

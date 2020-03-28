@@ -357,6 +357,7 @@ $item-content-padding = 5px
         touch-action: none
         &-row
           overflow: hidden
+          position: relative
           pointer-events: none !important
           will-change: opacity, height
           touch-action: none
@@ -371,11 +372,8 @@ $item-content-padding = 5px
             background: #E74C3C
             border-radius: 18px
             color: white
+            line-height: 22px
             display: flex
-            height: calc(var(--row-height) - 8px);
-            margin-top: 4px
-            line-height: calc(var(--row-height) - 18px)
-            will-change: contents
             &--left-cut
               border-top-left-radius: 0px
               border-bottom-left-radius: 0px

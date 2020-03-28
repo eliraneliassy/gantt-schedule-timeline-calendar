@@ -93,7 +93,7 @@ const ChartTimelineGridRowBlock = (vido, props: Props) => {
     updateClassName(props.time);
     styleMap.setStyle({});
     styleMap.style.width = (props?.time?.width || 0) + 'px';
-    styleMap.style.height = (props?.row?.height || 0) + 'px';
+    styleMap.style.height = (props?.row?.outerHeight || 0) + 'px';
     const rows = state.get('config.list.rows');
     for (const parentId of props.row._internal.parents) {
       const parent = rows[parentId];

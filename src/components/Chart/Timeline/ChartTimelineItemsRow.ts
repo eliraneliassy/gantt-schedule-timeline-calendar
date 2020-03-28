@@ -60,8 +60,8 @@ const ChartTimelineItemsRow = (vido, props) => {
       shouldDetach = true;
       return;
     }
-    styleMap.style.height = props.row.height + 'px';
-    styleMap.style['--row-height'] = props.row.height + 'px';
+    styleMap.style.height = props.row.actualHeight + 'px';
+    styleMap.style['--row-height'] = props.row.actualHeight + 'px';
   };
 
   function updateRow(row) {

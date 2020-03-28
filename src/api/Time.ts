@@ -111,8 +111,8 @@ export default class TimeApi {
   public getOffsetPxFromDates(
     date: Dayjs,
     levelDates: ChartInternalTimeLevelDate[],
-    period: Period,
-    time: ChartInternalTime
+    time: ChartInternalTime,
+    fromLeft = true
   ): number {
     const milliseconds = date.valueOf();
     let firstMatching;
@@ -125,7 +125,7 @@ export default class TimeApi {
       }
     }
     if (firstMatching) {
-      return firstMatching.currentView.leftPx;
+      return fromLeft ? firstMatching.currentView.leftPx : firstMatching.currentView.rightPx;
     } else {
       // date is out of the current scope (view)
       if (date.valueOf() < time.leftGlobal) return 0;

@@ -42,7 +42,7 @@ export default function ChartTimelineItemsRowItem(vido, props) {
     itemWidthPx = 0,
     leave = false,
     classNameCurrent = '';
-  const styleMap = new StyleMap({ width: '', height: '', left: '' }),
+  const styleMap = new StyleMap({ width: '', height: '', left: '', top: '' }),
     leftCutStyleMap = new StyleMap({}),
     rightCutStyleMap = new StyleMap({}),
     actionProps = {
@@ -63,14 +63,14 @@ export default function ChartTimelineItemsRowItem(vido, props) {
     itemLeftPx = api.time.getOffsetPxFromDates(
       api.time.date(props.item.time.start),
       time.levels[time.level],
-      time.period,
-      time
+      time,
+      true
     );
     const itemRightPx = api.time.getOffsetPxFromDates(
       api.time.date(props.item.time.end),
       time.levels[time.level],
-      time.period,
-      time
+      time,
+      false
     );
     itemWidthPx = itemRightPx - itemLeftPx;
     itemWidthPx -= state.get('config.chart.spacing') || 0;
@@ -93,6 +93,8 @@ export default function ChartTimelineItemsRowItem(vido, props) {
     }
     const oldWidth = styleMap.style.width;
     const oldLeft = styleMap.style.left;
+    const oldTop = styleMap.style.top;
+    const oldHeight = styleMap.style.height;
     styleMap.setStyle({});
     const inViewPort = api.isItemInViewport(props.item, time.leftGlobal, time.rightGlobal);
     shouldDetach = !inViewPort;
@@ -100,9 +102,13 @@ export default function ChartTimelineItemsRowItem(vido, props) {
       // update style only when visible to prevent browser's recalculate style
       styleMap.style.width = itemWidthPx + 'px';
       styleMap.style.left = itemLeftPx + 'px';
+      styleMap.style.top = props.item.gap.top + props.item.top + 'px';
+      styleMap.style.height = props.item.actualHeight + 'px';
     } else {
       styleMap.style.width = oldWidth;
       styleMap.style.left = oldLeft;
+      styleMap.style.top = oldTop;
+      styleMap.style.height = oldHeight;
     }
     const rows = state.get('config.list.rows');
     for (const parentId of props.row._internal.parents) {
