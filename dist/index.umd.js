@@ -6567,7 +6567,8 @@
 	            return;
 	        state.update('config.scroll.horizontal', (scrollHorizontal) => {
 	            scrollHorizontal.data = date;
-	            scrollHorizontal.posPx = Math.round(dataIndex * itemWidth);
+	            const time = state.get('_internal.chart.time');
+	            scrollHorizontal.posPx = api.time.calculateScrollPosPxFromTime(scrollHorizontal.data.leftGlobal, time, scrollHorizontal);
 	            scrollHorizontal.dataIndex = dataIndex;
 	            return scrollHorizontal;
 	        }, { queue: true });
@@ -6577,11 +6578,15 @@
 	            dataIndex = 0;
 	        }
 	        const vertical = state.get('config.scroll.vertical');
+	        if (!rows[dataIndex]) {
+	            console.error(`no row ${dataIndex}`, rows);
+	            return;
+	        }
 	        if (vertical.data && vertical.data.id === rows[dataIndex].id)
 	            return;
 	        state.update('config.scroll.vertical', (scrollVertical) => {
 	            scrollVertical.data = rows[dataIndex];
-	            scrollVertical.posPx = dataIndex * itemWidth;
+	            scrollVertical.posPx = scrollVertical.data.top;
 	            scrollVertical.dataIndex = dataIndex;
 	            return scrollVertical;
 	        });
@@ -9269,7 +9274,7 @@
 	        if (!time)
 	            time = this.state.get('_internal.chart.time');
 	        const date = this.findDateAtTime(milliseconds, time.allDates[time.level]);
-	        return Math.round(scroll.maxPosPx * date.leftPercent);
+	        return Math.round((scroll.maxPosPx - scroll.innerSize) * date.leftPercent);
 	    }
 	    getCurrentFormatForLevel(level, time) {
 	        return level.formats.find(format => +time.zoom <= +format.zoomTo);
@@ -10709,6 +10714,7 @@
 	        time: new TimeApi(state),
 	        scrollToTime(toTime, centered = true) {
 	            const time = state.get('_internal.chart.time');
+	            let pos = 0;
 	            state.update('config.scroll.horizontal', (scrollHorizontal) => {
 	                let leftGlobal = toTime;
 	                if (centered) {
@@ -10724,8 +10730,13 @@
 	                }
 	                scrollHorizontal.dataIndex = dataIndex;
 	                scrollHorizontal.posPx = this.time.calculateScrollPosPxFromTime(scrollHorizontal.data.leftGlobal, time, scrollHorizontal);
+	                const maxPos = scrollHorizontal.maxPosPx - scrollHorizontal.innerSize;
+	                if (scrollHorizontal.posPx > maxPos)
+	                    scrollHorizontal.posPx = maxPos;
+	                pos = scrollHorizontal.posPx;
 	                return scrollHorizontal;
 	            });
+	            return pos;
 	        },
 	        getSVGIconSrc(svg) {
 	            if (typeof iconsCache[svg] === 'string')

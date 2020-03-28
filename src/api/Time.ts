@@ -150,7 +150,7 @@ export default class TimeApi {
     if (!scroll.maxPosPx) return 0;
     if (!time) time = this.state.get('_internal.chart.time');
     const date: ChartInternalTimeLevelDate = this.findDateAtTime(milliseconds, time.allDates[time.level]);
-    return Math.round(scroll.maxPosPx * date.leftPercent);
+    return Math.round((scroll.maxPosPx - scroll.innerSize) * date.leftPercent);
   }
 
   public getCurrentFormatForLevel(level: ChartCalendarLevel, time: ChartInternalTime) {

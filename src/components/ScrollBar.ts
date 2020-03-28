@@ -88,7 +88,12 @@ export default function ScrollBar(vido, props) {
       'config.scroll.horizontal',
       (scrollHorizontal: ScrollTypeHorizontal) => {
         scrollHorizontal.data = date;
-        scrollHorizontal.posPx = Math.round(dataIndex * itemWidth);
+        const time = state.get('_internal.chart.time');
+        scrollHorizontal.posPx = api.time.calculateScrollPosPxFromTime(
+          scrollHorizontal.data.leftGlobal,
+          time,
+          scrollHorizontal
+        );
         scrollHorizontal.dataIndex = dataIndex;
         return scrollHorizontal;
       },
@@ -101,10 +106,14 @@ export default function ScrollBar(vido, props) {
       dataIndex = 0;
     }
     const vertical: ScrollTypeVertical = state.get('config.scroll.vertical');
+    if (!rows[dataIndex]) {
+      console.error(`no row ${dataIndex}`, rows);
+      return;
+    }
     if (vertical.data && vertical.data.id === rows[dataIndex].id) return;
     state.update('config.scroll.vertical', (scrollVertical: ScrollTypeVertical) => {
       scrollVertical.data = rows[dataIndex];
-      scrollVertical.posPx = dataIndex * itemWidth;
+      scrollVertical.posPx = scrollVertical.data.top;
       scrollVertical.dataIndex = dataIndex;
       return scrollVertical;
     });

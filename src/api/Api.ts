@@ -383,8 +383,9 @@ export function getInternalApi(state) {
 
     time: new TimeApi(state),
 
-    scrollToTime(toTime: number, centered = true) {
+    scrollToTime(toTime: number, centered = true): number {
       const time: ChartInternalTime = state.get('_internal.chart.time');
+      let pos = 0;
       state.update('config.scroll.horizontal', (scrollHorizontal: ScrollTypeHorizontal) => {
         let leftGlobal = toTime;
         if (centered) {
@@ -404,8 +405,12 @@ export function getInternalApi(state) {
           time,
           scrollHorizontal
         );
+        const maxPos = scrollHorizontal.maxPosPx - scrollHorizontal.innerSize;
+        if (scrollHorizontal.posPx > maxPos) scrollHorizontal.posPx = maxPos;
+        pos = scrollHorizontal.posPx;
         return scrollHorizontal;
       });
+      return pos;
     },
 
     getSVGIconSrc(svg) {

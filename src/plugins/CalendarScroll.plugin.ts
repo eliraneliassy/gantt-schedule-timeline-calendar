@@ -8,6 +8,8 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
+import { ScrollTypeHorizontal } from '../types';
+
 export interface Point {
   x: number;
   y: number;
@@ -29,6 +31,7 @@ export default function CalendarScroll(options = defaultOptions) {
     private moving = false;
     private initialPoint: Point;
     private initialDataIndex: Point = { x: 0, y: 0 };
+    private lastPos = 0;
 
     constructor(element: HTMLElement) {
       this.pointerDown = this.pointerDown.bind(this);
@@ -46,10 +49,14 @@ export default function CalendarScroll(options = defaultOptions) {
       document.removeEventListener('pointerup', this.pointerUp);
     }
 
+    private resetInitialPoint(ev: PointerEvent) {
+      this.initialPoint = { x: ev.screenX, y: ev.screenY };
+    }
+
     private pointerDown(ev: PointerEvent) {
       if (!enabled) return;
       this.moving = true;
-      this.initialPoint = { x: ev.screenX, y: ev.screenY };
+      this.resetInitialPoint(ev);
       const scroll = state.get('config.scroll');
       this.initialDataIndex = { x: scroll.horizontal.dataIndex || 0, y: scroll.vertical.dataIndex || 0 };
     }
@@ -65,7 +72,9 @@ export default function CalendarScroll(options = defaultOptions) {
       const time = state.get('_internal.chart.time');
       if (diff.x > 0) {
         // go backward - move dates forward
-        if (this.initialDataIndex.x === 0) return;
+        if (this.initialDataIndex.x === 0) {
+          return this.resetInitialPoint(ev);
+        }
         const allDates = time.allDates[time.level];
         let i = this.initialDataIndex.x - 1;
         let width = 0;
@@ -77,13 +86,20 @@ export default function CalendarScroll(options = defaultOptions) {
         api.scrollToTime(allDates[i].leftGlobal, false);
       } else if (diff.x < 0) {
         // go forward - move dates backward
-        const allDates = time.allDates[time.level];
         let i = this.initialDataIndex.x;
+        const hScroll = state.get('config.scroll.horizontal') as ScrollTypeHorizontal;
+        const allDates = time.allDates[time.level];
+        if (i - 1 >= allDates.length - hScroll.lastPageCount) {
+          return this.resetInitialPoint(ev);
+        }
         let width = 0;
         for (let len = allDates.length; i < len; i++) {
           const date = allDates[i];
           width += date.width;
           if (-width <= diff.x) break;
+        }
+        if (i - 1 >= allDates.length - hScroll.lastPageCount) {
+          return;
         }
         api.scrollToTime(allDates[i].leftGlobal, false);
       }
