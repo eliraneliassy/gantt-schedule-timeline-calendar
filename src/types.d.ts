@@ -308,11 +308,11 @@ export interface ChartCalendar {
   levels?: ChartCalendarLevel[];
   expand?: boolean;
 }
-export interface ChartGridBlock {
-  onCreate: ((block) => unknown)[];
+export interface ChartGridCell {
+  onCreate: ((cell) => unknown)[];
 }
 export interface ChartGrid {
-  block?: ChartGridBlock;
+  cell?: ChartGridCell;
 }
 export interface ItemGap {
   top?: number;

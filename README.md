@@ -404,7 +404,7 @@ Available action names:
 - `chart-timeline`
 - `chart-timeline-grid`
 - `chart-timeline-grid-row`
-- `chart-timeline-grid-row-block`
+- `chart-timeline-grid-row-cell`
 - `chart-timeline-items`
 - `chart-timeline-items-row`
 - `chart-timeline-items-row-item`
@@ -594,7 +594,7 @@ Available component names:
 - `ChartTimeline`
 - `ChartTimelineGrid`
 - `ChartTimelineGridRow`
-- `ChartTimelineGridRowBlock`
+- `ChartTimelineGridRowCell`
 - `ChartTimelineItems`
 - `ChartTimelineItemsRow`
 - `ChartTimelineItemsRowItem`
@@ -645,7 +645,7 @@ Available component names:
 - `ChartTimeline`
 - `ChartTimelineGrid`
 - `ChartTimelineGridRow`
-- `ChartTimelineGridRowBlock`
+- `ChartTimelineGridRowCell`
 - `ChartTimelineItems`
 - `ChartTimelineItemsRow`
 - `ChartTimelineItemsRowItem`
@@ -732,7 +732,7 @@ With this plugin you will be able to move / resize items.
 - `ghostNode` `{boolean}` - ghost node should be visible?
 - `wait` `{number}` - sometimes you just want to click an item and sometimes you want to move it, this option will tell gstc to wait some time while mouse button is down to turn on moving mode to prevent accidental item move while clicking - time in miliseconds
 
-You can also add `moveable` and `resizeable` option to each item so you will be able to block movement / resizing of some items or limit movement / resizing to specified axis.
+You can also add `moveable` and `resizeable` option to each item so you will be able to cell movement / resizing of some items or limit movement / resizing to specified axis.
 When you need to move specified item only in some rows you can set `item.moveable` to array of row ids `item.moveable = ['1','2','5']`.
 
 If you need to add some actions or want to be notified whenever any item is moving or resizing you can subscribe to `config.plugin.ItemMovement` like `const unsubscribe = GSTCState.subscribe('config.plugin.ItemMovement', itemMovement => { /* do something with info */})`.
@@ -895,7 +895,7 @@ const config = {
       rectStyle: { opacity: '0.0' }, // hide selecting rectangle
       // if there is an item in the current selected cell - do not select that cell
       canSelect(type, currentlySelecting) {
-        if (type === 'chart-timeline-grid-row-block') {
+        if (type === 'chart-timeline-grid-row-cell') {
           // check if there is any item that lives inside current cell
           return currentlySelecting.filter(selected => {
             if (!selected.row.canSelect) return false;
@@ -914,10 +914,10 @@ const config = {
         return currentlySelecting;
       },
       canDeselect(type, currently, all) {
-        if (type === 'chart-timeline-grid-row-blocks') {
+        if (type === 'chart-timeline-grid-row-cells') {
           // if we are selecting we can clear previous selection by returning [] else if
           // we are not selecting but something is already selected let it be selected - currently
-          return all.selecting['chart-timeline-grid-row-blocks'].length ? [] : currently;
+          return all.selecting['chart-timeline-grid-row-cells'].length ? [] : currently;
         }
         return [];
       },
@@ -946,7 +946,7 @@ With this plugin gantt-schedule-timeline-calendar will be able to highlight week
 ##### options
 
 - `weekdays` `{number[]}` - array of weekdays we want to highlight where 0 = Sunday
-- `className` `{string}` - class that you want to add to highlighet days - `gantt-schedule-timeline-calendar__chart-timeline-grid-row-block--weekend` by default
+- `className` `{string}` - class that you want to add to highlighet days - `gantt-schedule-timeline-calendar__chart-timeline-grid-row-cell--weekend` by default
 
 ##### usage
 
@@ -1008,8 +1008,8 @@ export default function WeekendHiglight(options: {}) {
 
   return function initialize(vido) {
     api = vido.api;
-    className = options.className || api.getClass('chart-timeline-grid-row-block') + '--weekend';
-    vido.state.update('config.actions.chart-timeline-grid-row-block', actions => {
+    className = options.className || api.getClass('chart-timeline-grid-row-cell') + '--weekend';
+    vido.state.update('config.actions.chart-timeline-grid-row-cell', actions => {
       actions.push(WeekendHighlightAction);
       return actions;
     });

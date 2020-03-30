@@ -43,33 +43,33 @@ export default function ChartTimelineGrid(vido, props) {
     })
   );
 
-  let onBlockCreate;
-  onDestroy(state.subscribe('config.chart.grid.block.onCreate', onCreate => (onBlockCreate = onCreate)));
+  let onCellCreate;
+  onDestroy(state.subscribe('config.chart.grid.cell.onCreate', onCreate => (onCellCreate = onCreate)));
 
   const rowsComponents = [];
-  const rowsWithBlocks = [];
+  const rowsWithCells = [];
   const formatCache = new Map();
   const styleMap = new StyleMap({});
 
   /**
-   * Generate blocks
+   * Generate cells
    */
-  function generateBlocks() {
+  function generateCells() {
     const width = state.get('_internal.chart.dimensions.width');
     const height = state.get('_internal.innerHeight');
     const time = state.get('_internal.chart.time');
     const periodDates = state.get(`_internal.chart.time.levels.${time.level}`);
     if (!periodDates || periodDates.length === 0) {
-      state.update('_internal.chart.grid.rowsWithBlocks', []);
+      state.update('_internal.chart.grid.rowsWithCells', []);
       return;
     }
     const visibleRows = state.get('_internal.list.visibleRows');
     styleMap.style.height = height + 'px';
     styleMap.style.width = width + 'px';
     let top = 0;
-    rowsWithBlocks.length = 0;
+    rowsWithCells.length = 0;
     for (const row of visibleRows) {
-      const blocks = [];
+      const cells = [];
       for (const time of periodDates) {
         let format;
         if (formatCache.has(time.leftGlobal)) {
@@ -79,16 +79,16 @@ export default function ChartTimelineGrid(vido, props) {
           formatCache.set(time.leftGlobal, format);
         }
         const id = row.id + ':' + format;
-        let block = { id, time, row, top };
-        for (const onCreate of onBlockCreate) {
-          block = onCreate(block);
+        let cell = { id, time, row, top };
+        for (const onCreate of onCellCreate) {
+          cell = onCreate(cell);
         }
-        blocks.push(block);
+        cells.push(cell);
       }
-      rowsWithBlocks.push({ row, blocks, top, width });
+      rowsWithCells.push({ row, cells, top, width });
       top += row.height;
     }
-    state.update('_internal.chart.grid.rowsWithBlocks', rowsWithBlocks);
+    state.update('_internal.chart.grid.rowsWithCells', rowsWithCells);
   }
   onDestroy(
     state.subscribeAll(
@@ -98,7 +98,7 @@ export default function ChartTimelineGrid(vido, props) {
         '_internal.innerHeight',
         '_internal.chart.dimensions.width'
       ],
-      generateBlocks,
+      generateCells,
       {
         bulk: true
       }
@@ -107,13 +107,13 @@ export default function ChartTimelineGrid(vido, props) {
 
   /**
    * Generate rows components
-   * @param {array} rowsWithBlocks
+   * @param {array} rowsWithCells
    */
-  function generateRowsComponents(rowsWithBlocks) {
-    reuseComponents(rowsComponents, rowsWithBlocks || [], row => row, GridRowComponent);
+  function generateRowsComponents(rowsWithCells) {
+    reuseComponents(rowsComponents, rowsWithCells || [], row => row, GridRowComponent);
     update();
   }
-  onDestroy(state.subscribe('_internal.chart.grid.rowsWithBlocks', generateRowsComponents));
+  onDestroy(state.subscribe('_internal.chart.grid.rowsWithCells', generateRowsComponents));
   onDestroy(() => {
     rowsComponents.forEach(row => row.destroy());
   });

@@ -343,13 +343,7 @@
               //console.log(`deselected ${type}`, data);
             }
           }),
-          CalendarScroll({
-            speed: 0.2,
-            hideScroll: true,
-            onChange(time) {
-              console.log(GSTC.api.date(time.from).format('YYYY-MM-DD'), GSTC.api.date(time.to).format('YYYY-MM-DD'));
-            }
-          })
+          CalendarScroll()
         ],
         height: 646,
         list: {

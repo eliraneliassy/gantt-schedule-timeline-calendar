@@ -48,7 +48,7 @@ export default function ChartTimelineGridRow(vido, props) {
     })
   );
 
-  const GridBlockComponent = state.get('config.components.ChartTimelineGridRowBlock');
+  const GridCellComponent = state.get('config.components.ChartTimelineGridRowCell');
 
   const componentActions = api.getActions(componentName);
   let className;
@@ -70,17 +70,17 @@ export default function ChartTimelineGridRow(vido, props) {
   let shouldDetach = false;
   const detach = new Detach(() => shouldDetach);
 
-  const rowsBlocksComponents = [];
+  const rowsCellsComponents = [];
   onChange(function onPropsChange(changedProps, options) {
     if (options.leave || changedProps.row === undefined) {
       shouldDetach = true;
-      reuseComponents(rowsBlocksComponents, [], block => block, GridBlockComponent);
+      reuseComponents(rowsCellsComponents, [], cell => cell, GridCellComponent);
       update();
       return;
     }
     shouldDetach = false;
     props = changedProps;
-    reuseComponents(rowsBlocksComponents, props.blocks, block => block, GridBlockComponent);
+    reuseComponents(rowsCellsComponents, props.cells, cell => cell, GridCellComponent);
     styleMap.setStyle({});
     styleMap.style.height = props.row.outerHeight + 'px';
     styleMap.style.width = props.width + 'px';
@@ -105,7 +105,7 @@ export default function ChartTimelineGridRow(vido, props) {
   });
 
   onDestroy(function destroy() {
-    rowsBlocksComponents.forEach(rowBlock => rowBlock.destroy());
+    rowsCellsComponents.forEach(rowCell => rowCell.destroy());
   });
 
   if (componentActions.indexOf(BindElementAction) === -1) {
@@ -118,7 +118,7 @@ export default function ChartTimelineGridRow(vido, props) {
     return wrapper(
       html`
         <div detach=${detach} class=${className} data-actions=${actions} style=${styleMap}>
-          ${rowsBlocksComponents.map(r => r.html())}
+          ${rowsCellsComponents.map(r => r.html())}
         </div>
       `,
       { vido, props, templateProps }

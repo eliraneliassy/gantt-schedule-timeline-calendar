@@ -199,6 +199,10 @@ $item-content-padding = 5px
     flex-shrink: 1
     overflow: hidden
     position: relative
+    &-selection
+      position: absolute
+      left: 0
+      top: 0
     &-calendar
       background: $bg-dark-1
       margin-right: -17px
@@ -301,7 +305,7 @@ $item-content-padding = 5px
           user-select: none
           pointer-events: all
           will-change: height
-          &-block
+          &-cell
             pointer-events: all
             flex-grow: 0
             flex-shrink: 0

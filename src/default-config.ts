@@ -23,7 +23,7 @@ import ChartCalendarDate from './components/Chart/Calendar/ChartCalendarDate';
 import ChartTimeline from './components/Chart/Timeline/ChartTimeline';
 import ChartTimelineGrid from './components/Chart/Timeline/ChartTimelineGrid';
 import ChartTimelineGridRow from './components/Chart/Timeline/ChartTimelineGridRow';
-import ChartTimelineGridRowBlock from './components/Chart/Timeline/ChartTimelineGridRowBlock';
+import ChartTimelineGridRowCell from './components/Chart/Timeline/ChartTimelineGridRowCell';
 import ChartTimelineItems from './components/Chart/Timeline/ChartTimelineItems';
 import ChartTimelineItemsRow from './components/Chart/Timeline/ChartTimelineItemsRow';
 import ChartTimelineItemsRowItem from './components/Chart/Timeline/ChartTimelineItemsRowItem';
@@ -48,7 +48,7 @@ export const actionNames = [
   'chart-timeline',
   'chart-timeline-grid',
   'chart-timeline-grid-row',
-  'chart-timeline-grid-row-block',
+  'chart-timeline-grid-row-cell',
   'chart-timeline-items',
   'chart-timeline-items-row',
   'chart-timeline-items-row-item'
@@ -94,7 +94,7 @@ function defaultConfig(): Config {
       ChartTimeline,
       ChartTimelineGrid,
       ChartTimelineGridRow,
-      ChartTimelineGridRowBlock,
+      ChartTimelineGridRowCell,
       ChartTimelineItems,
       ChartTimelineItemsRow,
       ChartTimelineItemsRowItem
@@ -148,7 +148,7 @@ function defaultConfig(): Config {
       ChartTimelineGridRow(input) {
         return input;
       },
-      ChartTimelineGridRowBlock(input) {
+      ChartTimelineGridRowCell(input) {
         return input;
       },
       ChartTimelineItems(input) {
@@ -434,7 +434,7 @@ function defaultConfig(): Config {
         ]
       },
       grid: {
-        block: {
+        cell: {
           onCreate: []
         }
       },

@@ -80,13 +80,13 @@ export default function ChartTimelineItemsRowItem(vido, props) {
     }
     classNameCurrent = className;
     if (props.item.time.start < time.leftGlobal) {
-      leftCutStyleMap.style.display = 'block';
+      leftCutStyleMap.style.display = 'cell';
       classNameCurrent += ' ' + className + '--left-cut';
     } else {
       leftCutStyleMap.style.display = 'none';
     }
     if (props.item.time.end > time.rightGlobal) {
-      rightCutStyleMap.style.display = 'block';
+      rightCutStyleMap.style.display = 'cell';
       classNameCurrent += ' ' + className + '--right-cut';
     } else {
       rightCutStyleMap.style.display = 'none';

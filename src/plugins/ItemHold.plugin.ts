@@ -28,8 +28,7 @@ export default function ItemHold(options: Options = {}) {
 
   function onPointerDown(item, element, event) {
     if (typeof holding[item.id] === 'undefined') {
-      const normalized = api.normalizePointerEvent(event);
-      holding[item.id] = { x: normalized.x, y: normalized.y };
+      holding[item.id] = { x: event.x, y: event.y };
       event.stopPropagation();
       event.preventDefault();
       setTimeout(() => {
@@ -62,33 +61,26 @@ export default function ItemHold(options: Options = {}) {
     function elementPointerDown(event) {
       onPointerDown(data.item, element, event);
     }
-    element.addEventListener('mousedown', elementPointerDown);
-    element.addEventListener('touchstart', elementPointerDown);
+    element.addEventListener('pointerdown', elementPointerDown);
     function pointerUp() {
       onPointerUp(data.item.id);
     }
 
-    document.addEventListener('mouseup', pointerUp);
-    document.addEventListener('touchend', pointerUp);
+    document.addEventListener('pointerup', pointerUp);
     function onPointerMove(event) {
-      const normalized = api.normalizePointerEvent(event);
-      pointer.x = normalized.x;
-      pointer.y = normalized.y;
+      pointer.x = event.x;
+      pointer.y = event.y;
     }
 
-    document.addEventListener('mousemove', onPointerMove);
-    document.addEventListener('touchmove', onPointerMove);
+    document.addEventListener('pointermove', onPointerMove);
     return {
       update(element, changedData) {
         data = changedData;
       },
       destroy(element, data) {
-        document.removeEventListener('mouseup', onPointerUp);
-        document.removeEventListener('mousemove', onPointerMove);
-        element.removeEventListener('mousedown', elementPointerDown);
-        document.removeEventListener('touchend', onPointerUp);
-        document.removeEventListener('touchmove', onPointerMove);
-        element.removeEventListener('touchstart', elementPointerDown);
+        document.removeEventListener('pointerup', onPointerUp);
+        document.removeEventListener('poitnermove', onPointerMove);
+        element.removeEventListener('pointerdown', elementPointerDown);
       }
     };
   }

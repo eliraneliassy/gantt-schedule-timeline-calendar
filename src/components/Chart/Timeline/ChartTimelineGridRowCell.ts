@@ -1,5 +1,5 @@
 /**
- * ChartTimelineGridRowBlock component
+ * ChartTimelineGridRowCell component
  *
  * @copyright Rafal Pospiech <https://neuronet.io>
  * @author    Rafal Pospiech <neuronet.io@gmail.com>
@@ -18,23 +18,23 @@
 class BindElementAction {
   constructor(element, data) {
     let shouldUpdate = false;
-    let blocks = data.state.get('_internal.elements.chart-timeline-grid-row-blocks');
-    if (typeof blocks === 'undefined') {
-      blocks = [];
+    let cells = data.state.get('_internal.elements.chart-timeline-grid-row-cells');
+    if (typeof cells === 'undefined') {
+      cells = [];
       shouldUpdate = true;
     }
-    if (!blocks.includes(element)) {
-      blocks.push(element);
+    if (!cells.includes(element)) {
+      cells.push(element);
       shouldUpdate = true;
     }
-    if (shouldUpdate) data.state.update('_internal.elements.chart-timeline-grid-row-blocks', blocks, { only: null });
+    if (shouldUpdate) data.state.update('_internal.elements.chart-timeline-grid-row-cells', cells, { only: null });
   }
 
   public destroy(element, data) {
     data.state.update(
-      '_internal.elements.chart-timeline-grid-row-blocks',
-      blocks => {
-        return blocks.filter(el => el !== element);
+      '_internal.elements.chart-timeline-grid-row-cells',
+      cells => {
+        return cells.filter(el => el !== element);
       },
       { only: [''] }
     );
@@ -46,9 +46,9 @@ interface Props {
   time: any;
 }
 
-const ChartTimelineGridRowBlock = (vido, props: Props) => {
+const ChartTimelineGridRowCell = (vido, props: Props) => {
   const { api, state, onDestroy, Detach, Actions, update, html, onChange, StyleMap } = vido;
-  const componentName = 'chart-timeline-grid-row-block';
+  const componentName = 'chart-timeline-grid-row-cell';
   const actionProps = {
     ...props,
     api,
@@ -61,7 +61,7 @@ const ChartTimelineGridRowBlock = (vido, props: Props) => {
   const componentActions = api.getActions(componentName);
   let wrapper;
   onDestroy(
-    state.subscribe('config.wrappers.ChartTimelineGridRowBlock', value => {
+    state.subscribe('config.wrappers.ChartTimelineGridRowCell', value => {
       wrapper = value;
       update();
     })
@@ -97,10 +97,10 @@ const ChartTimelineGridRowBlock = (vido, props: Props) => {
     const rows = state.get('config.list.rows');
     for (const parentId of props.row._internal.parents) {
       const parent = rows[parentId];
-      const childrenStyle = parent?.style?.grid?.block?.children;
+      const childrenStyle = parent?.style?.grid?.cell?.children;
       if (childrenStyle) styleMap.setStyle({ ...styleMap.style, ...childrenStyle });
     }
-    const currentStyle = props?.row?.style?.grid?.block?.current;
+    const currentStyle = props?.row?.style?.grid?.cell?.current;
     if (currentStyle) styleMap.setStyle({ ...styleMap.style, ...currentStyle });
     update();
   }
@@ -117,4 +117,4 @@ const ChartTimelineGridRowBlock = (vido, props: Props) => {
     );
   };
 };
-export default ChartTimelineGridRowBlock;
+export default ChartTimelineGridRowCell;

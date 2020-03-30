@@ -31,8 +31,6 @@ export interface Movement {
   ganttLeft?: number;
 }
 
-const pointerEventsExists = typeof PointerEvent !== 'undefined';
-
 export default function ItemMovement(options: Options = {}) {
   const defaultOptions = {
     moveable: true,
@@ -188,7 +186,6 @@ export default function ItemMovement(options: Options = {}) {
     }
 
     function labelDown(ev) {
-      const normalized = api.normalizePointerEvent(ev);
       if ((ev.type === 'pointerdown' || ev.type === 'mousedown') && ev.button !== 0) {
         return;
       }
@@ -208,7 +205,7 @@ export default function ItemMovement(options: Options = {}) {
         movement.ganttLeft = ganttRect.left;
         movement.itemX = Math.round((item.time.start - chartLeftTime) / timePerPixel);
         saveMovement(data.item.id, movement);
-        createGhost(data, normalized, ganttRect.left, ganttRect.top);
+        createGhost(data, ev, ganttRect.left, ganttRect.top);
       }, options.wait);
     }
 
@@ -218,7 +215,6 @@ export default function ItemMovement(options: Options = {}) {
       if ((ev.type === 'pointerdown' || ev.type === 'mousedown') && ev.button !== 0) {
         return;
       }
-      const normalized = api.normalizePointerEvent(ev);
       const movement = getMovement(data);
       movement.resizing = true;
       const item = state.get(`config.chart.items.${data.item.id}`);
@@ -327,7 +323,6 @@ export default function ItemMovement(options: Options = {}) {
 
     function documentMove(ev) {
       const movement = getMovement(data);
-      const normalized = api.normalizePointerEvent(ev);
       let item, rowId, row, zoom, timePerPixel;
       if (movement.moving || movement.resizing) {
         ev.stopPropagation();
@@ -341,12 +336,12 @@ export default function ItemMovement(options: Options = {}) {
       const moveable = isMoveable(data);
       if (movement.moving) {
         if (moveable === true || moveable === 'x' || (Array.isArray(moveable) && moveable.includes(rowId))) {
-          movementX(normalized, row, item, zoom, timePerPixel);
+          movementX(ev, row, item, zoom, timePerPixel);
         }
         if (!moveable || moveable === 'x') {
           return;
         }
-        let visibleRowsIndex = movementY(normalized, row, item, zoom, timePerPixel);
+        let visibleRowsIndex = movementY(ev, row, item, zoom, timePerPixel);
         const visibleRows = state.get('_internal.list.visibleRows');
         if (typeof visibleRows[visibleRowsIndex] === 'undefined') {
           if (visibleRowsIndex > 0) {
@@ -366,7 +361,7 @@ export default function ItemMovement(options: Options = {}) {
           }
         }
       } else if (movement.resizing && (typeof item.resizable === 'undefined' || item.resizable === true)) {
-        resizeX(normalized, row, item, zoom, timePerPixel);
+        resizeX(ev, row, item, zoom, timePerPixel);
       }
     }
 
@@ -390,22 +385,10 @@ export default function ItemMovement(options: Options = {}) {
       }
     }
 
-    if (pointerEventsExists) {
-      element.addEventListener('pointerdown', labelDown);
-      resizerEl.addEventListener('pointerdown', resizerDown);
-      document.addEventListener('pointermove', documentMove);
-      document.addEventListener('pointerup', documentUp);
-    } else {
-      element.addEventListener('touchstart', labelDown);
-      resizerEl.addEventListener('touchstart', resizerDown);
-      document.addEventListener('touchmove', documentMove);
-      document.addEventListener('touchend', documentUp);
-      document.addEventListener('touchcancel', documentUp);
-      element.addEventListener('mousedown', labelDown);
-      resizerEl.addEventListener('mousedown', resizerDown);
-      document.addEventListener('mousemove', documentMove);
-      document.addEventListener('mouseup', documentUp);
-    }
+    element.addEventListener('pointerdown', labelDown);
+    resizerEl.addEventListener('pointerdown', resizerDown);
+    document.addEventListener('pointermove', documentMove);
+    document.addEventListener('pointerup', documentUp);
 
     return {
       update(node, changedData) {
@@ -417,22 +400,10 @@ export default function ItemMovement(options: Options = {}) {
         data = changedData;
       },
       destroy(node, data) {
-        if (pointerEventsExists) {
-          element.removeEventListener('pointerdown', labelDown);
-          resizerEl.removeEventListener('pointerdown', resizerDown);
-          document.removeEventListener('pointermove', documentMove);
-          document.removeEventListener('pointerup', documentUp);
-        } else {
-          element.removeEventListener('mousedown', labelDown);
-          resizerEl.removeEventListener('mousedown', resizerDown);
-          document.removeEventListener('mousemove', documentMove);
-          document.removeEventListener('mouseup', documentUp);
-          element.removeEventListener('touchstart', labelDown);
-          resizerEl.removeEventListener('touchstart', resizerDown);
-          document.removeEventListener('touchmove', documentMove);
-          document.removeEventListener('touchend', documentUp);
-          document.removeEventListener('touchcancel', documentUp);
-        }
+        element.removeEventListener('pointerdown', labelDown);
+        resizerEl.removeEventListener('pointerdown', resizerDown);
+        document.removeEventListener('pointermove', documentMove);
+        document.removeEventListener('pointerup', documentUp);
         resizerEl.remove();
       }
     };

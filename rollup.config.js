@@ -107,7 +107,7 @@ const devFiles = [
     ]
   },
   {
-    input: 'src/plugins/Selection.plugin.ts',
+    input: 'src/plugins/Selection/Selection.plugin.ts',
     output: {
       sourcemap: true,
       file: 'dist/Selection.plugin.js',
@@ -339,7 +339,7 @@ const prodFiles = Array.prototype.concat(devFiles, [
   },
 
   {
-    input: 'src/plugins/Selection.plugin.ts',
+    input: 'src/plugins/Selection/Selection.plugin.ts',
     output: {
       sourcemap: false,
       file: 'dist/Selection.plugin.esm.js',
@@ -355,7 +355,7 @@ const prodFiles = Array.prototype.concat(devFiles, [
     ]
   },
   {
-    input: 'src/plugins/Selection.plugin.ts',
+    input: 'src/plugins/Selection/Selection.plugin.ts',
     output: {
       sourcemap: false,
       file: 'dist/Selection.plugin.esm.min.js',
@@ -376,7 +376,7 @@ const prodFiles = Array.prototype.concat(devFiles, [
     ]
   },
   {
-    input: 'src/plugins/Selection.plugin.ts',
+    input: 'src/plugins/Selection/Selection.plugin.ts',
     output: {
       sourcemap: false,
       file: 'dist/Selection.plugin.min.js',

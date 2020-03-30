@@ -50,9 +50,9 @@ export default function WeekendHiglight(options: Options = {}) {
 
   return function initialize(vido) {
     api = vido.api;
-    className = options.className || api.getClass('chart-timeline-grid-row-block') + '--weekend';
+    className = options.className || api.getClass('chart-timeline-grid-row-cell') + '--weekend';
     const destroy = vido.state.subscribe('_internal.chart.time.format.period', period => (enabled = period === 'day'));
-    vido.state.update('config.actions.chart-timeline-grid-row-block', actions => {
+    vido.state.update('config.actions.chart-timeline-grid-row-cell', actions => {
       actions.push(WeekendHighlightAction);
       return actions;
     });
