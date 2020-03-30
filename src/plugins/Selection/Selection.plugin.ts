@@ -8,8 +8,8 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Options, prepareOptions } from './helpers';
-import { prepareSelectAction } from './SelectAction';
+import { Options, prepareOptions, SelectionData } from './helpers';
+import { prepareSelectAction, generateEmptyData } from './SelectAction';
 import { Wrap } from './Wrapper';
 
 export default function Selection(options: Options = {}) {
@@ -21,8 +21,11 @@ export default function Selection(options: Options = {}) {
     api = vido.api;
     state = vido.state;
     state.update('config.actions.chart-timeline', timelineActions => {
-      timelineActions.push(prepareSelectAction(vido));
+      timelineActions.push(prepareSelectAction(vido, options));
       return timelineActions;
+    });
+    state.update('config.plugin.Selection', data => {
+      return generateEmptyData();
     });
     state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
       return Wrap(oldWrapper, vido);

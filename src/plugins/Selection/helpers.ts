@@ -8,10 +8,6 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-export interface RectStyle {
-  [key: string]: any;
-}
-
 export interface Options {
   enabled?: boolean;
   grid?: boolean;
@@ -31,16 +27,19 @@ export interface Items {
   [key: string]: string[];
 }
 
-interface SelectingData {
-  fromX?: number;
-  fromY?: number;
-  toX?: number;
-  toY?: number;
-  startX?: number;
-  startY?: number;
-  startCell?: any;
-  selecting?: boolean;
-  selected?: Items;
+export interface PointerEvents {
+  down: PointerEvent | null;
+  move: PointerEvent | null;
+  up: PointerEvent | null;
+}
+
+export interface SelectionData {
+  enabled: boolean;
+  currentTarget: HTMLElement | null;
+  realTarget: HTMLElement | null;
+  targetType: 'item' | 'cell' | '';
+  isSelecting: boolean;
+  events: PointerEvents;
 }
 
 export interface SelectState {
