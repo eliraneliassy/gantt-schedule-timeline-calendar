@@ -212,6 +212,8 @@
   position: absolute;
   left: 0;
   top: 0;
+  background: rgba(0,119,192,0.2);
+  border: 2px dashed rgba(0,119,192,0.75);
 }
 .gantt-schedule-timeline-calendar__chart-calendar {
   background: #f9fafb;

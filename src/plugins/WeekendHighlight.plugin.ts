@@ -15,7 +15,7 @@ export interface Options {
   className?: string;
 }
 
-export default function WeekendHiglight(options: Options = {}) {
+export function Plugin(options: Options = {}) {
   const weekdays = options.weekdays || [6, 0];
   let className;
   let api;

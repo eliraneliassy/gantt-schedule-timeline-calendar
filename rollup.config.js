@@ -107,6 +107,22 @@ const devFiles = [
     ]
   },
   {
+    input: 'src/plugins/TimelinePointer.plugin.ts',
+    output: {
+      sourcemap: true,
+      file: 'dist/TimelinePointer.plugin.js',
+      format: 'umd',
+      name: 'TimelinePointer'
+    },
+    plugins: [
+      typescript({ target: 'es6' }),
+      resolve({
+        browser: true
+      }),
+      commonjs({ extensions: ['.js', '.ts'] })
+    ]
+  },
+  {
     input: 'src/plugins/Selection/Selection.plugin.ts',
     output: {
       sourcemap: true,
@@ -205,6 +221,65 @@ const prodFiles = Array.prototype.concat(devFiles, [
       sourcemap: false,
       file: 'dist/index.esm.min.js',
       format: 'esm'
+    },
+    plugins: [
+      typescript({ target: 'es6' }),
+      resolve({
+        browser: true
+      }),
+      commonjs({ extensions: ['.js', '.ts'] }),
+      terser({
+        //keep_classnames: true,
+        //keep_fnames: true,
+        output: { comments: false }
+      })
+    ]
+  },
+
+  {
+    input: 'src/plugins/TimelinePointer.plugin.ts',
+    output: {
+      sourcemap: false,
+      file: 'dist/TimelinePointer.plugin.esm.js',
+      format: 'esm',
+      name: 'TimelinePointer'
+    },
+    plugins: [
+      typescript({ target: 'es6' }),
+      resolve({
+        browser: true
+      }),
+      commonjs({ extensions: ['.js', '.ts'] })
+    ]
+  },
+  {
+    input: 'src/plugins/TimelinePointer.plugin.ts',
+    output: {
+      sourcemap: false,
+      file: 'dist/TimelinePointer.plugin.esm.min.js',
+      format: 'esm',
+      name: 'TimelinePointer'
+    },
+    plugins: [
+      typescript({ target: 'es6' }),
+      resolve({
+        browser: true
+      }),
+      commonjs({ extensions: ['.js', '.ts'] }),
+      terser({
+        //keep_classnames: true,
+        //keep_fnames: true,
+        output: { comments: false }
+      })
+    ]
+  },
+  {
+    input: 'src/plugins/TimelinePointer.plugin.ts',
+    output: {
+      sourcemap: false,
+      file: 'dist/TimelinePointer.plugin.min.js',
+      format: 'umd',
+      name: 'TimelinePointer'
     },
     plugins: [
       typescript({ target: 'es6' }),

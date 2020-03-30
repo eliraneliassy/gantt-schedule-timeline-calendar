@@ -23,7 +23,7 @@ const defaultOptions = {
   enabled: true
 };
 
-export default function CalendarScroll(options = defaultOptions) {
+export function Plugin(options = defaultOptions) {
   let vido, api, state;
   let enabled = options.enabled;
 

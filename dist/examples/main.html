@@ -39,6 +39,7 @@
     </div>
     <div id="app"></div>
     <script src="../ItemMovement.plugin.js"></script>
+    <script src="../TimelinePointer.plugin.js"></script>
     <script src="../Selection.plugin.js"></script>
     <script src="../CalendarScroll.plugin.js"></script>
     <script src="../WeekendHighlight.plugin.js"></script>
@@ -152,7 +153,7 @@
 
       let selectionApi;
       const config = {
-        plugins: [WeekendHighlight(), Selection()],
+        plugins: [WeekendHighlight.Plugin(), TimelinePointer.Plugin(), Selection.Plugin()],
         height: 623,
         list: {
           rows,

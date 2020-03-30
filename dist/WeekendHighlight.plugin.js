@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    (global = global || self, global.WeekendHighlight = factory());
-}(this, (function () { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+    typeof define === 'function' && define.amd ? define(['exports'], factory) :
+    (global = global || self, factory(global.WeekendHighlight = {}));
+}(this, (function (exports) { 'use strict';
 
     /**
      * @license
@@ -118,6 +118,7 @@
         onUp(data) { },
         onWheel(data) { }
     };
+    //# sourceMappingURL=vido.esm.js.map
 
     /**
      * Weekend highlight plugin
@@ -128,7 +129,7 @@
      * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
      * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
      */
-    function WeekendHiglight(options = {}) {
+    function Plugin(options = {}) {
         const weekdays = options.weekdays || [6, 0];
         let className;
         let api;
@@ -172,7 +173,9 @@
         };
     }
 
-    return WeekendHiglight;
+    exports.Plugin = Plugin;
+
+    Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 //# sourceMappingURL=WeekendHighlight.plugin.js.map

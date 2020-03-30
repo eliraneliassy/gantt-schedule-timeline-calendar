@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-  typeof define === 'function' && define.amd ? define(factory) :
-  (global = global || self, global.CalendarScroll = factory());
-}(this, (function () { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (global = global || self, factory(global.CalendarScroll = {}));
+}(this, (function (exports) { 'use strict';
 
   /**
    * CalendarScroll plugin
@@ -16,7 +16,7 @@
   const defaultOptions = {
       enabled: true
   };
-  function CalendarScroll(options = defaultOptions) {
+  function Plugin(options = defaultOptions) {
       let vido, api, state;
       let enabled = options.enabled;
       class ChartAction {
@@ -116,7 +116,9 @@
       };
   }
 
-  return CalendarScroll;
+  exports.Plugin = Plugin;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 //# sourceMappingURL=CalendarScroll.plugin.js.map

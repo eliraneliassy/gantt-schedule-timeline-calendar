@@ -1,4 +1,149 @@
 /**
+ * TimelinePointer plugin
+ *
+ * @copyright Rafal Pospiech <https://neuronet.io>
+ * @author    Rafal Pospiech <neuronet.io@gmail.com>
+ * @package   gantt-schedule-timeline-calendar
+ * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
+ * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
+ */
+const CELL = 'chart-timeline-grid-row-cell';
+const ITEM = 'chart-timeline-items-row-item';
+function TimelinePointer(options = { enabled: true }) {
+    let vido, api, state;
+    const pluginPath = 'config.plugin.TimelinePointer';
+    const classNames = {
+        cell: '',
+        item: ''
+    };
+    function generateEmptyData() {
+        return {
+            enabled: options.enabled,
+            isMoving: false,
+            currentTarget: null,
+            realTarget: null,
+            targetType: '',
+            targetData: null,
+            initialPosition: { x: 0, y: 0 },
+            currentPosition: { x: 0, y: 0 },
+            events: {
+                down: null,
+                move: null,
+                up: null
+            }
+        };
+    }
+    let chartTimelineElement;
+    class TimelinePointerAction {
+        constructor(element) {
+            this.unsub = [];
+            this.pointerDown = this.pointerDown.bind(this);
+            this.pointerMove = this.pointerMove.bind(this);
+            this.pointerUp = this.pointerUp.bind(this);
+            this.data = generateEmptyData();
+            element.addEventListener('pointerdown', this.pointerDown);
+            document.addEventListener('pointerup', this.pointerUp);
+            document.addEventListener('pointermove', this.pointerMove);
+            this.unsub.push(state.subscribe(pluginPath, value => (this.data = value)));
+        }
+        destroy(element) {
+            element.removeEventListener('pointerdown', this.pointerDown);
+            document.removeEventListener('pointerup', this.pointerUp);
+            document.removeEventListener('pointermove', this.pointerMove);
+        }
+        updateData() {
+            state.update(pluginPath, () => (Object.assign({}, this.data)));
+        }
+        getRealTarget(ev) {
+            let realTarget = ev.target.closest('.' + classNames.item);
+            if (realTarget) {
+                return realTarget;
+            }
+            realTarget = ev.target.closest('.' + classNames.cell);
+            if (realTarget) {
+                return realTarget;
+            }
+            return null;
+        }
+        getRealPosition(ev) {
+            const pos = { x: 0, y: 0 };
+            if (chartTimelineElement) {
+                const bounding = chartTimelineElement.getBoundingClientRect();
+                pos.x = ev.x - bounding.x;
+                pos.y = ev.y - bounding.y;
+            }
+            return pos;
+        }
+        pointerDown(ev) {
+            if (!this.data.enabled)
+                return;
+            this.data.currentTarget = ev.target;
+            this.data.realTarget = this.getRealTarget(ev);
+            if (this.data.realTarget) {
+                if (this.data.realTarget.classList.contains(classNames.item)) {
+                    this.data.targetType = ITEM;
+                    // @ts-ignore
+                    this.data.targetData = this.data.realTarget.vido.item;
+                }
+                else if (this.data.realTarget.classList.contains(classNames.cell)) {
+                    this.data.targetType = CELL;
+                    // @ts-ignore
+                    this.data.targetData = this.data.realTarget.vido;
+                }
+                else {
+                    this.data.targetType = '';
+                }
+            }
+            else {
+                this.data.targetType = '';
+                this.data.targetData = null;
+            }
+            this.data.isMoving = !!this.data.realTarget;
+            this.data.events.down = ev;
+            this.data.events.move = ev;
+            const realPosition = this.getRealPosition(ev);
+            this.data.initialPosition = realPosition;
+            this.data.currentPosition = realPosition;
+            this.updateData();
+        }
+        pointerUp(ev) {
+            if (!this.data.enabled)
+                return;
+            this.data.isMoving = false;
+            this.data.events.up = ev;
+            this.data.currentPosition = this.getRealPosition(ev);
+            this.updateData();
+        }
+        pointerMove(ev) {
+            if (!this.data.enabled || !this.data.isMoving)
+                return;
+            this.data.events.move = ev;
+            this.data.currentPosition = this.getRealPosition(ev);
+            this.updateData();
+        }
+    }
+    return function initialize(vidoInstance) {
+        vido = vidoInstance;
+        api = vido.api;
+        state = vido.state;
+        classNames.cell = api.getClass(CELL);
+        classNames.item = api.getClass(ITEM);
+        const unsub = state.subscribe('_internal.elements.chart-timeline', el => (chartTimelineElement = el));
+        state.update('config.actions.chart-timeline', timelineActions => {
+            timelineActions.push(TimelinePointerAction);
+            return timelineActions;
+        });
+        state.update(pluginPath, data => {
+            return generateEmptyData();
+        });
+        return function destroy() {
+            unsub();
+        };
+    };
+}
+//# sourceMappingURL=TimelinePointer.plugin.js.map
+
+/**
  * ItemHold plugin
  *
  * @copyright Rafal Pospiech <https://neuronet.io>
@@ -90,374 +235,59 @@ function ItemHold(options = {}) {
  * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
-function ItemMovement(options = {}) {
-    const defaultOptions = {
-        moveable: true,
-        resizable: true,
-        resizerContent: '',
-        collisionDetection: true,
-        outOfBorders: false,
-        snapStart(timeStart, startDiff) {
-            return timeStart + startDiff;
-        },
-        snapEnd(timeEnd, endDiff) {
-            return timeEnd + endDiff;
-        },
-        ghostNode: true,
-        wait: 0
-    };
-    options = Object.assign(Object.assign({}, defaultOptions), options);
-    const movementState = {};
-    /**
-     * Add moving functionality to items as action
-     *
-     * @param {HTMLElement} element DOM Node
-     * @param {Object} data
-     */
-    function ItemAction(element, data) {
-        if (!options.moveable && !options.resizable) {
-            return;
-        }
-        const state = data.state;
-        const api = data.api;
-        function isMoveable(data) {
-            let moveable = options.moveable;
-            if (data.item.hasOwnProperty('moveable') && moveable) {
-                moveable = data.item.moveable;
-            }
-            if (data.row.hasOwnProperty('moveable') && moveable) {
-                moveable = data.row.moveable;
-            }
-            return moveable;
-        }
-        function isResizable(data) {
-            let resizable = options.resizable && (!data.item.hasOwnProperty('resizable') || data.item.resizable === true);
-            if (data.row.hasOwnProperty('resizable') && resizable) {
-                resizable = data.row.resizable;
-            }
-            return resizable;
-        }
-        function getMovement(data) {
-            const itemId = data.item.id;
-            if (typeof movementState[itemId] === 'undefined') {
-                movementState[itemId] = { moving: false, resizing: false, waiting: false };
-            }
-            return movementState[itemId];
-        }
-        function saveMovement(itemId, movement) {
-            state.update(`config.plugin.ItemMovement.item`, Object.assign({ id: itemId }, movement));
-            state.update('config.plugin.ItemMovement.movement', (current) => {
-                if (!current) {
-                    current = { moving: false, waiting: false, resizing: false };
-                }
-                current.moving = movement.moving;
-                current.waiting = movement.waiting;
-                current.resizing = movement.resizing;
-                return current;
-            });
-        }
-        function createGhost(data, normalized, ganttLeft, ganttTop) {
-            const movement = getMovement(data);
-            if (!options.ghostNode || typeof movement.ghost !== 'undefined') {
-                return;
-            }
-            const ghost = element.cloneNode(true);
-            const style = getComputedStyle(element);
-            ghost.style.position = 'absolute';
-            ghost.style.left = normalized.clientX - ganttLeft + 'px';
-            const itemTop = normalized.clientY - ganttTop - element.offsetTop + parseInt(style['margin-top']);
-            movement.itemTop = itemTop;
-            ghost.style.top = normalized.clientY - ganttTop - itemTop + 'px';
-            ghost.style.width = style.width;
-            ghost.style['box-shadow'] = '10px 10px 6px #00000020';
-            const height = element.clientHeight + 'px';
-            ghost.style.height = height;
-            ghost.style['line-height'] = element.clientHeight - 18 + 'px';
-            ghost.style.opacity = '0.6';
-            ghost.style.transform = 'scale(1.05, 1.05)';
-            state.get('_internal.elements.chart-timeline').appendChild(ghost);
-            movement.ghost = ghost;
-            saveMovement(data.item.id, movement);
-            return ghost;
-        }
-        function moveGhost(data, normalized) {
-            if (options.ghostNode) {
-                const movement = getMovement(data);
-                const left = normalized.clientX - movement.ganttLeft;
-                movement.ghost.style.left = left + 'px';
-                movement.ghost.style.top =
-                    normalized.clientY -
-                        movement.ganttTop -
-                        movement.itemTop +
-                        parseInt(getComputedStyle(element)['margin-top']) +
-                        'px';
-                saveMovement(data.item.id, movement);
-            }
-        }
-        function destroyGhost(itemId) {
-            if (!options.ghostNode) {
-                return;
-            }
-            if (typeof movementState[itemId] !== 'undefined' && typeof movementState[itemId].ghost !== 'undefined') {
-                state.get('_internal.elements.chart-timeline').removeChild(movementState[itemId].ghost);
-                delete movementState[itemId].ghost;
-                saveMovement(data.item.id, movementState[itemId]);
-            }
-        }
-        function getSnapStart(data) {
-            let snapStart = options.snapStart;
-            if (typeof data.item.snapStart === 'function') {
-                snapStart = data.item.snapStart;
-            }
-            return snapStart;
-        }
-        function getSnapEnd(data) {
-            let snapEnd = options.snapEnd;
-            if (typeof data.item.snapEnd === 'function') {
-                snapEnd = data.item.snapEnd;
-            }
-            return snapEnd;
-        }
-        const resizerHTML = `<div class="${api.getClass('chart-timeline-items-row-item-resizer')}">${options.resizerContent}</div>`;
-        // @ts-ignore
-        element.insertAdjacentHTML('beforeend', resizerHTML);
-        const resizerEl = element.querySelector('.gantt-schedule-timeline-calendar__chart-timeline-items-row-item-resizer');
-        if (!isResizable(data)) {
-            resizerEl.style.visibility = 'hidden';
-        }
-        else {
-            resizerEl.style.visibility = 'visible';
-        }
-        function labelDown(ev) {
-            if ((ev.type === 'pointerdown' || ev.type === 'mousedown') && ev.button !== 0) {
-                return;
-            }
-            const movement = getMovement(data);
-            movement.waiting = true;
-            saveMovement(data.item.id, movement);
-            setTimeout(() => {
-                ev.stopPropagation();
-                ev.preventDefault();
-                if (!movement.waiting)
-                    return;
-                movement.moving = true;
-                const item = state.get(`config.chart.items.${data.item.id}`);
-                const chartLeftTime = state.get('_internal.chart.time.leftGlobal');
-                const timePerPixel = state.get('_internal.chart.time.timePerPixel');
-                const ganttRect = state.get('_internal.elements.chart-timeline').getBoundingClientRect();
-                movement.ganttTop = ganttRect.top;
-                movement.ganttLeft = ganttRect.left;
-                movement.itemX = Math.round((item.time.start - chartLeftTime) / timePerPixel);
-                saveMovement(data.item.id, movement);
-                createGhost(data, ev, ganttRect.left, ganttRect.top);
-            }, options.wait);
-        }
-        function resizerDown(ev) {
-            ev.stopPropagation();
-            ev.preventDefault();
-            if ((ev.type === 'pointerdown' || ev.type === 'mousedown') && ev.button !== 0) {
-                return;
-            }
-            const movement = getMovement(data);
-            movement.resizing = true;
-            const item = state.get(`config.chart.items.${data.item.id}`);
-            const chartLeftTime = state.get('_internal.chart.time.leftGlobal');
-            const timePerPixel = state.get('_internal.chart.time.timePerPixel');
-            const ganttRect = state.get('_internal.elements.chart-timeline').getBoundingClientRect();
-            movement.ganttTop = ganttRect.top;
-            movement.ganttLeft = ganttRect.left;
-            movement.itemX = (item.time.end - chartLeftTime) / timePerPixel;
-            saveMovement(data.item.id, movement);
-        }
-        function isCollision(rowId, itemId, start, end) {
-            if (!options.collisionDetection) {
-                return false;
-            }
-            const time = state.get('_internal.chart.time');
-            if (options.outOfBorders && (start < time.from || end > time.to)) {
-                return true;
-            }
-            let diff = api.time.date(end).diff(start, 'milliseconds');
-            if (Math.sign(diff) === -1) {
-                diff = -diff;
-            }
-            if (diff <= 1) {
-                return true;
-            }
-            const row = state.get('config.list.rows.' + rowId);
-            for (const rowItem of row._internal.items) {
-                if (rowItem.id !== itemId) {
-                    if (start >= rowItem.time.start && start <= rowItem.time.end) {
-                        return true;
-                    }
-                    if (end >= rowItem.time.start && end <= rowItem.time.end) {
-                        return true;
-                    }
-                    if (start <= rowItem.time.start && end >= rowItem.time.end) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        function movementX(normalized, row, item, zoom, timePerPixel) {
-            const movement = getMovement(data);
-            const left = normalized.clientX - movement.ganttLeft;
-            moveGhost(data, normalized);
-            const leftMs = state.get('_internal.chart.time.leftGlobal') + left * timePerPixel;
-            const add = leftMs - item.time.start;
-            const originalStart = item.time.start;
-            const finalStartTime = getSnapStart(data)(item.time.start, add, item);
-            const finalAdd = finalStartTime - originalStart;
-            const collision = isCollision(row.id, item.id, item.time.start + finalAdd, item.time.end + finalAdd);
-            if (finalAdd && !collision) {
-                state.update(`config.chart.items.${data.item.id}.time`, function moveItem(time) {
-                    time.start += finalAdd;
-                    time.end = getSnapEnd(data)(time.end, finalAdd, item) - 1;
-                    return time;
-                });
-            }
-        }
-        function resizeX(normalized, row, item, zoom, timePerPixel) {
-            if (!isResizable(data)) {
-                return;
-            }
-            const time = state.get('_internal.chart.time');
-            const movement = getMovement(data);
-            const left = normalized.clientX - movement.ganttLeft;
-            const leftMs = time.leftGlobal + left * timePerPixel;
-            const add = leftMs - item.time.end;
-            if (item.time.end + add < item.time.start) {
-                return;
-            }
-            const originalEnd = item.time.end;
-            const finalEndTime = getSnapEnd(data)(item.time.end, add, item) - 1;
-            const finalAdd = finalEndTime - originalEnd;
-            const collision = isCollision(row.id, item.id, item.time.start, item.time.end + finalAdd);
-            if (finalAdd && !collision) {
-                state.update(`config.chart.items.${data.item.id}.time`, time => {
-                    time.start = getSnapStart(data)(time.start, 0, item);
-                    time.end = getSnapEnd(data)(time.end, finalAdd, item) - 1;
-                    return time;
-                });
-            }
-        }
-        function movementY(normalized, row, item, zoom, timePerPixel) {
-            moveGhost(data, normalized);
-            const movement = getMovement(data);
-            const top = normalized.clientY - movement.ganttTop;
-            const visibleRows = state.get('_internal.list.visibleRows');
-            let index = 0;
-            for (const currentRow of visibleRows) {
-                if (currentRow.top > top) {
-                    if (index > 0) {
-                        return index - 1;
-                    }
-                    return 0;
-                }
-                index++;
-            }
-            return index;
-        }
-        function documentMove(ev) {
-            const movement = getMovement(data);
-            let item, rowId, row, zoom, timePerPixel;
-            if (movement.moving || movement.resizing) {
-                ev.stopPropagation();
-                ev.preventDefault();
-                item = state.get(`config.chart.items.${data.item.id}`);
-                rowId = state.get(`config.chart.items.${data.item.id}.rowId`);
-                row = state.get(`config.list.rows.${rowId}`);
-                zoom = state.get('_internal.chart.time.zoom');
-                timePerPixel = state.get('_internal.chart.time.timePerPixel');
-            }
-            const moveable = isMoveable(data);
-            if (movement.moving) {
-                if (moveable === true || moveable === 'x' || (Array.isArray(moveable) && moveable.includes(rowId))) {
-                    movementX(ev, row, item, zoom, timePerPixel);
-                }
-                if (!moveable || moveable === 'x') {
-                    return;
-                }
-                let visibleRowsIndex = movementY(ev);
-                const visibleRows = state.get('_internal.list.visibleRows');
-                if (typeof visibleRows[visibleRowsIndex] === 'undefined') {
-                    if (visibleRowsIndex > 0) {
-                        visibleRowsIndex = visibleRows.length - 1;
-                    }
-                    else if (visibleRowsIndex < 0) {
-                        visibleRowsIndex = 0;
-                    }
-                }
-                const newRow = visibleRows[visibleRowsIndex];
-                const newRowId = newRow.id;
-                const collision = isCollision(newRowId, item.id, item.time.start, item.time.end);
-                if (newRowId !== item.rowId && !collision) {
-                    if (!Array.isArray(moveable) || moveable.includes(newRowId)) {
-                        if (!newRow.hasOwnProperty('moveable') || newRow.moveable) {
-                            state.update(`config.chart.items.${item.id}.rowId`, newRowId);
-                        }
-                    }
-                }
-            }
-            else if (movement.resizing && (typeof item.resizable === 'undefined' || item.resizable === true)) {
-                resizeX(ev, row, item, zoom, timePerPixel);
-            }
-        }
-        function documentUp(ev) {
-            const movement = getMovement(data);
-            if (movement.moving || movement.resizing || movement.waiting) {
-                ev.stopPropagation();
-                ev.preventDefault();
-            }
-            else {
-                return;
-            }
-            movement.moving = false;
-            movement.waiting = false;
-            movement.resizing = false;
-            saveMovement(data.item.id, movement);
-            for (const itemId in movementState) {
-                movementState[itemId].moving = false;
-                movementState[itemId].resizing = false;
-                movementState[itemId].waiting = false;
-                destroyGhost(itemId);
-            }
-        }
-        element.addEventListener('pointerdown', labelDown);
-        resizerEl.addEventListener('pointerdown', resizerDown);
-        document.addEventListener('pointermove', documentMove);
-        document.addEventListener('pointerup', documentUp);
-        return {
-            update(node, changedData) {
-                if (!isResizable(changedData) && resizerEl.style.visibility === 'visible') {
-                    resizerEl.style.visibility = 'hidden';
-                }
-                else if (isResizable(changedData) && resizerEl.style.visibility === 'hidden') {
-                    resizerEl.style.visibility = 'visible';
-                }
-                data = changedData;
-            },
-            destroy(node, data) {
-                element.removeEventListener('pointerdown', labelDown);
-                resizerEl.removeEventListener('pointerdown', resizerDown);
-                document.removeEventListener('pointermove', documentMove);
-                document.removeEventListener('pointerup', documentUp);
-                resizerEl.remove();
-            }
-        };
-    }
-    return function initialize(vido) {
-        vido.state.update('config.actions.chart-timeline-items-row-item', actions => {
-            actions.push(ItemAction);
-            return actions;
-        });
-    };
+function ItemMovement() {
+    return function initialize() { };
 }
 //# sourceMappingURL=ItemMovement.plugin.js.map
 
 /**
- * Selection plugin helpers
+ * Selection ChartTimeline Wrapper
+ *
+ * @copyright Rafal Pospiech <https://neuronet.io>
+ * @author    Rafal Pospiech <neuronet.io@gmail.com>
+ * @package   gantt-schedule-timeline-calendar
+ * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
+ * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
+ */
+let wrapped, vido, api, state, html;
+let data;
+let className, styleMap;
+// this function will be called at each rerender
+function ChartTimelineWrapper(input, props) {
+    const oldContent = wrapped(input, props);
+    if (data.isMoving) {
+        styleMap.style.display = 'block';
+        styleMap.style.left = data.currentPosition.x + 'px';
+        styleMap.style.top = data.currentPosition.y + 'px';
+    }
+    else {
+        styleMap.style.display = 'none';
+    }
+    const SelectionRectangle = html `
+    <div class=${className} style=${styleMap}>${data.targetType}: ${data.targetData ? data.targetData.id : ''}</div>
+  `;
+    return html `
+    ${oldContent}${SelectionRectangle}
+  `;
+}
+function Wrap(oldWrapper, vidoInstance) {
+    wrapped = oldWrapper;
+    vido = vidoInstance;
+    api = vido.api;
+    state = vido.state;
+    html = vido.html;
+    className = api.getClass('chart-selection');
+    styleMap = new vido.StyleMap({ display: 'none' });
+    vido.onDestroy(state.subscribe('config.plugin.TimelinePointer', (PointerPluginData) => {
+        data = PointerPluginData;
+        vido.update(); // rerender to update rectangle
+    }));
+    return ChartTimelineWrapper;
+}
+//# sourceMappingURL=Wrapper.js.map
+
+/**
+ * Selection plugin
  *
  * @copyright Rafal Pospiech <https://neuronet.io>
  * @author    Rafal Pospiech <neuronet.io@gmail.com>
@@ -487,182 +317,58 @@ function prepareOptions(options) {
     options = Object.assign(Object.assign({}, defaultOptions), options);
     return options;
 }
-//# sourceMappingURL=helpers.js.map
-
-/**
- * Select Action
- *
- * @copyright Rafal Pospiech <https://neuronet.io>
- * @author    Rafal Pospiech <neuronet.io@gmail.com>
- * @package   gantt-schedule-timeline-calendar
- * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
- * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
- */
-let vido, api, state, options;
 const pluginPath = 'config.plugin.Selection';
-const classNames = {
-    cell: '',
-    item: ''
-};
 function generateEmptyData() {
     return {
-        enabled: options.enabled,
-        currentTarget: null,
-        realTarget: null,
-        targetType: '',
-        isSelecting: false,
-        events: {
-            down: null,
-            move: null,
-            up: null
+        enabled: true,
+        selecting: {
+            [ITEM]: [],
+            [CELL]: []
+        },
+        selected: {
+            [ITEM]: [],
+            [CELL]: []
         }
     };
 }
-class SelectAction {
-    constructor(element) {
-        this.pointerDown = this.pointerDown.bind(this);
-        this.pointerMove = this.pointerMove.bind(this);
-        this.pointerUp = this.pointerUp.bind(this);
+class SelectionPlugin {
+    constructor(vido, options) {
+        this.unsub = [];
+        this.vido = vido;
+        this.state = vido.state;
+        this.api = vido.api;
+        this.options = options;
         this.data = generateEmptyData();
-        element.addEventListener('pointerdown', this.pointerDown);
-        document.addEventListener('pointerup', this.pointerUp);
-        document.addEventListener('pointermove', this.pointerMove);
+        this.unsub.push(this.state.subscribe('config.plugin.TimelinePointer', timelinePointerData => {
+            this.poitnerData = timelinePointerData;
+            this.pointerDataChanged();
+        }));
+        this.updateData();
+        this.unsub.push(this.state.subscribe(pluginPath, value => {
+            this.data = value;
+        }));
     }
-    destroy(element) {
-        element.removeEventListener('pointerdown', this.pointerDown);
-        document.removeEventListener('pointerup', this.pointerUp);
-        document.removeEventListener('pointermove', this.pointerMove);
+    destroy() {
+        this.unsub.forEach(unsub => unsub());
     }
     updateData() {
-        state.update(pluginPath, () => (Object.assign({}, this.data)));
+        this.state.update(pluginPath, Object.assign({}, this.data));
     }
-    getRealTarget(ev) {
-        let realTarget = ev.target.closest('.' + classNames.item);
-        if (realTarget) {
-            return realTarget;
-        }
-        realTarget = ev.target.closest('.' + classNames.cell);
-        if (realTarget) {
-            return realTarget;
-        }
-        return null;
-    }
-    pointerDown(ev) {
-        this.data.currentTarget = ev.target;
-        this.data.realTarget = this.getRealTarget(ev);
-        if (this.data.realTarget) {
-            if (this.data.realTarget.classList.contains(classNames.item)) {
-                this.data.targetType = 'item';
-            }
-            else if (this.data.realTarget.classList.contains(classNames.cell)) {
-                this.data.targetType = 'cell';
-            }
-            else {
-                this.data.targetType = '';
-            }
-        }
-        else {
-            this.data.targetType = '';
-        }
-        this.data.isSelecting = !!this.data.realTarget;
-        this.data.events.down = ev;
-        this.updateData();
-    }
-    pointerUp(ev) {
-        this.data.isSelecting = false;
-        this.data.events.up = ev;
-        this.updateData();
-    }
-    pointerMove(ev) {
-        if (this.data.isSelecting) {
-            this.data.events.move = ev;
-            this.updateData();
-        }
-    }
+    pointerDataChanged() { }
 }
-function prepareSelectAction(vidoInstance, opts) {
-    options = opts;
-    vido = vidoInstance;
-    api = vido.api;
-    state = vido.state;
-    classNames.cell = api.getClass('chart-timeline-grid-row-cell');
-    classNames.item = api.getClass('chart-timeline-items-row-item');
-    return SelectAction;
-}
-//# sourceMappingURL=SelectAction.js.map
-
-/**
- * Selection ChartTimeline Wrapper
- *
- * @copyright Rafal Pospiech <https://neuronet.io>
- * @author    Rafal Pospiech <neuronet.io@gmail.com>
- * @package   gantt-schedule-timeline-calendar
- * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
- * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
- */
-let wrapped, vido$1, api$1, state$1, html;
-let data;
-let className, styleMap;
-// this function will be called at each rerender
-function ChartTimelineWrapper(input, props) {
-    const oldContent = wrapped(input, props);
-    if (data.isSelecting) {
-        styleMap.style.display = 'block';
-    }
-    else {
-        styleMap.style.display = 'none';
-    }
-    const SelectionRectangle = html `
-    <div class=${className} style=${styleMap}>${data.targetType}</div>
-  `;
-    return html `
-    ${oldContent}${SelectionRectangle}
-  `;
-}
-function Wrap(oldWrapper, vidoInstance) {
-    wrapped = oldWrapper;
-    vido$1 = vidoInstance;
-    api$1 = vido$1.api;
-    state$1 = vido$1.state;
-    html = vido$1.html;
-    className = api$1.getClass('chart-selection');
-    styleMap = new vido$1.StyleMap({ display: 'none' });
-    state$1.subscribe('config.plugin.Selection', (Selection) => {
-        data = Selection;
-        vido$1.update(); // rerender to update rectangle
-    });
-    return ChartTimelineWrapper;
-}
-
-/**
- * Selection plugin
- *
- * @copyright Rafal Pospiech <https://neuronet.io>
- * @author    Rafal Pospiech <neuronet.io@gmail.com>
- * @package   gantt-schedule-timeline-calendar
- * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
- * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
- */
 function Selection(options = {}) {
-    let vido, api, state;
     options = prepareOptions(options);
-    return function initialize(vidoInstance) {
-        vido = vidoInstance;
-        api = vido.api;
-        state = vido.state;
-        state.update('config.actions.chart-timeline', timelineActions => {
-            timelineActions.push(prepareSelectAction(vido, options));
-            return timelineActions;
-        });
-        state.update('config.plugin.Selection', data => {
-            return generateEmptyData();
-        });
-        state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
+    return function initialize(vido) {
+        const selectionPlugin = new SelectionPlugin(vido, options);
+        vido.state.update(pluginPath, generateEmptyData());
+        vido.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
             return Wrap(oldWrapper, vido);
         });
+        return function destroy() {
+            selectionPlugin.destroy();
+        };
     };
 }
-//# sourceMappingURL=Selection.plugin.js.map
 
 /**
  * CalendarScroll plugin
@@ -947,7 +653,7 @@ function WeekendHiglight(options = {}) {
 }
 //# sourceMappingURL=WeekendHighlight.plugin.js.map
 
-var plugins = { ItemHold, ItemMovement, Selection, CalendarScroll, WeekendHighlight: WeekendHiglight };
+var plugins = { TimelinePointer, ItemHold, ItemMovement, Selection, CalendarScroll, WeekendHighlight: WeekendHiglight };
 //# sourceMappingURL=plugins.js.map
 
 export default plugins;

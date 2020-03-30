@@ -8,22 +8,26 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { SelectionData } from './helpers';
+import { PluginData } from './Selection.plugin';
 
 let wrapped, vido, api, state, html;
-let data: SelectionData;
+let pluginData: PluginData;
 let className, styleMap;
 
 // this function will be called at each rerender
 function ChartTimelineWrapper(input, props) {
   const oldContent = wrapped(input, props);
-  if (data.isSelecting) {
+  if (pluginData.isSelecting) {
     styleMap.style.display = 'block';
+    styleMap.style.left = pluginData.selectionArea.x + 'px';
+    styleMap.style.top = pluginData.selectionArea.y + 'px';
+    styleMap.style.width = pluginData.selectionArea.width + 'px';
+    styleMap.style.height = pluginData.selectionArea.height + 'px';
   } else {
     styleMap.style.display = 'none';
   }
   const SelectionRectangle = html`
-    <div class=${className} style=${styleMap}>${data.targetType}</div>
+    <div class=${className} style=${styleMap}></div>
   `;
   return html`
     ${oldContent}${SelectionRectangle}
@@ -39,10 +43,12 @@ export function Wrap(oldWrapper, vidoInstance) {
   className = api.getClass('chart-selection');
   styleMap = new vido.StyleMap({ display: 'none' });
 
-  state.subscribe('config.plugin.Selection', (Selection: SelectionData) => {
-    data = Selection;
-    vido.update(); // rerender to update rectangle
-  });
+  vido.onDestroy(
+    state.subscribe('config.plugin.Selection', (PluginData: PluginData) => {
+      pluginData = PluginData;
+      vido.update(); // rerender to update rectangle
+    })
+  );
 
   return ChartTimelineWrapper;
 }
