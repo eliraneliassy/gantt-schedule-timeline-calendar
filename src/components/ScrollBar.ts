@@ -11,7 +11,11 @@
 import Action from '@neuronet.io/vido/Action';
 import { ChartInternalTimeLevelDate, ScrollTypeHorizontal, ScrollTypeVertical, ScrollType } from '../types';
 
-export default function ScrollBar(vido, props) {
+export interface Props {
+  type: 'horizontal' | 'vertical';
+}
+
+export default function ScrollBar(vido, props: Props) {
   const { onDestroy, state, api, html, StyleMap, Actions, update, schedule } = vido;
 
   const componentName = 'scroll-bar';
