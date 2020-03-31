@@ -9,7 +9,7 @@
  */
 const CELL = 'chart-timeline-grid-row-cell';
 const ITEM = 'chart-timeline-items-row-item';
-function TimelinePointer(options = { enabled: true }) {
+function Plugin(options = { enabled: true }) {
     let vido, api, state;
     const pluginPath = 'config.plugin.TimelinePointer';
     const classNames = {
@@ -141,7 +141,13 @@ function TimelinePointer(options = { enabled: true }) {
         };
     };
 }
-//# sourceMappingURL=TimelinePointer.plugin.js.map
+
+var TimelinePointer = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  CELL: CELL,
+  ITEM: ITEM,
+  Plugin: Plugin
+});
 
 /**
  * ItemHold plugin
@@ -224,7 +230,11 @@ function ItemHold(options = {}) {
         });
     };
 }
-//# sourceMappingURL=ItemHold.plugin.js.map
+
+var ItemHold$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': ItemHold
+});
 
 /**
  * ItemMovement plugin
@@ -235,10 +245,14 @@ function ItemHold(options = {}) {
  * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
-function ItemMovement() {
+function Plugin$1() {
     return function initialize() { };
 }
-//# sourceMappingURL=ItemMovement.plugin.js.map
+
+var ItemMovement = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  Plugin: Plugin$1
+});
 
 /**
  * Selection ChartTimeline Wrapper
@@ -250,21 +264,23 @@ function ItemMovement() {
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 let wrapped, vido, api, state, html;
-let data;
+let pluginData;
 let className, styleMap;
 // this function will be called at each rerender
 function ChartTimelineWrapper(input, props) {
     const oldContent = wrapped(input, props);
-    if (data.isMoving) {
+    if (pluginData.isSelecting) {
         styleMap.style.display = 'block';
-        styleMap.style.left = data.currentPosition.x + 'px';
-        styleMap.style.top = data.currentPosition.y + 'px';
+        styleMap.style.left = pluginData.selectionArea.x + 'px';
+        styleMap.style.top = pluginData.selectionArea.y + 'px';
+        styleMap.style.width = pluginData.selectionArea.width + 'px';
+        styleMap.style.height = pluginData.selectionArea.height + 'px';
     }
     else {
         styleMap.style.display = 'none';
     }
     const SelectionRectangle = html `
-    <div class=${className} style=${styleMap}>${data.targetType}: ${data.targetData ? data.targetData.id : ''}</div>
+    <div class=${className} style=${styleMap}></div>
   `;
     return html `
     ${oldContent}${SelectionRectangle}
@@ -278,13 +294,12 @@ function Wrap(oldWrapper, vidoInstance) {
     html = vido.html;
     className = api.getClass('chart-selection');
     styleMap = new vido.StyleMap({ display: 'none' });
-    vido.onDestroy(state.subscribe('config.plugin.TimelinePointer', (PointerPluginData) => {
-        data = PointerPluginData;
+    vido.onDestroy(state.subscribe('config.plugin.Selection', (PluginData) => {
+        pluginData = PluginData;
         vido.update(); // rerender to update rectangle
     }));
     return ChartTimelineWrapper;
 }
-//# sourceMappingURL=Wrapper.js.map
 
 /**
  * Selection plugin
@@ -321,6 +336,10 @@ const pluginPath = 'config.plugin.Selection';
 function generateEmptyData() {
     return {
         enabled: true,
+        isSelecting: false,
+        initialPosition: { x: 0, y: 0 },
+        currentPosition: { x: 0, y: 0 },
+        selectionArea: { x: 0, y: 0, width: 0, height: 0 },
         selecting: {
             [ITEM]: [],
             [CELL]: []
@@ -341,7 +360,7 @@ class SelectionPlugin {
         this.data = generateEmptyData();
         this.unsub.push(this.state.subscribe('config.plugin.TimelinePointer', timelinePointerData => {
             this.poitnerData = timelinePointerData;
-            this.pointerDataChanged();
+            this.onPointerData();
         }));
         this.updateData();
         this.unsub.push(this.state.subscribe(pluginPath, value => {
@@ -354,9 +373,45 @@ class SelectionPlugin {
     updateData() {
         this.state.update(pluginPath, Object.assign({}, this.data));
     }
-    pointerDataChanged() { }
+    getItemsUnderSelectionArea() { }
+    getSelectionArea() {
+        const area = { x: 0, y: 0, width: 0, height: 0 };
+        const initial = Object.assign({}, this.poitnerData.initialPosition);
+        const current = Object.assign({}, this.poitnerData.currentPosition);
+        const width = current.x - initial.x;
+        const height = current.y - initial.y;
+        if (width >= 0) {
+            area.x = initial.x;
+            area.width = width;
+        }
+        else {
+            area.x = current.x;
+            area.width = Math.abs(width);
+        }
+        if (height >= 0) {
+            area.y = initial.y;
+            area.height = height;
+        }
+        else {
+            area.y = current.y;
+            area.height = Math.abs(height);
+        }
+        return area;
+    }
+    onPointerData() {
+        if (this.poitnerData.isMoving) {
+            this.data.isSelecting = true;
+            this.data.selectionArea = this.getSelectionArea();
+            console.log(this.data.selectionArea);
+            const selectingItems = this.getItemsUnderSelectionArea();
+        }
+        else if (!this.poitnerData.isMoving) {
+            this.data.isSelecting = false;
+        }
+        this.updateData();
+    }
 }
-function Selection(options = {}) {
+function Plugin$2(options = {}) {
     options = prepareOptions(options);
     return function initialize(vido) {
         const selectionPlugin = new SelectionPlugin(vido, options);
@@ -370,6 +425,11 @@ function Selection(options = {}) {
     };
 }
 
+var Selection = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  Plugin: Plugin$2
+});
+
 /**
  * CalendarScroll plugin
  *
@@ -382,7 +442,7 @@ function Selection(options = {}) {
 const defaultOptions = {
     enabled: true
 };
-function CalendarScroll(options = defaultOptions) {
+function Plugin$3(options = defaultOptions) {
     let vido, api, state;
     let enabled = options.enabled;
     class ChartAction {
@@ -481,7 +541,11 @@ function CalendarScroll(options = defaultOptions) {
         });
     };
 }
-//# sourceMappingURL=CalendarScroll.plugin.js.map
+
+var CalendarScroll = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  Plugin: Plugin$3
+});
 
 /**
  * @license
@@ -597,7 +661,6 @@ const defaultOptions$1 = {
     onUp(data) { },
     onWheel(data) { }
 };
-//# sourceMappingURL=vido.esm.js.map
 
 /**
  * Weekend highlight plugin
@@ -608,7 +671,7 @@ const defaultOptions$1 = {
  * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
-function WeekendHiglight(options = {}) {
+function Plugin$4(options = {}) {
     const weekdays = options.weekdays || [6, 0];
     let className;
     let api;
@@ -651,10 +714,13 @@ function WeekendHiglight(options = {}) {
         };
     };
 }
-//# sourceMappingURL=WeekendHighlight.plugin.js.map
 
-var plugins = { TimelinePointer, ItemHold, ItemMovement, Selection, CalendarScroll, WeekendHighlight: WeekendHiglight };
-//# sourceMappingURL=plugins.js.map
+var WeekendHighlight = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  Plugin: Plugin$4
+});
+
+var plugins = { TimelinePointer, ItemHold: ItemHold$1, ItemMovement, Selection, CalendarScroll, WeekendHighlight };
 
 export default plugins;
 //# sourceMappingURL=plugins.js.map

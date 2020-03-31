@@ -8,7 +8,13 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-export default function ListColumnRowExpanderToggle(vido, props) {
+import { Row } from '../../types';
+
+export interface Props {
+  row: Row;
+}
+
+export default function ListColumnRowExpanderToggle(vido, props: Props) {
   const { api, state, onDestroy, Actions, update, html, onChange, cache } = vido;
   const componentName = 'list-column-row-expander-toggle';
   const actionProps = { ...props, api, state };

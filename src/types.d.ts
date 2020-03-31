@@ -1,10 +1,31 @@
 import { lithtml } from '@neuronet.io/vido';
 import { Dayjs, OpUnitType } from 'dayjs/index.d';
+import { Properties as CSSProps } from 'csstype';
 
 export interface RowInternal {
-  parents: Row[];
-  children: Row[];
+  parents: string[];
+  children: string[];
   items: Item[];
+}
+
+export interface RowStyleObject {
+  current?: CSSProps;
+  children?: CSSProps;
+}
+
+export interface RowGridStyle {
+  cell?: RowStyleObject;
+  row?: RowStyleObject;
+}
+
+export interface RowItemsStyle {
+  item?: RowStyleObject;
+  row?: RowStyleObject;
+}
+
+export interface RowStyle extends RowStyleObject {
+  grid?: RowGridStyle;
+  items?: RowItemsStyle;
 }
 
 export interface Row {
@@ -17,6 +38,8 @@ export interface Row {
   _internal?: RowInternal;
   top?: number;
   gap?: RowGap;
+  style?: RowStyle;
+  classNames?: string[];
 }
 
 export interface Rows {
@@ -38,10 +61,27 @@ export interface Item {
   outerHeight?: number;
   top?: number;
   gap?: ItemGap;
+  style?: CSSProps;
+  classNames?: string[];
+  isHTML?: boolean;
 }
 
 export interface Items {
   [id: string]: Item;
+}
+
+export interface Cell {
+  id: string;
+  time: ChartTimeDate;
+  top: number;
+  row: Row;
+}
+
+export interface RowWithCells {
+  row: Row;
+  cells: Cell[];
+  top: number;
+  width: number;
 }
 
 export type VoidFunction = () => void;

@@ -8,6 +8,8 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
+import { Row } from '../../../types';
+
 /**
  * Bind element action
  * @param {Element} element
@@ -34,7 +36,11 @@ class BindElementAction {
   }
 }
 
-const ChartTimelineItemsRow = (vido, props) => {
+export interface Props {
+  row: Row;
+}
+
+const ChartTimelineItemsRow = (vido, props: Props) => {
   const { api, state, onDestroy, Detach, Actions, update, html, onChange, reuseComponents, StyleMap } = vido;
   const actionProps = { ...props, api, state };
   let wrapper;
@@ -96,7 +102,7 @@ const ChartTimelineItemsRow = (vido, props) => {
    * On props change
    * @param {any} changedProps
    */
-  onChange((changedProps, options) => {
+  onChange((changedProps: Props, options) => {
     if (options.leave || changedProps.row === undefined) {
       shouldDetach = true;
       reuseComponents(itemComponents, [], item => ({ row: undefined, item }), ItemComponent);

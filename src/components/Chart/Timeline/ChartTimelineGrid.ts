@@ -8,6 +8,8 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
+import { Cell, RowWithCells } from '../../../types';
+
 /**
  * Bind element action
  */
@@ -47,7 +49,7 @@ export default function ChartTimelineGrid(vido, props) {
   onDestroy(state.subscribe('config.chart.grid.cell.onCreate', onCreate => (onCellCreate = onCreate)));
 
   const rowsComponents = [];
-  const rowsWithCells = [];
+  const rowsWithCells: RowWithCells[] = [];
   const formatCache = new Map();
   const styleMap = new StyleMap({});
 
@@ -69,7 +71,7 @@ export default function ChartTimelineGrid(vido, props) {
     let top = 0;
     rowsWithCells.length = 0;
     for (const row of visibleRows) {
-      const cells = [];
+      const cells: Cell[] = [];
       for (const time of periodDates) {
         let format;
         if (formatCache.has(time.leftGlobal)) {
@@ -79,7 +81,7 @@ export default function ChartTimelineGrid(vido, props) {
           formatCache.set(time.leftGlobal, format);
         }
         const id = row.id + ':' + format;
-        let cell = { id, time, row, top };
+        let cell: Cell = { id, time, row, top };
         for (const onCreate of onCellCreate) {
           cell = onCreate(cell);
         }
@@ -109,7 +111,7 @@ export default function ChartTimelineGrid(vido, props) {
    * Generate rows components
    * @param {array} rowsWithCells
    */
-  function generateRowsComponents(rowsWithCells) {
+  function generateRowsComponents(rowsWithCells: RowWithCells[]) {
     reuseComponents(rowsComponents, rowsWithCells || [], row => row, GridRowComponent);
     update();
   }

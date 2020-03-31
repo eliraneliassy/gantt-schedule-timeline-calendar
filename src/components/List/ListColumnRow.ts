@@ -8,6 +8,8 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
+import { ColumnData, Row } from '../../types';
+
 /**
  * Bind element action
  */
@@ -32,7 +34,12 @@ class BindElementAction {
   }
 }
 
-export default function ListColumnRow(vido, props) {
+export interface Props {
+  rowId: string;
+  columnId: string;
+}
+
+export default function ListColumnRow(vido, props: Props) {
   const {
     api,
     state,
@@ -44,8 +51,7 @@ export default function ListColumnRow(vido, props) {
     createComponent,
     onChange,
     StyleMap,
-    unsafeHTML,
-    PointerAction
+    unsafeHTML
   } = vido;
 
   const actionProps = { ...props, api, state };
@@ -61,9 +67,9 @@ export default function ListColumnRow(vido, props) {
   );
 
   let rowPath = `_internal.flatTreeMapById.${props.rowId}`,
-    row = state.get(rowPath);
+    row: Row = state.get(rowPath);
   let colPath = `config.list.columns.data.${props.columnId}`,
-    column = state.get(colPath);
+    column: ColumnData = state.get(colPath);
   const styleMap = new StyleMap(
     column.expander
       ? {
@@ -83,7 +89,7 @@ export default function ListColumnRow(vido, props) {
   let rowSub, colSub;
   const ListColumnRowExpander = createComponent(ListColumnRowExpanderComponent, { row });
 
-  const onPropsChange = (changedProps, options) => {
+  const onPropsChange = (changedProps: Props, options) => {
     if (options.leave || changedProps.rowId === undefined || changedProps.columnId === undefined) {
       shouldDetach = true;
       if (rowSub) rowSub();
@@ -186,34 +192,6 @@ export default function ListColumnRow(vido, props) {
   }
 
   if (!componentActions.includes(BindElementAction)) componentActions.push(BindElementAction);
-
-  actionProps.pointerOptions = {
-    axis: 'x|y',
-    onMove({ event, movementX, movementY }) {
-      event.stopPropagation();
-      event.preventDefault();
-      if (movementX) {
-        state.update('config.list.columns.percent', percent => {
-          percent += movementX;
-          if (percent < 0) percent = 0;
-          if (percent > 100) percent = 100;
-          return percent;
-        });
-      } else if (movementY) {
-        // TODO
-        /*state.update('config.scroll.top', top => {
-          top -= movementY * state.get('config.scroll.yMultiplier');
-          const rowsHeight = state.get('_internal.list.rowsHeight');
-          const internalHeight = state.get('_internal.innerHeight');
-          top = api.limitScrollTop(rowsHeight, internalHeight, top);
-          return top;
-        });*/
-      }
-    }
-  };
-
-  componentActions.push(PointerAction);
-
   const actions = Actions.create(componentActions, actionProps);
 
   return templateProps =>

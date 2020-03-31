@@ -8,6 +8,8 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
+import { Row, Item } from '../../../types';
+
 /**
  * Bind element action
  */
@@ -32,7 +34,12 @@ class BindElementAction {
   }
 }
 
-export default function ChartTimelineItemsRowItem(vido, props) {
+export interface Props {
+  row: Row;
+  item: Item;
+}
+
+export default function ChartTimelineItemsRowItem(vido, props: Props) {
   const { api, state, onDestroy, Detach, Actions, update, html, svg, onChange, unsafeHTML, StyleMap } = vido;
 
   let wrapper;
@@ -178,8 +185,8 @@ export default function ChartTimelineItemsRowItem(vido, props) {
       html`
         <div detach=${detach} class=${classNameCurrent} data-actions=${actions} style=${styleMap}>
           ${cutterLeft()}
-          <div class=${labelClassName} title=${props.item.isHtml ? null : props.item.label}>
-            ${props.item.isHtml ? unsafeHTML(props.item.label) : props.item.label}
+          <div class=${labelClassName} title=${props.item.isHTML ? null : props.item.label}>
+            ${props.item.isHTML ? unsafeHTML(props.item.label) : props.item.label}
           </div>
           ${cutterRight()}
         </div>

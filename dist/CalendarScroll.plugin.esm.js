@@ -10,7 +10,7 @@
 const defaultOptions = {
     enabled: true
 };
-function CalendarScroll(options = defaultOptions) {
+function Plugin(options = defaultOptions) {
     let vido, api, state;
     let enabled = options.enabled;
     class ChartAction {
@@ -110,4 +110,4 @@ function CalendarScroll(options = defaultOptions) {
     };
 }
 
-export default CalendarScroll;
+export { Plugin };

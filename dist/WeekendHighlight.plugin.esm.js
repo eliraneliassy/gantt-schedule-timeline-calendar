@@ -122,7 +122,7 @@ const defaultOptions = {
  * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
-function WeekendHiglight(options = {}) {
+function Plugin(options = {}) {
     const weekdays = options.weekdays || [6, 0];
     let className;
     let api;
@@ -154,9 +154,9 @@ function WeekendHiglight(options = {}) {
     }
     return function initialize(vido) {
         api = vido.api;
-        className = options.className || api.getClass('chart-timeline-grid-row-block') + '--weekend';
+        className = options.className || api.getClass('chart-timeline-grid-row-cell') + '--weekend';
         const destroy = vido.state.subscribe('_internal.chart.time.format.period', period => (enabled = period === 'day'));
-        vido.state.update('config.actions.chart-timeline-grid-row-block', actions => {
+        vido.state.update('config.actions.chart-timeline-grid-row-cell', actions => {
             actions.push(WeekendHighlightAction);
             return actions;
         });
@@ -166,4 +166,4 @@ function WeekendHiglight(options = {}) {
     };
 }
 
-export default WeekendHiglight;
+export { Plugin };

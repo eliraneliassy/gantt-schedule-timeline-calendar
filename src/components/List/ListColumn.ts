@@ -32,7 +32,11 @@ class BindElementAction {
   }
 }
 
-export default function ListColumn(vido, props) {
+export interface Props {
+  columnId: string;
+}
+
+export default function ListColumn(vido, props: Props) {
   const { api, state, onDestroy, onChange, Actions, update, createComponent, reuseComponents, html, StyleMap } = vido;
 
   let wrapper;

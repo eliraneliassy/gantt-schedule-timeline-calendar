@@ -9,6 +9,7 @@
  */
 
 import Action from '@neuronet.io/vido/Action';
+import { ChartTimeDate, Period } from '../../../types';
 
 /**
  * Save element
@@ -30,7 +31,13 @@ class BindElementAction extends Action {
   }
 }
 
-export default function ChartCalendarDay(vido, props) {
+export interface Props {
+  level: number;
+  date: ChartTimeDate;
+  period: Period;
+}
+
+export default function ChartCalendarDay(vido, props: Props) {
   const { api, state, onDestroy, Actions, update, onChange, html, StyleMap, Detach } = vido;
 
   const componentName = 'chart-calendar-date';

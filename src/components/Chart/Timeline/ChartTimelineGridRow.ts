@@ -8,6 +8,8 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
+import { Row, RowWithCells } from '../../../types';
+
 /**
  * Bind element action
  */
@@ -32,7 +34,7 @@ class BindElementAction {
   }
 }
 
-export default function ChartTimelineGridRow(vido, props) {
+export default function ChartTimelineGridRow(vido, props: RowWithCells) {
   const { api, state, onDestroy, Detach, Actions, update, html, reuseComponents, onChange, StyleMap } = vido;
   const componentName = 'chart-timeline-grid-row';
   const actionProps = {

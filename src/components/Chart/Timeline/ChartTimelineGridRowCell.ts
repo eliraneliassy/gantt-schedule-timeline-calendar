@@ -8,6 +8,8 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
+import { Row, ChartTimeDate, Rows } from '../../../types';
+
 /**
  * Bind element action
  * @param {Element} element
@@ -42,8 +44,8 @@ class BindElementAction {
 }
 
 interface Props {
-  row: any;
-  time: any;
+  row: Row;
+  time: ChartTimeDate;
 }
 
 const ChartTimelineGridRowCell = (vido, props: Props) => {
@@ -80,7 +82,7 @@ const ChartTimelineGridRowCell = (vido, props: Props) => {
    * On props change
    * @param {any} changedProps
    */
-  function onPropsChange(changedProps, options) {
+  function onPropsChange(changedProps: Props, options) {
     if (options.leave || changedProps.row === undefined) {
       shouldDetach = true;
       return update();
@@ -94,7 +96,7 @@ const ChartTimelineGridRowCell = (vido, props: Props) => {
     styleMap.setStyle({});
     styleMap.style.width = (props?.time?.width || 0) + 'px';
     styleMap.style.height = (props?.row?.outerHeight || 0) + 'px';
-    const rows = state.get('config.list.rows');
+    const rows: Rows = state.get('config.list.rows');
     for (const parentId of props.row._internal.parents) {
       const parent = rows[parentId];
       const childrenStyle = parent?.style?.grid?.cell?.children;

@@ -8,7 +8,11 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-export default function ListColumnHeaderResizer(vido, props) {
+export interface Props {
+  columnId: string;
+}
+
+export default function ListColumnHeaderResizer(vido, props: Props) {
   const { api, state, onDestroy, update, html, schedule, Actions, PointerAction, cache, StyleMap } = vido;
 
   const componentName = 'list-column-header-resizer';

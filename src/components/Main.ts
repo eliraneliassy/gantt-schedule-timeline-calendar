@@ -21,7 +21,8 @@ import {
   ChartCalendarFormat,
   Row,
   ScrollTypeHorizontal,
-  ScrollType
+  ScrollType,
+  Rows
 } from '../types';
 import { OpUnitType } from 'dayjs';
 
@@ -151,8 +152,8 @@ export default function Main(vido, props = {}) {
   );
 
   function prepareExpanded() {
-    const configRows = state.get('config.list.rows');
-    const rowsWithParentsExpanded = api.getRowsFromIds(
+    const configRows: Rows = state.get('config.list.rows');
+    const rowsWithParentsExpanded: Row[] = api.getRowsFromIds(
       api.getRowsWithParentsExpanded(
         state.get('_internal.flatTreeMap'),
         state.get('_internal.flatTreeMapById'),

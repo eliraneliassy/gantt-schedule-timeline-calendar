@@ -7310,7 +7310,7 @@ class BindElementAction$1 {
     }
 }
 function ListColumnRow(vido, props) {
-    const { api, state, onDestroy, Detach, Actions, update, html, createComponent, onChange, StyleMap, unsafeHTML, PointerAction } = vido;
+    const { api, state, onDestroy, Detach, Actions, update, html, createComponent, onChange, StyleMap, unsafeHTML } = vido;
     const actionProps = Object.assign(Object.assign({}, props), { api, state });
     let shouldDetach = false;
     const detach = new Detach(() => shouldDetach);
@@ -7435,24 +7435,6 @@ function ListColumnRow(vido, props) {
     }
     if (!componentActions.includes(BindElementAction$1))
         componentActions.push(BindElementAction$1);
-    actionProps.pointerOptions = {
-        axis: 'x|y',
-        onMove({ event, movementX, movementY }) {
-            event.stopPropagation();
-            event.preventDefault();
-            if (movementX) {
-                state.update('config.list.columns.percent', percent => {
-                    percent += movementX;
-                    if (percent < 0)
-                        percent = 0;
-                    if (percent > 100)
-                        percent = 100;
-                    return percent;
-                });
-            }
-        }
-    };
-    componentActions.push(PointerAction);
     const actions = Actions.create(componentActions, actionProps);
     return templateProps => wrapper(html `
         <div detach=${detach} class=${className} style=${styleMap} data-actions=${actions}>
@@ -8682,8 +8664,8 @@ function ChartTimelineItemsRowItem(vido, props) {
         return wrapper(html `
         <div detach=${detach} class=${classNameCurrent} data-actions=${actions} style=${styleMap}>
           ${cutterLeft()}
-          <div class=${labelClassName} title=${props.item.isHtml ? null : props.item.label}>
-            ${props.item.isHtml ? unsafeHTML(props.item.label) : props.item.label}
+          <div class=${labelClassName} title=${props.item.isHTML ? null : props.item.label}>
+            ${props.item.isHTML ? unsafeHTML(props.item.label) : props.item.label}
           </div>
           ${cutterRight()}
         </div>

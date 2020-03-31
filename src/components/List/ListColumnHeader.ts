@@ -8,7 +8,11 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-export default function ListColumnHeader(vido, props) {
+export interface Props {
+  columnId: string;
+}
+
+export default function ListColumnHeader(vido, props: Props) {
   const { api, state, onDestroy, onChange, Actions, update, createComponent, html, cache, StyleMap } = vido;
 
   const actionProps = { ...props, api, state };

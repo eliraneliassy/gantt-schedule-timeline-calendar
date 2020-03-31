@@ -118,7 +118,6 @@
         onUp(data) { },
         onWheel(data) { }
     };
-    //# sourceMappingURL=vido.esm.js.map
 
     /**
      * Weekend highlight plugin
