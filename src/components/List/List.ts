@@ -8,7 +8,11 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-export default function List(vido, props = {}) {
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../../api/Api';
+
+export default function List(vido: vido<DeepState, Api>, props = {}) {
   const { api, state, onDestroy, Actions, update, reuseComponents, html, schedule, StyleMap, cache } = vido;
 
   const componentName = 'list';
@@ -56,7 +60,7 @@ export default function List(vido, props = {}) {
 
   onDestroy(
     state.subscribe('config.classNames', () => {
-      className = api.getClass(componentName, { list });
+      className = api.getClass(componentName);
       update();
     })
   );
@@ -76,8 +80,8 @@ export default function List(vido, props = {}) {
 
   const styleMap = new StyleMap({
     height: '',
-    '--expander-padding-width': '',
-    '--expander-size': ''
+    ['--expander-padding-width' as any]: '',
+    ['--expander-size' as any]: ''
   });
 
   onDestroy(

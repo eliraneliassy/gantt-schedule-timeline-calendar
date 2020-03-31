@@ -69,6 +69,52 @@ const publicApi = {
 };
 export default publicApi;
 
+export interface Api {
+  name: string;
+  debug: boolean;
+  setVido(Vido: any): void;
+  log(...args: any[]): void;
+  mergeDeep: typeof mergeDeep;
+  getClass(name: string): string;
+  allActions: any[];
+  getActions(name: string): any;
+  isItemInViewport(item: Item, left: number, right: number): boolean;
+  prepareItems(items: Item[]): Item[];
+  fillEmptyRowValues(rows: Row[]): Row[];
+  itemsOnTheSameLevel(item1: Item, item2: Item): boolean;
+  itemsOverlaps(item1: Item, item2: Item): boolean;
+  itemOverlapsWithOthers(item: Item, items: Item[]): boolean;
+  fixOverlappedItems(items: Item[]): void;
+  recalculateRowsHeights(rows: Row[]): number;
+  generateParents(rows: any, parentName?: string): {};
+  fastTree(rowParents: any, node: any, parents?: any[]): any;
+  makeTreeMap(rows: any, items: any): any;
+  getFlatTreeMapById(treeMap: any, flatTreeMapById?: {}): {};
+  flattenTreeMap(treeMap: any, rows?: any[]): any[];
+  getRowsFromMap(flatTreeMap: any, rows: any): any;
+  getRowsFromIds(ids: any, rows: any): any[];
+  getRowsWithParentsExpanded(flatTreeMap: any, flatTreeMapById: any, rows: any): any[];
+  getRowsHeight(rows: any): number;
+  /**
+   * Get visible rows - get rows that are inside current viewport (height)
+   *
+   * @param {array} rowsWithParentsExpanded rows that have parent expanded- they are visible
+   */
+  getVisibleRows(rowsWithParentsExpanded: Row[]): Row[];
+  normalizeMouseWheelEvent(
+    event: MouseWheelEvent
+  ): {
+    x: number;
+    y: number;
+    z: number;
+    event: MouseWheelEvent;
+  };
+  time: TimeApi;
+  scrollToTime(toTime: number, centered?: boolean): number;
+  getSVGIconSrc(svg: any): any;
+  destroy(): void;
+}
+
 export function getInternalApi(state) {
   let $state = state.get();
   let unsubscribes = [];
@@ -90,7 +136,7 @@ export function getInternalApi(state) {
 
     mergeDeep,
 
-    getClass(name) {
+    getClass(name: string) {
       let simple = `${lib}__${name}`;
       if (name === this.name) {
         simple = this.name;
@@ -100,7 +146,7 @@ export function getInternalApi(state) {
 
     allActions: [],
 
-    getActions(name) {
+    getActions(name: string) {
       if (!this.allActions.includes(name)) this.allActions.push(name);
       let actions = state.get('config.actions.' + name);
       if (typeof actions === 'undefined') {
@@ -109,7 +155,7 @@ export function getInternalApi(state) {
       return actions.slice();
     },
 
-    isItemInViewport(item, left, right) {
+    isItemInViewport(item: Item, left: number, right: number) {
       return (
         (item.time.start >= left && item.time.start < right) ||
         (item.time.end >= left && item.time.end < right) ||
@@ -117,7 +163,7 @@ export function getInternalApi(state) {
       );
     },
 
-    prepareItems(items) {
+    prepareItems(items: Item[]) {
       const defaultItemHeight = state.get('config.chart.item.height');
       for (const item of items) {
         item.time.start = +item.time.start;

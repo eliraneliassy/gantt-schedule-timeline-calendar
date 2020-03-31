@@ -8,7 +8,9 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Action } from '@neuronet.io/vido/vido.esm';
+import { Action, vido } from '@neuronet.io/vido/vido';
+import { Api } from '../api/Api';
+import DeepState from 'deep-state-observer';
 
 export interface Options {
   weekdays?: number[];
@@ -18,7 +20,7 @@ export interface Options {
 export function Plugin(options: Options = {}) {
   const weekdays = options.weekdays || [6, 0];
   let className;
-  let api;
+  let api: Api;
   let enabled = true;
 
   class WeekendHighlightAction extends Action {
@@ -48,11 +50,14 @@ export function Plugin(options: Options = {}) {
     }
   }
 
-  return function initialize(vido) {
-    api = vido.api;
+  return function initialize(vidoInstance: vido<DeepState, Api>) {
+    api = vidoInstance.api;
     className = options.className || api.getClass('chart-timeline-grid-row-cell') + '--weekend';
-    const destroy = vido.state.subscribe('_internal.chart.time.format.period', period => (enabled = period === 'day'));
-    vido.state.update('config.actions.chart-timeline-grid-row-cell', actions => {
+    const destroy = vidoInstance.state.subscribe(
+      '_internal.chart.time.format.period',
+      period => (enabled = period === 'day')
+    );
+    vidoInstance.state.update('config.actions.chart-timeline-grid-row-cell', actions => {
       actions.push(WeekendHighlightAction);
       return actions;
     });

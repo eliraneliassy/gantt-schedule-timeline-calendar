@@ -17,6 +17,16 @@
      * subject to an additional IP rights grant found at
      * http://polymer.github.io/PATENTS.txt
      */
+    /**
+     * An expression marker with embedded unique key to avoid collision with
+     * possible text in templates.
+     */
+    const marker = `{{lit-${String(Math.random()).slice(2)}}}`;
+    /**
+     * Used to clone existing node instead of each time creating new one which is
+     * slower
+     */
+    const markerNode = document.createComment('');
 
     /**
      * @license
@@ -32,20 +42,24 @@
      * http://polymer.github.io/PATENTS.txt
      */
     /**
-     * An expression marker with embedded unique key to avoid collision with
-     * possible text in templates.
-     */
-    const marker = `{{lit-${String(Math.random()).slice(2)}}}`;
-    /**
-     * Used to clone existing node instead of each time creating new one which is
-     * slower
-     */
-    const markerNode = document.createComment('');
-    /**
      * Used to clone existing node instead of each time creating new one which is
      * slower
      */
     const emptyTemplateNode = document.createElement('template');
+
+    /**
+     * @license
+     * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
+     * This code may only be used under the BSD style license found at
+     * http://polymer.github.io/LICENSE.txt
+     * The complete set of authors may be found at
+     * http://polymer.github.io/AUTHORS.txt
+     * The complete set of contributors may be found at
+     * http://polymer.github.io/CONTRIBUTORS.txt
+     * Code distributed by Google as part of the polymer project is also
+     * subject to an additional IP rights grant found at
+     * http://polymer.github.io/PATENTS.txt
+     */
     /**
      * Used to clone text node instead of each time creating new one which is slower
      */
@@ -96,6 +110,62 @@
         // If we run in the browser set version
         (window['litHtmlVersions'] || (window['litHtmlVersions'] = [])).push('1.1.7');
     }
+
+    /**
+     * @license
+     * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
+     * This code may only be used under the BSD style license found at
+     * http://polymer.github.io/LICENSE.txt
+     * The complete set of authors may be found at
+     * http://polymer.github.io/AUTHORS.txt
+     * The complete set of contributors may be found at
+     * http://polymer.github.io/CONTRIBUTORS.txt
+     * Code distributed by Google as part of the polymer project is also
+     * subject to an additional IP rights grant found at
+     * http://polymer.github.io/PATENTS.txt
+     */
+    var __asyncValues = (undefined && undefined.__asyncValues) || function (o) {
+        if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+        var m = o[Symbol.asyncIterator], i;
+        return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+        function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+        function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+    };
+
+    /**
+     * @license
+     * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
+     * This code may only be used under the BSD style license found at
+     * http://polymer.github.io/LICENSE.txt
+     * The complete set of authors may be found at
+     * http://polymer.github.io/AUTHORS.txt
+     * The complete set of contributors may be found at
+     * http://polymer.github.io/CONTRIBUTORS.txt
+     * Code distributed by Google as part of the polymer project is also
+     * subject to an additional IP rights grant found at
+     * http://polymer.github.io/PATENTS.txt
+     */
+    var __asyncValues$1 = (undefined && undefined.__asyncValues) || function (o) {
+        if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+        var m = o[Symbol.asyncIterator], i;
+        return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+        function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+        function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+    };
+
+    /**
+     * @license
+     * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
+     * This code may only be used under the BSD style license found at
+     * http://polymer.github.io/LICENSE.txt
+     * The complete set of authors may be found at
+     * http://polymer.github.io/AUTHORS.txt
+     * The complete set of contributors may be found at
+     * http://polymer.github.io/CONTRIBUTORS.txt
+     * Code distributed by Google as part of the polymer project is also
+     * subject to an additional IP rights grant found at
+     * http://polymer.github.io/PATENTS.txt
+     */
     /**
      * Used to clone existing node instead of each time creating new one which is
      * slower
@@ -158,11 +228,11 @@
                 }
             }
         }
-        return function initialize(vido) {
-            api = vido.api;
+        return function initialize(vidoInstance) {
+            api = vidoInstance.api;
             className = options.className || api.getClass('chart-timeline-grid-row-cell') + '--weekend';
-            const destroy = vido.state.subscribe('_internal.chart.time.format.period', period => (enabled = period === 'day'));
-            vido.state.update('config.actions.chart-timeline-grid-row-cell', actions => {
+            const destroy = vidoInstance.state.subscribe('_internal.chart.time.format.period', period => (enabled = period === 'day'));
+            vidoInstance.state.update('config.actions.chart-timeline-grid-row-cell', actions => {
                 actions.push(WeekendHighlightAction);
                 return actions;
             });

@@ -9,6 +9,9 @@
  */
 
 import { Row } from '../../../types';
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../../../api/Api';
 
 /**
  * Bind element action
@@ -40,7 +43,7 @@ export interface Props {
   row: Row;
 }
 
-const ChartTimelineItemsRow = (vido, props: Props) => {
+const ChartTimelineItemsRow = (vido: vido<DeepState, Api>, props: Props) => {
   const { api, state, onDestroy, Detach, Actions, update, html, onChange, reuseComponents, StyleMap } = vido;
   const actionProps = { ...props, api, state };
   let wrapper;
@@ -51,6 +54,7 @@ const ChartTimelineItemsRow = (vido, props: Props) => {
 
   let itemsPath = `_internal.flatTreeMapById.${props.row.id}._internal.items`;
   let rowSub, itemsSub;
+  let classNameCurrent = '';
 
   const itemComponents = [],
     styleMap = new StyleMap({ width: '', height: '' }, true);
@@ -98,6 +102,15 @@ const ChartTimelineItemsRow = (vido, props: Props) => {
     });
   }
 
+  const componentName = 'chart-timeline-items-row';
+  let className;
+  onDestroy(
+    state.subscribe('config.classNames', () => {
+      className = api.getClass(componentName);
+      update();
+    })
+  );
+
   /**
    * On props change
    * @param {any} changedProps
@@ -112,6 +125,11 @@ const ChartTimelineItemsRow = (vido, props: Props) => {
     for (const prop in props) {
       actionProps[prop] = props[prop];
     }
+    if (props.row.classNames && props.row.classNames.length) {
+      classNameCurrent = className + ' ' + props.row.classNames.join(' ');
+    } else {
+      classNameCurrent = className;
+    }
     updateRow(props.row);
   });
 
@@ -121,16 +139,7 @@ const ChartTimelineItemsRow = (vido, props: Props) => {
     itemComponents.forEach(item => item.destroy());
   });
 
-  const componentName = 'chart-timeline-items-row';
   const componentActions = api.getActions(componentName);
-  let className;
-  onDestroy(
-    state.subscribe('config.classNames', () => {
-      className = api.getClass(componentName, props);
-      update();
-    })
-  );
-
   componentActions.push(BindElementAction);
 
   const actions = Actions.create(componentActions, actionProps);
@@ -138,7 +147,7 @@ const ChartTimelineItemsRow = (vido, props: Props) => {
   return templateProps => {
     return wrapper(
       html`
-        <div detach=${detach} class=${className} data-actions=${actions} style=${styleMap}>
+        <div detach=${detach} class=${classNameCurrent} data-actions=${actions} style=${styleMap}>
           ${itemComponents.map(i => i.html())}
         </div>
       `,

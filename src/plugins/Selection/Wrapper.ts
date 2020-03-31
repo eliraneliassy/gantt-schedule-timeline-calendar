@@ -9,8 +9,11 @@
  */
 
 import { PluginData } from './Selection.plugin';
+import { vido, lithtml } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../../api/Api';
 
-let wrapped, vido, api, state, html;
+let wrapped, vido: vido<DeepState, Api>, api: Api, state: DeepState, html: typeof lithtml.html;
 let pluginData: PluginData;
 let className, styleMap;
 
@@ -34,7 +37,7 @@ function ChartTimelineWrapper(input, props) {
   `;
 }
 
-export function Wrap(oldWrapper, vidoInstance) {
+export function Wrap(oldWrapper, vidoInstance: vido<DeepState, Api>) {
   wrapped = oldWrapper;
   vido = vidoInstance;
   api = vido.api;

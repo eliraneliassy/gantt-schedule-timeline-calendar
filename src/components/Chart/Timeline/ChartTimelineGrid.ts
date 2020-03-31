@@ -9,6 +9,9 @@
  */
 
 import { Cell, RowWithCells } from '../../../types';
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../../../api/Api';
 
 /**
  * Bind element action
@@ -26,7 +29,7 @@ class BindElementAction {
   }
 }
 
-export default function ChartTimelineGrid(vido, props) {
+export default function ChartTimelineGrid(vido: vido<DeepState, Api>, props) {
   const { api, state, onDestroy, Actions, update, html, reuseComponents, StyleMap } = vido;
   const componentName = 'chart-timeline-grid';
   const componentActions = api.getActions(componentName);

@@ -9,6 +9,9 @@
  */
 
 import { ColumnData, Row } from '../../types';
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../../api/Api';
 
 /**
  * Bind element action
@@ -39,7 +42,7 @@ export interface Props {
   columnId: string;
 }
 
-export default function ListColumnRow(vido, props: Props) {
+export default function ListColumnRow(vido: vido<DeepState, Api>, props: Props) {
   const {
     api,
     state,
@@ -54,6 +57,7 @@ export default function ListColumnRow(vido, props: Props) {
     unsafeHTML
   } = vido;
 
+  const componentName = 'list-column-row';
   const actionProps = { ...props, api, state };
   let shouldDetach = false;
   const detach = new Detach(() => shouldDetach);
@@ -75,19 +79,28 @@ export default function ListColumnRow(vido, props: Props) {
       ? {
           height: '',
           top: '',
-          '--height': '',
-          '--expander-padding-width': '',
-          '--expander-size': ''
+          ['--height' as any]: '',
+          ['--expander-padding-width' as any]: '',
+          ['--expander-size' as any]: ''
         }
       : {
           height: '',
           top: '',
-          '--height': ''
+          ['--height' as any]: ''
         },
     true
   );
   let rowSub, colSub;
   const ListColumnRowExpander = createComponent(ListColumnRowExpanderComponent, { row });
+
+  let className;
+  onDestroy(
+    state.subscribe('config.classNames', value => {
+      className = api.getClass(componentName);
+      update();
+    })
+  );
+  let classNameCurrent = className;
 
   const onPropsChange = (changedProps: Props, options) => {
     if (options.leave || changedProps.rowId === undefined || changedProps.columnId === undefined) {
@@ -148,6 +161,11 @@ export default function ListColumnRow(vido, props: Props) {
             styleMap.style[name] = rowCurrentStyle[name];
           }
         }
+        if (row.classNames && row.classNames.length) {
+          classNameCurrent = className + ' ' + row.classNames.join(' ');
+        } else {
+          classNameCurrent = className;
+        }
         update();
       },
       { bulk: true }
@@ -169,15 +187,7 @@ export default function ListColumnRow(vido, props: Props) {
     colSub();
     rowSub();
   });
-  const componentName = 'list-column-row';
   const componentActions = api.getActions(componentName);
-  let className;
-  onDestroy(
-    state.subscribe('config.classNames', value => {
-      className = api.getClass(componentName);
-      update();
-    })
-  );
 
   function getHtml() {
     if (row === undefined) return null;
@@ -197,7 +207,7 @@ export default function ListColumnRow(vido, props: Props) {
   return templateProps =>
     wrapper(
       html`
-        <div detach=${detach} class=${className} style=${styleMap} data-actions=${actions}>
+        <div detach=${detach} class=${classNameCurrent} style=${styleMap} data-actions=${actions}>
           ${column.expander ? ListColumnRowExpander.html() : null}
           <div class=${className + '-content'}>
             ${column.isHTML ? getHtml() : getText()}

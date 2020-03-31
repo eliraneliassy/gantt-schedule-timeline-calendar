@@ -11,6 +11,10 @@
 import { PluginData as TimelinePointerPluginData, ITEM, CELL, Point } from '../TimelinePointer.plugin';
 
 import { Wrap } from './Wrapper';
+import { Item, Cell, Items } from '../../types';
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../../api/Api';
 
 export interface Options {
   enabled?: boolean;
@@ -27,16 +31,16 @@ export interface Options {
   canDeselect?: (type, state, all) => any[];
 }
 
-export interface Items {
-  [key: string]: string[];
+export interface SelectionItems {
+  [key: string]: Item[];
 }
 
 export interface SelectState {
-  selecting?: Items;
-  selected?: Items;
+  selecting?: SelectionItems;
+  selected?: SelectionItems;
 }
 
-function prepareOptions(options) {
+function prepareOptions(options: Options) {
   const defaultOptions: Options = {
     enabled: true,
     grid: false,
@@ -69,8 +73,14 @@ export interface Area {
 }
 
 export interface Selection {
-  [ITEM]: [];
-  [CELL]: [];
+  [ITEM]: Item[];
+  [CELL]: Cell[];
+}
+
+export interface PointerEvents {
+  down: PointerEvent | null;
+  move: PointerEvent | null;
+  up: PointerEvent | null;
 }
 
 export interface PluginData {
@@ -81,6 +91,7 @@ export interface PluginData {
   selectionArea: Area;
   selected: Selection;
   selecting: Selection;
+  events: PointerEvents;
 }
 
 function generateEmptyData(): PluginData {
@@ -97,6 +108,11 @@ function generateEmptyData(): PluginData {
     selected: {
       [ITEM]: [],
       [CELL]: []
+    },
+    events: {
+      down: null,
+      move: null,
+      up: null
     }
   };
 }
@@ -104,13 +120,13 @@ function generateEmptyData(): PluginData {
 class SelectionPlugin {
   private data: PluginData;
   private poitnerData: TimelinePointerPluginData;
-  private vido: any;
-  private state: any;
-  private api: any;
+  private vido: vido<DeepState, Api>;
+  private state: DeepState;
+  private api: Api;
   private options: Options;
   private unsub = [];
 
-  constructor(vido, options) {
+  constructor(vido: vido<DeepState, Api>, options: Options) {
     this.vido = vido;
     this.state = vido.state;
     this.api = vido.api;
@@ -138,7 +154,9 @@ class SelectionPlugin {
     this.state.update(pluginPath, { ...this.data });
   }
 
-  private getItemsUnderSelectionArea() {}
+  private getItemsUnderSelectionArea(): Item[] {
+    return [];
+  }
 
   private getSelectionArea(): Area {
     const area = { x: 0, y: 0, width: 0, height: 0 };
@@ -163,15 +181,41 @@ class SelectionPlugin {
     return area;
   }
 
+  private collectLinkedItems(item: Item, current: Item[] = []): Item[] {
+    if (item.linkedWith && item.linkedWith.length) {
+      const items: Items = this.state.get('config.chart.items');
+      for (const linkedItemId of item.linkedWith) {
+        const linkedItem: Item = items[linkedItemId];
+        current.push(linkedItem);
+        this.collectLinkedItems(linkedItem, current);
+      }
+    }
+    return current;
+  }
+
   private onPointerData() {
-    if (this.poitnerData.isMoving) {
+    if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-grid-row-cell') {
       this.data.isSelecting = true;
       this.data.selectionArea = this.getSelectionArea();
-      console.log(this.data.selectionArea);
       const selectingItems = this.getItemsUnderSelectionArea();
+      if (selectingItems.length === 0) {
+        this.state.update(`config.chart.items.*.selected`, false);
+      }
+      // TODO save selecting items and cells
+    } else if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-items-row-item') {
+      this.data.isSelecting = false;
+      this.data.selectionArea = this.getSelectionArea();
+      const item: Item = this.poitnerData.targetData;
+      const selected: Item[] = this.collectLinkedItems(item, [item]);
+      this.data.selected[ITEM] = selected;
+      this.state.update(`config.chart.items.*.selected`, false);
+      for (const item of selected) {
+        this.state.update(`config.chart.items.${item.id}.selected`, true);
+      }
     } else if (!this.poitnerData.isMoving) {
       this.data.isSelecting = false;
     }
+    this.data.events = this.poitnerData.events;
     this.updateData();
   }
 }
@@ -179,11 +223,11 @@ class SelectionPlugin {
 export function Plugin(options: Options = {}) {
   options = prepareOptions(options);
 
-  return function initialize(vido) {
-    const selectionPlugin = new SelectionPlugin(vido, options);
-    vido.state.update(pluginPath, generateEmptyData());
-    vido.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
-      return Wrap(oldWrapper, vido);
+  return function initialize(vidoInstance: vido<DeepState, Api>) {
+    const selectionPlugin = new SelectionPlugin(vidoInstance, options);
+    vidoInstance.state.update(pluginPath, generateEmptyData());
+    vidoInstance.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
+      return Wrap(oldWrapper, vidoInstance);
     });
     return function destroy() {
       selectionPlugin.destroy();

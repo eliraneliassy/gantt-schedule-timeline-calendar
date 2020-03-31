@@ -24,9 +24,12 @@ import {
   ScrollType,
   Rows
 } from '../types';
+import DeepState from 'deep-state-observer';
 import { OpUnitType } from 'dayjs';
+import { Api } from '../api/Api';
+import { vido } from '@neuronet.io/vido';
 
-export default function Main(vido, props = {}) {
+export default function Main(vido: vido<DeepState, Api>, props = {}) {
   const { api, state, onDestroy, Actions, update, createComponent, html, StyleMap } = vido;
   const componentName = api.name;
 
@@ -76,7 +79,7 @@ export default function Main(vido, props = {}) {
    */
   const updateClassNames = classNames => {
     const config = state.get('config');
-    className = api.getClass(componentName, { config });
+    className = api.getClass(componentName);
     if (resizerActive) {
       className += ` ${componentName}__list-column-header-resizer--active`;
     }
@@ -530,7 +533,7 @@ export default function Main(vido, props = {}) {
     if (time.calculatedZoomMode && chartWidth) {
       time.finalFrom = time.from;
       time.finalTo = time.to;
-      time.totalViewDurationMs = api.time.date(time.finalTo).diff(time.finalFrom, 'milliseconds');
+      time.totalViewDurationMs = api.time.date(time.finalTo).diff(time.finalFrom, 'millisecond');
       time.timePerPixel = time.totalViewDurationMs / chartWidth;
       time.zoom = Math.log(time.timePerPixel) / Math.log(2);
       guessPeriod(time, calendar.levels);

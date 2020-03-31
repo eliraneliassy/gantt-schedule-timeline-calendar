@@ -8,6 +8,10 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
+import { vido } from '../../../../vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../../api/Api';
+
 /**
  * Bind element action
  */
@@ -36,7 +40,7 @@ export interface Props {
   columnId: string;
 }
 
-export default function ListColumn(vido, props: Props) {
+export default function ListColumn(vido: vido<DeepState, Api>, props: Props) {
   const { api, state, onDestroy, onChange, Actions, update, createComponent, reuseComponents, html, StyleMap } = vido;
 
   let wrapper;
@@ -58,7 +62,7 @@ export default function ListColumn(vido, props: Props) {
   const rowsActions = api.getActions(rowsComponentName);
   let className, classNameContainer, calculatedWidth;
 
-  const widthStyleMap = new StyleMap({ width: '', '--width': '' });
+  const widthStyleMap = new StyleMap({ width: '', ['--width' as any]: '' });
   const containerStyleMap = new StyleMap({ width: '', height: '' });
 
   let column,

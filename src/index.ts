@@ -8,8 +8,8 @@
  */
 
 import 'pepjs';
-import Vido from '@neuronet.io/vido/vido.esm';
-//import Vido from '../../vido/vido.esm';
+import Vido from '@neuronet.io/vido/vido';
+//import Vido from '../../vido/vido';
 import publicApi, { getInternalApi } from './api/Api';
 import Main from './components/Main';
 

@@ -7,15 +7,13 @@
  * @license   AGPL-3.0
  */
 
-import dayjs, { OpUnitType, Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import {
   Locale,
   ChartInternalTime,
   ChartInternalTimeLevelDate,
   ChartTimeDate,
-  Scroll,
-  ChartInternalTimeLevel,
   ScrollTypeHorizontal,
   Period,
   ChartCalendarLevel

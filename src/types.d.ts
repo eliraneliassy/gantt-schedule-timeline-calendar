@@ -64,6 +64,8 @@ export interface Item {
   style?: CSSProps;
   classNames?: string[];
   isHTML?: boolean;
+  linkedWith?: string[];
+  selected?: boolean;
 }
 
 export interface Items {

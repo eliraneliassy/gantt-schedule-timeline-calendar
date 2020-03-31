@@ -9,12 +9,15 @@
  */
 
 import { Row } from '../../types';
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../../api/Api';
 
 export interface Props {
   row: Row;
 }
 
-export default function ListColumnRowExpanderToggle(vido, props: Props) {
+export default function ListColumnRowExpanderToggle(vido: vido<DeepState, Api>, props: Props) {
   const { api, state, onDestroy, Actions, update, html, onChange, cache } = vido;
   const componentName = 'list-column-row-expander-toggle';
   const actionProps = { ...props, api, state };

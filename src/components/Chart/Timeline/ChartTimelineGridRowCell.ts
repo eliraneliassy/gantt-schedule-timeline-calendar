@@ -9,6 +9,9 @@
  */
 
 import { Row, ChartTimeDate, Rows } from '../../../types';
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../../../api/Api';
 
 /**
  * Bind element action
@@ -48,7 +51,7 @@ interface Props {
   time: ChartTimeDate;
 }
 
-const ChartTimelineGridRowCell = (vido, props: Props) => {
+function ChartTimelineGridRowCell(vido: vido<DeepState, Api>, props: Props) {
   const { api, state, onDestroy, Detach, Actions, update, html, onChange, StyleMap } = vido;
   const componentName = 'chart-timeline-grid-row-cell';
   const actionProps = {
@@ -118,5 +121,5 @@ const ChartTimelineGridRowCell = (vido, props: Props) => {
       { props, vido, templateProps }
     );
   };
-};
+}
 export default ChartTimelineGridRowCell;

@@ -8,7 +8,11 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-export default function ListToggle(vido, props = {}) {
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../../api/Api';
+
+export default function ListToggle(vido: vido<DeepState, Api>, props = {}) {
   const { html, onDestroy, api, state, update } = vido;
   const componentName = 'list-toggle';
   let className;

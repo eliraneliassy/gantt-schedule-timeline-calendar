@@ -8,6 +8,10 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../api/Api';
+
 export const CELL = 'chart-timeline-grid-row-cell';
 export const ITEM = 'chart-timeline-items-row-item';
 
@@ -35,7 +39,7 @@ export interface PluginData {
 }
 
 export function Plugin(options = { enabled: true }) {
-  let vido, api, state;
+  let vido: vido<DeepState, Api>, api: Api, state: DeepState;
   const pluginPath = 'config.plugin.TimelinePointer';
 
   const classNames = {
@@ -155,7 +159,7 @@ export function Plugin(options = { enabled: true }) {
     }
   }
 
-  return function initialize(vidoInstance) {
+  return function initialize(vidoInstance: vido<DeepState, Api>) {
     vido = vidoInstance;
     api = vido.api;
     state = vido.state;

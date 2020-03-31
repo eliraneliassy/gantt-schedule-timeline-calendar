@@ -1,5 +1,3 @@
-
-(function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.head.appendChild(r) })(window.document);
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
@@ -2922,39 +2920,39 @@
 	const svg = (strings, ...values) => new SVGTemplateResult(strings, values, 'svg', defaultTemplateProcessor);
 
 	var lithtml = /*#__PURE__*/Object.freeze({
-	    __proto__: null,
-	    html: html,
-	    svg: svg,
-	    DefaultTemplateProcessor: DefaultTemplateProcessor,
-	    defaultTemplateProcessor: defaultTemplateProcessor,
-	    directive: directive,
-	    Directive: Directive,
-	    isDirective: isDirective,
-	    removeNodes: removeNodes,
-	    reparentNodes: reparentNodes,
-	    noChange: noChange,
-	    nothing: nothing,
-	    AttributeCommitter: AttributeCommitter,
-	    AttributePart: AttributePart,
-	    BooleanAttributePart: BooleanAttributePart,
-	    EventPart: EventPart,
-	    isIterable: isIterable,
-	    isPrimitive: isPrimitive,
-	    NodePart: NodePart,
-	    PropertyCommitter: PropertyCommitter,
-	    PropertyPart: PropertyPart,
-	    get sanitizerFactory () { return sanitizerFactory; },
-	    setSanitizerFactory: setSanitizerFactory,
-	    parts: parts,
-	    render: render,
-	    templateCaches: templateCaches,
-	    templateFactory: templateFactory,
-	    TemplateInstance: TemplateInstance,
-	    SVGTemplateResult: SVGTemplateResult,
-	    TemplateResult: TemplateResult,
-	    createMarker: createMarker,
-	    isTemplatePartActive: isTemplatePartActive,
-	    Template: Template
+		__proto__: null,
+		html: html,
+		svg: svg,
+		DefaultTemplateProcessor: DefaultTemplateProcessor,
+		defaultTemplateProcessor: defaultTemplateProcessor,
+		directive: directive,
+		Directive: Directive,
+		isDirective: isDirective,
+		removeNodes: removeNodes,
+		reparentNodes: reparentNodes,
+		noChange: noChange,
+		nothing: nothing,
+		AttributeCommitter: AttributeCommitter,
+		AttributePart: AttributePart,
+		BooleanAttributePart: BooleanAttributePart,
+		EventPart: EventPart,
+		isIterable: isIterable,
+		isPrimitive: isPrimitive,
+		NodePart: NodePart,
+		PropertyCommitter: PropertyCommitter,
+		PropertyPart: PropertyPart,
+		get sanitizerFactory () { return sanitizerFactory; },
+		setSanitizerFactory: setSanitizerFactory,
+		parts: parts,
+		render: render,
+		templateCaches: templateCaches,
+		templateFactory: templateFactory,
+		TemplateInstance: TemplateInstance,
+		SVGTemplateResult: SVGTemplateResult,
+		TemplateResult: TemplateResult,
+		createMarker: createMarker,
+		isTemplatePartActive: isTemplatePartActive,
+		Template: Template
 	});
 
 	/**
@@ -2970,7 +2968,7 @@
 	 * subject to an additional IP rights grant found at
 	 * http://polymer.github.io/PATENTS.txt
 	 */
-	var __asyncValues =  function (o) {
+	var __asyncValues = (undefined && undefined.__asyncValues) || function (o) {
 	    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
 	    var m = o[Symbol.asyncIterator], i;
 	    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
@@ -3077,7 +3075,7 @@
 	 * subject to an additional IP rights grant found at
 	 * http://polymer.github.io/PATENTS.txt
 	 */
-	var __asyncValues$1 =  function (o) {
+	var __asyncValues$1 = (undefined && undefined.__asyncValues) || function (o) {
 	    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
 	    var m = o[Symbol.asyncIterator], i;
 	    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
@@ -4560,25 +4558,12 @@
 	    return mergeDeep({}, source);
 	}
 
-	/* dev imports
-	import { render, html, directive, svg, Part } from '../lit-html';
-	import { asyncAppend } from '../lit-html/directives/async-append';
-	import { asyncReplace } from '../lit-html/directives/async-replace';
-	import { cache } from '../lit-html/directives/cache';
-	import { classMap } from '../lit-html/directives/class-map';
-	import { guard } from '../lit-html/directives/guard';
-	import { ifDefined } from '../lit-html/directives/if-defined';
-	import { repeat } from '../lit-html/directives/repeat';
-	import { unsafeHTML } from '../lit-html/directives/unsafe-html';
-	import { until } from '../lit-html/directives/until';
-	import { Directive } from '../lit-html/lib/directive';
-	*/
 	/**
 	 * Vido library
 	 *
 	 * @param {any} state - state management for the view (can be anything)
 	 * @param {any} api - some api's or other globally available services
-	 * @returns {object} vido instance
+	 * @returns {VidoInstance} vido instance
 	 */
 	function Vido(state, api) {
 	    let componentId = 0;
@@ -4601,7 +4586,7 @@
 	    }
 	    const PublicComponentMethods = getPublicComponentMethods(components, actionsByInstance, clone);
 	    const InternalComponentMethods = getInternalComponentMethods(components, actionsByInstance, clone);
-	    class vido {
+	    class VidoInstance {
 	        constructor() {
 	            this.destroyable = [];
 	            this.onChangeFunctions = [];
@@ -4708,7 +4693,7 @@
 	        createComponent(component, props = {}, content = null) {
 	            const instance = component.name + ':' + componentId++;
 	            let vidoInstance;
-	            vidoInstance = new vido();
+	            vidoInstance = new VidoInstance();
 	            vidoInstance.instance = instance;
 	            vidoInstance.name = component.name;
 	            vidoInstance.Actions = new InstanceActionsCollector(instance);
@@ -4829,7 +4814,7 @@
 	            }
 	        }
 	    }
-	    return new vido();
+	    return new VidoInstance();
 	}
 	Vido.prototype.lithtml = lithtml;
 	Vido.prototype.Action = Action;
@@ -4847,7 +4832,6 @@
 	Vido.prototype.repeat = repeat;
 	Vido.prototype.unsafeHTML = unsafeHTML;
 	Vido.prototype.unti = until;
-	//# sourceMappingURL=vido.esm.js.map
 
 	/**
 	 * A collection of shims that provide minimal functionality of the ES6 collections.
@@ -5827,7 +5811,7 @@
 	     */
 	    const updateClassNames = classNames => {
 	        const config = state.get('config');
-	        className = api.getClass(componentName, { config });
+	        className = api.getClass(componentName);
 	        if (resizerActive) {
 	            className += ` ${componentName}__list-column-header-resizer--active`;
 	        }
@@ -6213,7 +6197,7 @@
 	        if (time.calculatedZoomMode && chartWidth) {
 	            time.finalFrom = time.from;
 	            time.finalTo = time.to;
-	            time.totalViewDurationMs = api.time.date(time.finalTo).diff(time.finalFrom, 'milliseconds');
+	            time.totalViewDurationMs = api.time.date(time.finalTo).diff(time.finalFrom, 'millisecond');
 	            time.timePerPixel = time.totalViewDurationMs / chartWidth;
 	            time.zoom = Math.log(time.timePerPixel) / Math.log(2);
 	            guessPeriod(time, calendar.levels);
@@ -6488,15 +6472,6 @@
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=Main.js.map
-
-	class Action$1 {
-	    constructor() {
-	        this.isAction = true;
-	    }
-	}
-	Action$1.prototype.isAction = true;
-	//# sourceMappingURL=Action.js.map
 
 	/**
 	 * ScrollBar component
@@ -6728,7 +6703,7 @@
 	            oldPos = position;
 	        }
 	    }));
-	    class OuterAction extends Action$1 {
+	    class OuterAction extends Action {
 	        constructor(element) {
 	            super();
 	            state.update(`_internal.elements.scroll-bar--${props.type}`, element);
@@ -6736,7 +6711,7 @@
 	        update() { }
 	        destroy() { }
 	    }
-	    class InnerAction extends Action$1 {
+	    class InnerAction extends Action {
 	        constructor(element) {
 	            super();
 	            this.moving = false;
@@ -6905,7 +6880,7 @@
 	    }
 	    onDestroy(state.subscribe('config.list', onListChange));
 	    onDestroy(state.subscribe('config.classNames', () => {
-	        className = api.getClass(componentName, { list });
+	        className = api.getClass(componentName);
 	        update();
 	    }));
 	    let listColumns = [];
@@ -6917,8 +6892,8 @@
 	    onDestroy(state.subscribe('config.list.columns.data;', onListColumnsDataChange));
 	    const styleMap = new StyleMap({
 	        height: '',
-	        '--expander-padding-width': '',
-	        '--expander-size': ''
+	        ['--expander-padding-width']: '',
+	        ['--expander-size']: ''
 	    });
 	    onDestroy(state.subscribeAll(['config.height', 'config.list.expander'], bulk => {
 	        const expander = state.get('config.list.expander');
@@ -6963,7 +6938,6 @@
             `
 	        : ''), { vido, props: {}, templateProps });
 	}
-	//# sourceMappingURL=List.js.map
 
 	/**
 	 * ListColumn component
@@ -7013,7 +6987,7 @@
 	    const componentActions = api.getActions(componentName);
 	    const rowsActions = api.getActions(rowsComponentName);
 	    let className, classNameContainer, calculatedWidth;
-	    const widthStyleMap = new StyleMap({ width: '', '--width': '' });
+	    const widthStyleMap = new StyleMap({ width: '', ['--width']: '' });
 	    const containerStyleMap = new StyleMap({ width: '', height: '' });
 	    let column, columnPath = `config.list.columns.data.${props.columnId}`;
 	    let columnSub = state.subscribe(columnPath, function columnChanged(val) {
@@ -7100,7 +7074,6 @@
         </div>
       `, { vido, props, templateProps });
 	}
-	//# sourceMappingURL=ListColumn.js.map
 
 	/**
 	 * ListColumnHeader component
@@ -7155,8 +7128,8 @@
 	    }));
 	    const styleMap = new StyleMap({
 	        height: '',
-	        '--height': '',
-	        '--paddings-count': ''
+	        ['--height']: '',
+	        ['--paddings-count']: ''
 	    });
 	    onDestroy(state.subscribe('config.headerHeight', () => {
 	        const value = state.get('config');
@@ -7186,7 +7159,6 @@
         </div>
       `, { vido, props, templateProps });
 	}
-	//# sourceMappingURL=ListColumnHeader.js.map
 
 	/**
 	 * ListColumnHeaderResizer component
@@ -7198,7 +7170,7 @@
 	 * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
 	 */
 	function ListColumnHeaderResizer(vido, props) {
-	    const { api, state, onDestroy, update, html, schedule, Actions, PointerAction, cache, StyleMap } = vido;
+	    const { api, state, onDestroy, update, html, Actions, PointerAction, cache, StyleMap } = vido;
 	    const componentName = 'list-column-header-resizer';
 	    const componentActions = api.getActions(componentName);
 	    const componentDotsActions = api.getActions(componentName + '-dots');
@@ -7213,10 +7185,10 @@
 	    const dotsStyleMap = new StyleMap({ width: '' });
 	    let inRealTime = false;
 	    onDestroy(state.subscribe('config.classNames', value => {
-	        className = api.getClass(componentName, { column });
-	        containerClass = api.getClass(componentName + '-container', { column });
-	        dotsClass = api.getClass(componentName + '-dots', { column });
-	        dotClass = api.getClass(componentName + '-dots-dot', { column });
+	        className = api.getClass(componentName);
+	        containerClass = api.getClass(componentName + '-container');
+	        dotsClass = api.getClass(componentName + '-dots');
+	        dotClass = api.getClass(componentName + '-dots-dot');
 	        update();
 	    }));
 	    onDestroy(state.subscribeAll([
@@ -7289,7 +7261,6 @@
         </div>
       `, { vido, props, templateProps });
 	}
-	//# sourceMappingURL=ListColumnHeaderResizer.js.map
 
 	/**
 	 * ListColumnRow component
@@ -7326,6 +7297,7 @@
 	}
 	function ListColumnRow(vido, props) {
 	    const { api, state, onDestroy, Detach, Actions, update, html, createComponent, onChange, StyleMap, unsafeHTML } = vido;
+	    const componentName = 'list-column-row';
 	    const actionProps = Object.assign(Object.assign({}, props), { api, state });
 	    let shouldDetach = false;
 	    const detach = new Detach(() => shouldDetach);
@@ -7339,17 +7311,23 @@
 	        ? {
 	            height: '',
 	            top: '',
-	            '--height': '',
-	            '--expander-padding-width': '',
-	            '--expander-size': ''
+	            ['--height']: '',
+	            ['--expander-padding-width']: '',
+	            ['--expander-size']: ''
 	        }
 	        : {
 	            height: '',
 	            top: '',
-	            '--height': ''
+	            ['--height']: ''
 	        }, true);
 	    let rowSub, colSub;
 	    const ListColumnRowExpander = createComponent(ListColumnRowExpanderComponent, { row });
+	    let className;
+	    onDestroy(state.subscribe('config.classNames', value => {
+	        className = api.getClass(componentName);
+	        update();
+	    }));
+	    let classNameCurrent = className;
 	    const onPropsChange = (changedProps, options) => {
 	        if (options.leave || changedProps.rowId === undefined || changedProps.columnId === undefined) {
 	            shouldDetach = true;
@@ -7410,6 +7388,12 @@
 	                    styleMap.style[name] = rowCurrentStyle[name];
 	                }
 	            }
+	            if (row.classNames && row.classNames.length) {
+	                classNameCurrent = className + ' ' + row.classNames.join(' ');
+	            }
+	            else {
+	                classNameCurrent = className;
+	            }
 	            update();
 	        }, { bulk: true });
 	        if (ListColumnRowExpander) {
@@ -7427,13 +7411,7 @@
 	        colSub();
 	        rowSub();
 	    });
-	    const componentName = 'list-column-row';
 	    const componentActions = api.getActions(componentName);
-	    let className;
-	    onDestroy(state.subscribe('config.classNames', value => {
-	        className = api.getClass(componentName);
-	        update();
-	    }));
 	    function getHtml() {
 	        if (row === undefined)
 	            return null;
@@ -7452,7 +7430,7 @@
 	        componentActions.push(BindElementAction$1);
 	    const actions = Actions.create(componentActions, actionProps);
 	    return templateProps => wrapper(html `
-        <div detach=${detach} class=${className} style=${styleMap} data-actions=${actions}>
+        <div detach=${detach} class=${classNameCurrent} style=${styleMap} data-actions=${actions}>
           ${column.expander ? ListColumnRowExpander.html() : null}
           <div class=${className + '-content'}>
             ${column.isHTML ? getHtml() : getText()}
@@ -7460,7 +7438,6 @@
         </div>
       `, { vido, props, templateProps });
 	}
-	//# sourceMappingURL=ListColumnRow.js.map
 
 	/**
 	 * ListColumnRowExpander component
@@ -7507,7 +7484,6 @@
         </div>
       `, { vido, props, templateProps });
 	}
-	//# sourceMappingURL=ListColumnRowExpander.js.map
 
 	/**
 	 * ListColumnRowExpanderToggle component
@@ -7617,7 +7593,6 @@
         </div>
       `, { vido, props, templateProps });
 	}
-	//# sourceMappingURL=ListColumnRowExpanderToggle.js.map
 
 	/**
 	 * ListToggle component
@@ -7670,7 +7645,6 @@
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=ListToggle.js.map
 
 	/**
 	 * Chart component
@@ -7752,7 +7726,6 @@
         </div>
       `, { vido, props: {}, templateProps });
 	}
-	//# sourceMappingURL=Chart.js.map
 
 	/**
 	 * ChartCalendar component
@@ -7828,7 +7801,6 @@
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=ChartCalendar.js.map
 
 	/**
 	 * ChartCalendarDay component
@@ -7844,7 +7816,7 @@
 	 * @param {HTMLElement} element
 	 * @param {object} data
 	 */
-	class BindElementAction$2 extends Action$1 {
+	class BindElementAction$2 extends Action {
 	    constructor(element, data) {
 	        super();
 	        data.state.update('_internal.elements.chart-calendar-dates', elements => {
@@ -7951,7 +7923,6 @@
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=ChartCalendarDate.js.map
 
 	/**
 	 * ChartTimeline component
@@ -8028,14 +7999,13 @@
 	    });
 	    const actions = Actions.create(componentActions, actionProps);
 	    return templateProps => wrapper(html `
-        <div class=${className} style=${styleMap} data-actions=${actions} @wheel=${api.onScroll}>
+        <div class=${className} style=${styleMap} data-actions=${actions}>
           <div class=${classNameInner} style=${innerStyleMap}>
             ${Grid.html()}${Items.html()}${showToggle ? ListToggle.html() : ''}
           </div>
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=ChartTimeline.js.map
 
 	/**
 	 * ChartTimelineGrid component
@@ -8149,7 +8119,6 @@
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=ChartTimelineGrid.js.map
 
 	/**
 	 * ChartTimelineGridRow component
@@ -8256,7 +8225,6 @@
       `, { vido, props, templateProps });
 	    };
 	}
-	//# sourceMappingURL=ChartTimelineGridRow.js.map
 
 	/**
 	 * ChartTimelineGridRowCell component
@@ -8294,7 +8262,7 @@
 	        }, { only: [''] });
 	    }
 	}
-	const ChartTimelineGridRowCell = (vido, props) => {
+	function ChartTimelineGridRowCell(vido, props) {
 	    const { api, state, onDestroy, Detach, Actions, update, html, onChange, StyleMap } = vido;
 	    const componentName = 'chart-timeline-grid-row-cell';
 	    const actionProps = Object.assign(Object.assign({}, props), { api,
@@ -8355,8 +8323,7 @@
         <div detach=${detach} class=${className} data-actions=${actions} style=${styleMap}></div>
       `, { props, vido, templateProps });
 	    };
-	};
-	//# sourceMappingURL=ChartTimelineGridRowCell.js.map
+	}
 
 	/**
 	 * ChartTimelineItems component
@@ -8405,7 +8372,6 @@
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=ChartTimelineItems.js.map
 
 	/**
 	 * ChartTimelineItemsRow component
@@ -8451,6 +8417,7 @@
 	    onDestroy(state.subscribe('config.components.ChartTimelineItemsRowItem', value => (ItemComponent = value)));
 	    let itemsPath = `_internal.flatTreeMapById.${props.row.id}._internal.items`;
 	    let rowSub, itemsSub;
+	    let classNameCurrent = '';
 	    const itemComponents = [], styleMap = new StyleMap({ width: '', height: '' }, true);
 	    let shouldDetach = false;
 	    const detach = new Detach(() => shouldDetach);
@@ -8492,6 +8459,12 @@
 	            update();
 	        });
 	    }
+	    const componentName = 'chart-timeline-items-row';
+	    let className;
+	    onDestroy(state.subscribe('config.classNames', () => {
+	        className = api.getClass(componentName);
+	        update();
+	    }));
 	    /**
 	     * On props change
 	     * @param {any} changedProps
@@ -8506,6 +8479,12 @@
 	        for (const prop in props) {
 	            actionProps[prop] = props[prop];
 	        }
+	        if (props.row.classNames && props.row.classNames.length) {
+	            classNameCurrent = className + ' ' + props.row.classNames.join(' ');
+	        }
+	        else {
+	            classNameCurrent = className;
+	        }
 	        updateRow(props.row);
 	    });
 	    onDestroy(() => {
@@ -8513,24 +8492,17 @@
 	        rowSub();
 	        itemComponents.forEach(item => item.destroy());
 	    });
-	    const componentName = 'chart-timeline-items-row';
 	    const componentActions = api.getActions(componentName);
-	    let className;
-	    onDestroy(state.subscribe('config.classNames', () => {
-	        className = api.getClass(componentName, props);
-	        update();
-	    }));
 	    componentActions.push(BindElementAction$6);
 	    const actions = Actions.create(componentActions, actionProps);
 	    return templateProps => {
 	        return wrapper(html `
-        <div detach=${detach} class=${className} data-actions=${actions} style=${styleMap}>
+        <div detach=${detach} class=${classNameCurrent} data-actions=${actions} style=${styleMap}>
           ${itemComponents.map(i => i.html())}
         </div>
       `, { props, vido, templateProps });
 	    };
 	};
-	//# sourceMappingURL=ChartTimelineItemsRow.js.map
 
 	/**
 	 * ChartTimelineItemsRowItem component
@@ -8608,6 +8580,12 @@
 	        else {
 	            rightCutStyleMap.style.display = 'none';
 	        }
+	        if (props.item.classNames && props.item.classNames.length) {
+	            classNameCurrent += ' ' + props.item.classNames.join(' ');
+	        }
+	        if (props.item.selected) {
+	            classNameCurrent += ' ' + api.getClass(componentName) + '--selected';
+	        }
 	        const oldWidth = styleMap.style.width;
 	        const oldLeft = styleMap.style.left;
 	        const oldTop = styleMap.style.top;
@@ -8680,8 +8658,8 @@
 	    const componentActions = api.getActions(componentName);
 	    let className, labelClassName;
 	    onDestroy(state.subscribe('config.classNames', () => {
-	        className = api.getClass(componentName, props);
-	        labelClassName = api.getClass(componentName + '-label', props);
+	        className = api.getClass(componentName);
+	        labelClassName = api.getClass(componentName + '-label');
 	        update();
 	    }));
 	    onDestroy(state.subscribe('_internal.chart.time', updateItem));
@@ -8700,7 +8678,6 @@
       `, { vido, props, templateProps });
 	    };
 	}
-	//# sourceMappingURL=ChartTimelineItemsRowItem.js.map
 
 	/**
 	 * Gantt-Schedule-Timeline-Calendar
@@ -9143,7 +9120,6 @@
 	        usageStatistics: true
 	    };
 	}
-	//# sourceMappingURL=default-config.js.map
 
 	var dayjs_min = createCommonjsModule(function (module, exports) {
 	!function(t,n){module.exports=n();}(commonjsGlobal,function(){var t="millisecond",n="second",e="minute",r="hour",i="day",s="week",u="month",o="quarter",a="year",h=/^(\d{4})-?(\d{1,2})-?(\d{0,2})[^0-9]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?.?(\d{1,3})?$/,f=/\[([^\]]+)]|Y{2,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g,c=function(t,n,e){var r=String(t);return !r||r.length>=n?t:""+Array(n+1-r.length).join(e)+t},d={s:c,z:function(t){var n=-t.utcOffset(),e=Math.abs(n),r=Math.floor(e/60),i=e%60;return (n<=0?"+":"-")+c(r,2,"0")+":"+c(i,2,"0")},m:function(t,n){var e=12*(n.year()-t.year())+(n.month()-t.month()),r=t.clone().add(e,u),i=n-r<0,s=t.clone().add(e+(i?-1:1),u);return Number(-(e+(n-r)/(i?r-s:s-r))||0)},a:function(t){return t<0?Math.ceil(t)||0:Math.floor(t)},p:function(h){return {M:u,y:a,w:s,d:i,D:"date",h:r,m:e,s:n,ms:t,Q:o}[h]||String(h||"").toLowerCase().replace(/s$/,"")},u:function(t){return void 0===t}},$={name:"en",weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_")},l="en",m={};m[l]=$;var y=function(t){return t instanceof v},M=function(t,n,e){var r;if(!t)return l;if("string"==typeof t)m[t]&&(r=t),n&&(m[t]=n,r=t);else {var i=t.name;m[i]=t,r=i;}return !e&&r&&(l=r),r||!e&&l},g=function(t,n,e){if(y(t))return t.clone();var r=n?"string"==typeof n?{format:n,pl:e}:n:{};return r.date=t,new v(r)},D=d;D.l=M,D.i=y,D.w=function(t,n){return g(t,{locale:n.$L,utc:n.$u,$offset:n.$offset})};var v=function(){function c(t){this.$L=this.$L||M(t.locale,null,!0),this.parse(t);}var d=c.prototype;return d.parse=function(t){this.$d=function(t){var n=t.date,e=t.utc;if(null===n)return new Date(NaN);if(D.u(n))return new Date;if(n instanceof Date)return new Date(n);if("string"==typeof n&&!/Z$/i.test(n)){var r=n.match(h);if(r)return e?new Date(Date.UTC(r[1],r[2]-1,r[3]||1,r[4]||0,r[5]||0,r[6]||0,r[7]||0)):new Date(r[1],r[2]-1,r[3]||1,r[4]||0,r[5]||0,r[6]||0,r[7]||0)}return new Date(n)}(t),this.init();},d.init=function(){var t=this.$d;this.$y=t.getFullYear(),this.$M=t.getMonth(),this.$D=t.getDate(),this.$W=t.getDay(),this.$H=t.getHours(),this.$m=t.getMinutes(),this.$s=t.getSeconds(),this.$ms=t.getMilliseconds();},d.$utils=function(){return D},d.isValid=function(){return !("Invalid Date"===this.$d.toString())},d.isSame=function(t,n){var e=g(t);return this.startOf(n)<=e&&e<=this.endOf(n)},d.isAfter=function(t,n){return g(t)<this.startOf(n)},d.isBefore=function(t,n){return this.endOf(n)<g(t)},d.$g=function(t,n,e){return D.u(t)?this[n]:this.set(e,t)},d.year=function(t){return this.$g(t,"$y",a)},d.month=function(t){return this.$g(t,"$M",u)},d.day=function(t){return this.$g(t,"$W",i)},d.date=function(t){return this.$g(t,"$D","date")},d.hour=function(t){return this.$g(t,"$H",r)},d.minute=function(t){return this.$g(t,"$m",e)},d.second=function(t){return this.$g(t,"$s",n)},d.millisecond=function(n){return this.$g(n,"$ms",t)},d.unix=function(){return Math.floor(this.valueOf()/1e3)},d.valueOf=function(){return this.$d.getTime()},d.startOf=function(t,o){var h=this,f=!!D.u(o)||o,c=D.p(t),d=function(t,n){var e=D.w(h.$u?Date.UTC(h.$y,n,t):new Date(h.$y,n,t),h);return f?e:e.endOf(i)},$=function(t,n){return D.w(h.toDate()[t].apply(h.toDate(),(f?[0,0,0,0]:[23,59,59,999]).slice(n)),h)},l=this.$W,m=this.$M,y=this.$D,M="set"+(this.$u?"UTC":"");switch(c){case a:return f?d(1,0):d(31,11);case u:return f?d(1,m):d(0,m+1);case s:var g=this.$locale().weekStart||0,v=(l<g?l+7:l)-g;return d(f?y-v:y+(6-v),m);case i:case"date":return $(M+"Hours",0);case r:return $(M+"Minutes",1);case e:return $(M+"Seconds",2);case n:return $(M+"Milliseconds",3);default:return this.clone()}},d.endOf=function(t){return this.startOf(t,!1)},d.$set=function(s,o){var h,f=D.p(s),c="set"+(this.$u?"UTC":""),d=(h={},h[i]=c+"Date",h.date=c+"Date",h[u]=c+"Month",h[a]=c+"FullYear",h[r]=c+"Hours",h[e]=c+"Minutes",h[n]=c+"Seconds",h[t]=c+"Milliseconds",h)[f],$=f===i?this.$D+(o-this.$W):o;if(f===u||f===a){var l=this.clone().set("date",1);l.$d[d]($),l.init(),this.$d=l.set("date",Math.min(this.$D,l.daysInMonth())).toDate();}else d&&this.$d[d]($);return this.init(),this},d.set=function(t,n){return this.clone().$set(t,n)},d.get=function(t){return this[D.p(t)]()},d.add=function(t,o){var h,f=this;t=Number(t);var c=D.p(o),d=function(n){var e=g(f);return D.w(e.date(e.date()+Math.round(n*t)),f)};if(c===u)return this.set(u,this.$M+t);if(c===a)return this.set(a,this.$y+t);if(c===i)return d(1);if(c===s)return d(7);var $=(h={},h[e]=6e4,h[r]=36e5,h[n]=1e3,h)[c]||1,l=this.$d.getTime()+t*$;return D.w(l,this)},d.subtract=function(t,n){return this.add(-1*t,n)},d.format=function(t){var n=this;if(!this.isValid())return "Invalid Date";var e=t||"YYYY-MM-DDTHH:mm:ssZ",r=D.z(this),i=this.$locale(),s=this.$H,u=this.$m,o=this.$M,a=i.weekdays,h=i.months,c=function(t,r,i,s){return t&&(t[r]||t(n,e))||i[r].substr(0,s)},d=function(t){return D.s(s%12||12,t,"0")},$=i.meridiem||function(t,n,e){var r=t<12?"AM":"PM";return e?r.toLowerCase():r},l={YY:String(this.$y).slice(-2),YYYY:this.$y,M:o+1,MM:D.s(o+1,2,"0"),MMM:c(i.monthsShort,o,h,3),MMMM:h[o]||h(this,e),D:this.$D,DD:D.s(this.$D,2,"0"),d:String(this.$W),dd:c(i.weekdaysMin,this.$W,a,2),ddd:c(i.weekdaysShort,this.$W,a,3),dddd:a[this.$W],H:String(s),HH:D.s(s,2,"0"),h:d(1),hh:d(2),a:$(s,u,!0),A:$(s,u,!1),m:String(u),mm:D.s(u,2,"0"),s:String(this.$s),ss:D.s(this.$s,2,"0"),SSS:D.s(this.$ms,3,"0"),Z:r};return e.replace(f,function(t,n){return n||l[t]||r.replace(":","")})},d.utcOffset=function(){return 15*-Math.round(this.$d.getTimezoneOffset()/15)},d.diff=function(t,h,f){var c,d=D.p(h),$=g(t),l=6e4*($.utcOffset()-this.utcOffset()),m=this-$,y=D.m(this,$);return y=(c={},c[a]=y/12,c[u]=y,c[o]=y/3,c[s]=(m-l)/6048e5,c[i]=(m-l)/864e5,c[r]=m/36e5,c[e]=m/6e4,c[n]=m/1e3,c)[d]||m,f?y:D.a(y)},d.daysInMonth=function(){return this.endOf(u).$D},d.$locale=function(){return m[this.$L]},d.locale=function(t,n){if(!t)return this.$L;var e=this.clone(),r=M(t,n,!0);return r&&(e.$L=r),e},d.clone=function(){return D.w(this.$d,this)},d.toDate=function(){return new Date(this.valueOf())},d.toJSON=function(){return this.isValid()?this.toISOString():null},d.toISOString=function(){return this.$d.toISOString()},d.toString=function(){return this.$d.toUTCString()},c}();return g.prototype=v.prototype,g.extend=function(t,n){return t(n,v,g),g},g.locale=M,g.isDayjs=y,g.unix=function(t){return g(1e3*t)},g.en=m[l],g.Ls=m,g});
@@ -9387,7 +9363,6 @@
 	        return inverse ? -width : width;
 	    }
 	}
-	//# sourceMappingURL=Time.js.map
 
 	// forked from https://github.com/joonhocho/superwild
 	function Matcher(pattern, wchar = '*') {
@@ -9464,7 +9439,6 @@
 	    }
 	    return true;
 	};
-	//# sourceMappingURL=stringMatcher.js.map
 
 	function WildcardObject(obj, delimeter, wildcard) {
 	    this.obj = obj;
@@ -9547,7 +9521,6 @@
 	WildcardObject.prototype.get = function get(wildcard) {
 	    return this.goFurther(wildcard, this.obj, 0, '');
 	};
-	//# sourceMappingURL=wildcard-object-scan.js.map
 
 	class ObjectPath {
 	    static get(path, obj, copiedPath = null) {
@@ -9593,7 +9566,6 @@
 	        ObjectPath.set(path, newValue, obj[currentPath], copiedPath);
 	    }
 	}
-	//# sourceMappingURL=ObjectPath.js.map
 
 	function log(message, info) {
 	    console.debug(message, info);
@@ -10312,61 +10284,6 @@
 	        return groupedListener.listener.options.debug || groupedListener.eventInfo.options.debug ? Date.now() : 0;
 	    }
 	}
-	//# sourceMappingURL=index.js.map
-
-	/**
-	 * Schedule - a throttle function that uses requestAnimationFrame to limit the rate at which a function is called.
-	 *
-	 * @param {function} fn
-	 * @returns {function}
-	 */
-	/**
-	 * Is object - helper function to determine if specified variable is an object
-	 *
-	 * @param {any} item
-	 * @returns {boolean}
-	 */
-	function isObject$1(item) {
-	    return item && typeof item === 'object' && !Array.isArray(item);
-	}
-	/**
-	 * Merge deep - helper function which will merge objects recursively - creating brand new one - like clone
-	 *
-	 * @param {object} target
-	 * @params {object} sources
-	 * @returns {object}
-	 */
-	function mergeDeep$1(target, ...sources) {
-	    const source = sources.shift();
-	    if (isObject$1(target) && isObject$1(source)) {
-	        for (const key in source) {
-	            if (isObject$1(source[key])) {
-	                if (typeof target[key] === 'undefined') {
-	                    target[key] = {};
-	                }
-	                target[key] = mergeDeep$1(target[key], source[key]);
-	            }
-	            else if (Array.isArray(source[key])) {
-	                target[key] = [];
-	                for (let item of source[key]) {
-	                    if (isObject$1(item)) {
-	                        target[key].push(mergeDeep$1({}, item));
-	                        continue;
-	                    }
-	                    target[key].push(item);
-	                }
-	            }
-	            else {
-	                target[key] = source[key];
-	            }
-	        }
-	    }
-	    if (!sources.length) {
-	        return target;
-	    }
-	    return mergeDeep$1(target, ...sources);
-	}
-	//# sourceMappingURL=helpers.js.map
 
 	/**
 	 * Api functions
@@ -10378,8 +10295,8 @@
 	 */
 	const lib = 'gantt-schedule-timeline-calendar';
 	function mergeActions(userConfig, defaultConfig) {
-	    const defaultConfigActions = mergeDeep$1({}, defaultConfig.actions);
-	    const userActions = mergeDeep$1({}, userConfig.actions);
+	    const defaultConfigActions = mergeDeep({}, defaultConfig.actions);
+	    const userActions = mergeDeep({}, userConfig.actions);
 	    let allActionNames = [...Object.keys(defaultConfigActions), ...Object.keys(userActions)];
 	    allActionNames = allActionNames.filter(i => allActionNames.includes(i));
 	    const actions = {};
@@ -10399,7 +10316,7 @@
 	function stateFromConfig(userConfig) {
 	    const defaultConfig$1 = defaultConfig();
 	    const actions = mergeActions(userConfig, defaultConfig$1);
-	    const state = { config: mergeDeep$1({}, defaultConfig$1, userConfig) };
+	    const state = { config: mergeDeep({}, defaultConfig$1, userConfig) };
 	    state.config.actions = actions;
 	    // @ts-ignore
 	    return (this.state = new DeepState(state, { delimeter: '.' }));
@@ -10407,7 +10324,7 @@
 	const publicApi = {
 	    name: lib,
 	    stateFromConfig,
-	    mergeDeep: mergeDeep$1,
+	    mergeDeep,
 	    date(time) {
 	        return time ? dayjs_min(time) : dayjs_min();
 	    },
@@ -10431,7 +10348,7 @@
 	                console.log.call(console, ...args);
 	            }
 	        },
-	        mergeDeep: mergeDeep$1,
+	        mergeDeep,
 	        getClass(name) {
 	            let simple = `${lib}__${name}`;
 	            if (name === this.name) {
@@ -10777,7 +10694,6 @@
 	    }
 	    return api;
 	}
-	//# sourceMappingURL=Api.js.map
 
 	/**
 	 * Gantt-Schedule-Timeline-Calendar
@@ -10854,7 +10770,6 @@
 	    return { state, app, api: internalApi };
 	}
 	GSTC.api = publicApi;
-	//# sourceMappingURL=index.js.map
 
 	return GSTC;
 

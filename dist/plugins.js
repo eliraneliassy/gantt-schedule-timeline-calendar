@@ -246,7 +246,16 @@ var ItemHold$1 = /*#__PURE__*/Object.freeze({
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 function Plugin$1() {
-    return function initialize() { };
+    let vido, state, api;
+    function onSelectionChange(data) {
+    }
+    return function initialize(vidoInstance) {
+        vido = vidoInstance;
+        state = vido.state;
+        api = vido.api;
+        const unsub = state.subscribe('config.plugin.Selection', onSelectionChange);
+        return function destroy() { };
+    };
 }
 
 var ItemMovement = /*#__PURE__*/Object.freeze({
@@ -347,6 +356,11 @@ function generateEmptyData() {
         selected: {
             [ITEM]: [],
             [CELL]: []
+        },
+        events: {
+            down: null,
+            move: null,
+            up: null
         }
     };
 }
@@ -373,7 +387,9 @@ class SelectionPlugin {
     updateData() {
         this.state.update(pluginPath, Object.assign({}, this.data));
     }
-    getItemsUnderSelectionArea() { }
+    getItemsUnderSelectionArea() {
+        return [];
+    }
     getSelectionArea() {
         const area = { x: 0, y: 0, width: 0, height: 0 };
         const initial = Object.assign({}, this.poitnerData.initialPosition);
@@ -398,26 +414,52 @@ class SelectionPlugin {
         }
         return area;
     }
+    collectLinkedItems(item, current = []) {
+        if (item.linkedWith && item.linkedWith.length) {
+            const items = this.state.get('config.chart.items');
+            for (const linkedItemId of item.linkedWith) {
+                const linkedItem = items[linkedItemId];
+                current.push(linkedItem);
+                this.collectLinkedItems(linkedItem, current);
+            }
+        }
+        return current;
+    }
     onPointerData() {
-        if (this.poitnerData.isMoving) {
+        if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-grid-row-cell') {
             this.data.isSelecting = true;
             this.data.selectionArea = this.getSelectionArea();
-            console.log(this.data.selectionArea);
             const selectingItems = this.getItemsUnderSelectionArea();
+            if (selectingItems.length === 0) {
+                this.state.update(`config.chart.items.*.selected`, false);
+            }
+            // TODO save selecting items and cells
+        }
+        else if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-items-row-item') {
+            this.data.isSelecting = false;
+            this.data.selectionArea = this.getSelectionArea();
+            const item = this.poitnerData.targetData;
+            const selected = this.collectLinkedItems(item, [item]);
+            this.data.selected[ITEM] = selected;
+            this.state.update(`config.chart.items.*.selected`, false);
+            for (const item of selected) {
+                this.state.update(`config.chart.items.${item.id}.selected`, true);
+            }
         }
         else if (!this.poitnerData.isMoving) {
             this.data.isSelecting = false;
         }
+        this.data.events = this.poitnerData.events;
         this.updateData();
     }
 }
 function Plugin$2(options = {}) {
     options = prepareOptions(options);
-    return function initialize(vido) {
-        const selectionPlugin = new SelectionPlugin(vido, options);
-        vido.state.update(pluginPath, generateEmptyData());
-        vido.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
-            return Wrap(oldWrapper, vido);
+    return function initialize(vidoInstance) {
+        const selectionPlugin = new SelectionPlugin(vidoInstance, options);
+        vidoInstance.state.update(pluginPath, generateEmptyData());
+        vidoInstance.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
+            return Wrap(oldWrapper, vidoInstance);
         });
         return function destroy() {
             selectionPlugin.destroy();
@@ -560,6 +602,16 @@ var CalendarScroll = /*#__PURE__*/Object.freeze({
  * subject to an additional IP rights grant found at
  * http://polymer.github.io/PATENTS.txt
  */
+/**
+ * An expression marker with embedded unique key to avoid collision with
+ * possible text in templates.
+ */
+const marker = `{{lit-${String(Math.random()).slice(2)}}}`;
+/**
+ * Used to clone existing node instead of each time creating new one which is
+ * slower
+ */
+const markerNode = document.createComment('');
 
 /**
  * @license
@@ -575,20 +627,24 @@ var CalendarScroll = /*#__PURE__*/Object.freeze({
  * http://polymer.github.io/PATENTS.txt
  */
 /**
- * An expression marker with embedded unique key to avoid collision with
- * possible text in templates.
- */
-const marker = `{{lit-${String(Math.random()).slice(2)}}}`;
-/**
- * Used to clone existing node instead of each time creating new one which is
- * slower
- */
-const markerNode = document.createComment('');
-/**
  * Used to clone existing node instead of each time creating new one which is
  * slower
  */
 const emptyTemplateNode = document.createElement('template');
+
+/**
+ * @license
+ * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at
+ * http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at
+ * http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at
+ * http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at
+ * http://polymer.github.io/PATENTS.txt
+ */
 /**
  * Used to clone text node instead of each time creating new one which is slower
  */
@@ -639,6 +695,62 @@ if (isBrowser) {
     // If we run in the browser set version
     (window['litHtmlVersions'] || (window['litHtmlVersions'] = [])).push('1.1.7');
 }
+
+/**
+ * @license
+ * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at
+ * http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at
+ * http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at
+ * http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at
+ * http://polymer.github.io/PATENTS.txt
+ */
+var __asyncValues = (undefined && undefined.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
+
+/**
+ * @license
+ * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at
+ * http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at
+ * http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at
+ * http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at
+ * http://polymer.github.io/PATENTS.txt
+ */
+var __asyncValues$1 = (undefined && undefined.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
+
+/**
+ * @license
+ * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at
+ * http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at
+ * http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at
+ * http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at
+ * http://polymer.github.io/PATENTS.txt
+ */
 /**
  * Used to clone existing node instead of each time creating new one which is
  * slower
@@ -701,11 +813,11 @@ function Plugin$4(options = {}) {
             }
         }
     }
-    return function initialize(vido) {
-        api = vido.api;
+    return function initialize(vidoInstance) {
+        api = vidoInstance.api;
         className = options.className || api.getClass('chart-timeline-grid-row-cell') + '--weekend';
-        const destroy = vido.state.subscribe('_internal.chart.time.format.period', period => (enabled = period === 'day'));
-        vido.state.update('config.actions.chart-timeline-grid-row-cell', actions => {
+        const destroy = vidoInstance.state.subscribe('_internal.chart.time.format.period', period => (enabled = period === 'day'));
+        vidoInstance.state.update('config.actions.chart-timeline-grid-row-cell', actions => {
             actions.push(WeekendHighlightAction);
             return actions;
         });

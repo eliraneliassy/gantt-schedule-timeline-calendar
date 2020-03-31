@@ -10,12 +10,15 @@
 
 import Action from '@neuronet.io/vido/Action';
 import { ChartInternalTimeLevelDate, ScrollTypeHorizontal, ScrollTypeVertical, ScrollType } from '../types';
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../api/Api';
 
 export interface Props {
   type: 'horizontal' | 'vertical';
 }
 
-export default function ScrollBar(vido, props: Props) {
+export default function ScrollBar(vido: vido<DeepState, Api>, props: Props) {
   const { onDestroy, state, api, html, StyleMap, Actions, update, schedule } = vido;
 
   const componentName = 'scroll-bar';

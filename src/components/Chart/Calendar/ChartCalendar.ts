@@ -8,7 +8,11 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-export default function ChartCalendar(vido, props) {
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../../../api/Api';
+
+export default function ChartCalendar(vido: vido<DeepState, Api>, props) {
   const { api, state, onDestroy, Actions, update, reuseComponents, html, StyleMap } = vido;
   const componentName = 'chart-calendar';
   const componentActions = api.getActions(componentName);

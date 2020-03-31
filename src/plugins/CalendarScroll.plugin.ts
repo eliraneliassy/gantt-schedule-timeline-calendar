@@ -9,6 +9,9 @@
  */
 
 import { ScrollTypeHorizontal } from '../types';
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../api/Api';
 
 export interface Point {
   x: number;
@@ -23,8 +26,8 @@ const defaultOptions = {
   enabled: true
 };
 
-export function Plugin(options = defaultOptions) {
-  let vido, api, state;
+export function Plugin(options: Options = defaultOptions) {
+  let vido: vido<DeepState, Api>, api: Api, state: DeepState;
   let enabled = options.enabled;
 
   class ChartAction {

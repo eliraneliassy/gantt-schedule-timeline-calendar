@@ -109,6 +109,11 @@
           selected: {
               [ITEM]: [],
               [CELL]: []
+          },
+          events: {
+              down: null,
+              move: null,
+              up: null
           }
       };
   }
@@ -135,7 +140,9 @@
       updateData() {
           this.state.update(pluginPath, Object.assign({}, this.data));
       }
-      getItemsUnderSelectionArea() { }
+      getItemsUnderSelectionArea() {
+          return [];
+      }
       getSelectionArea() {
           const area = { x: 0, y: 0, width: 0, height: 0 };
           const initial = Object.assign({}, this.poitnerData.initialPosition);
@@ -160,26 +167,52 @@
           }
           return area;
       }
+      collectLinkedItems(item, current = []) {
+          if (item.linkedWith && item.linkedWith.length) {
+              const items = this.state.get('config.chart.items');
+              for (const linkedItemId of item.linkedWith) {
+                  const linkedItem = items[linkedItemId];
+                  current.push(linkedItem);
+                  this.collectLinkedItems(linkedItem, current);
+              }
+          }
+          return current;
+      }
       onPointerData() {
-          if (this.poitnerData.isMoving) {
+          if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-grid-row-cell') {
               this.data.isSelecting = true;
               this.data.selectionArea = this.getSelectionArea();
-              console.log(this.data.selectionArea);
               const selectingItems = this.getItemsUnderSelectionArea();
+              if (selectingItems.length === 0) {
+                  this.state.update(`config.chart.items.*.selected`, false);
+              }
+              // TODO save selecting items and cells
+          }
+          else if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-items-row-item') {
+              this.data.isSelecting = false;
+              this.data.selectionArea = this.getSelectionArea();
+              const item = this.poitnerData.targetData;
+              const selected = this.collectLinkedItems(item, [item]);
+              this.data.selected[ITEM] = selected;
+              this.state.update(`config.chart.items.*.selected`, false);
+              for (const item of selected) {
+                  this.state.update(`config.chart.items.${item.id}.selected`, true);
+              }
           }
           else if (!this.poitnerData.isMoving) {
               this.data.isSelecting = false;
           }
+          this.data.events = this.poitnerData.events;
           this.updateData();
       }
   }
   function Plugin(options = {}) {
       options = prepareOptions(options);
-      return function initialize(vido) {
-          const selectionPlugin = new SelectionPlugin(vido, options);
-          vido.state.update(pluginPath, generateEmptyData());
-          vido.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
-              return Wrap(oldWrapper, vido);
+      return function initialize(vidoInstance) {
+          const selectionPlugin = new SelectionPlugin(vidoInstance, options);
+          vidoInstance.state.update(pluginPath, generateEmptyData());
+          vidoInstance.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
+              return Wrap(oldWrapper, vidoInstance);
           });
           return function destroy() {
               selectionPlugin.destroy();

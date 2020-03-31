@@ -9,6 +9,9 @@
  */
 
 import { Row, Item } from '../../../types';
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from '../../../api/Api';
 
 /**
  * Bind element action
@@ -39,7 +42,7 @@ export interface Props {
   item: Item;
 }
 
-export default function ChartTimelineItemsRowItem(vido, props: Props) {
+export default function ChartTimelineItemsRowItem(vido: vido<DeepState, Api>, props: Props) {
   const { api, state, onDestroy, Detach, Actions, update, html, svg, onChange, unsafeHTML, StyleMap } = vido;
 
   let wrapper;
@@ -97,6 +100,12 @@ export default function ChartTimelineItemsRowItem(vido, props: Props) {
       classNameCurrent += ' ' + className + '--right-cut';
     } else {
       rightCutStyleMap.style.display = 'none';
+    }
+    if (props.item.classNames && props.item.classNames.length) {
+      classNameCurrent += ' ' + props.item.classNames.join(' ');
+    }
+    if (props.item.selected) {
+      classNameCurrent += ' ' + api.getClass(componentName) + '--selected';
     }
     const oldWidth = styleMap.style.width;
     const oldLeft = styleMap.style.left;
@@ -168,8 +177,8 @@ export default function ChartTimelineItemsRowItem(vido, props: Props) {
   let className, labelClassName;
   onDestroy(
     state.subscribe('config.classNames', () => {
-      className = api.getClass(componentName, props);
-      labelClassName = api.getClass(componentName + '-label', props);
+      className = api.getClass(componentName);
+      labelClassName = api.getClass(componentName + '-label');
       update();
     })
   );
