@@ -119,7 +119,7 @@ export default function ChartTimelineItemsRowItem(vido: vido<DeepState, Api>, pr
       styleMap.style.width = itemWidthPx + 'px';
       styleMap.style.left = itemLeftPx + 'px';
       styleMap.style.top = props.item.gap.top + props.item.top + 'px';
-      styleMap.style.height = props.item.actualHeight + 'px';
+      styleMap.style.height = props.item._internal.actualHeight + 'px';
     } else {
       styleMap.style.width = oldWidth;
       styleMap.style.left = oldLeft;

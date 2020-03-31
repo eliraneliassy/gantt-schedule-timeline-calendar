@@ -26,6 +26,7 @@
           return {
               enabled: options.enabled,
               isMoving: false,
+              pointerState: 'up',
               currentTarget: null,
               realTarget: null,
               targetType: '',
@@ -83,6 +84,7 @@
           pointerDown(ev) {
               if (!this.data.enabled)
                   return;
+              this.data.pointerState = 'down';
               this.data.currentTarget = ev.target;
               this.data.realTarget = this.getRealTarget(ev);
               if (this.data.realTarget) {
@@ -115,6 +117,7 @@
           pointerUp(ev) {
               if (!this.data.enabled)
                   return;
+              this.data.pointerState = 'up';
               this.data.isMoving = false;
               this.data.events.up = ev;
               this.data.currentPosition = this.getRealPosition(ev);
@@ -123,6 +126,7 @@
           pointerMove(ev) {
               if (!this.data.enabled || !this.data.isMoving)
                   return;
+              this.data.pointerState = 'move';
               this.data.events.move = ev;
               this.data.currentPosition = this.getRealPosition(ev);
               this.updateData();

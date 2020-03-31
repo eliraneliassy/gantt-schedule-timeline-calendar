@@ -16,7 +16,7 @@ import {
   Period,
   Scroll,
   ChartInternalTimeLevel,
-  ChartInternalTime,
+  InternalChartTime,
   ScrollType,
   ScrollTypeHorizontal,
   Row,
@@ -170,12 +170,23 @@ export function getInternalApi(state) {
         item.time.end = +item.time.end;
         item.id = String(item.id);
         if (typeof item.height !== 'number') item.height = defaultItemHeight;
-        item.actualHeight = item.height;
+        if (!item._internal)
+          item._internal = {
+            actualHeight: 0,
+            outerHeight: 0,
+            time: null
+          };
+        if (!item._internal.time)
+          item._internal.time = {
+            startDate: this.time.date(item.time.start),
+            endDate: this.time.date(item.time.end)
+          };
+        item._internal.actualHeight = item.height;
         if (typeof item.top !== 'number') item.top = 0;
         if (!item.gap) item.gap = {};
         if (typeof item.gap.top !== 'number') item.gap.top = state.get('config.chart.item.gap.top');
         if (typeof item.gap.bottom !== 'number') item.gap.bottom = state.get('config.chart.item.gap.bottom');
-        item.outerHeight = item.actualHeight + item.gap.top + item.gap.bottom;
+        item._internal.outerHeight = item._internal.actualHeight + item.gap.top + item.gap.bottom;
       }
       return items;
     },
@@ -187,12 +198,14 @@ export function getInternalApi(state) {
         row._internal = {
           parents: [],
           children: [],
-          items: []
+          items: [],
+          actualHeight: 0,
+          outerHeight: 0
         };
         if (typeof row.height !== 'number') {
           row.height = $state.config.list.row.height;
         }
-        row.actualHeight = row.height;
+        row._internal.actualHeight = row.height;
         if (typeof row.expanded !== 'boolean') {
           row.expanded = false;
         }
@@ -200,15 +213,15 @@ export function getInternalApi(state) {
         if (typeof row.gap !== 'object') row.gap = {};
         if (typeof row.gap.top !== 'number') row.gap.top = 0;
         if (typeof row.gap.bottom !== 'number') row.gap.bottom = 0;
-        row.outerHeight = row.actualHeight + row.gap.top + row.gap.bottom;
-        top += row.outerHeight;
+        row._internal.outerHeight = row._internal.actualHeight + row.gap.top + row.gap.bottom;
+        top += row._internal.outerHeight;
       }
       return rows;
     },
 
     itemsOnTheSameLevel(item1: Item, item2: Item) {
-      const item1Bottom = item1.top + item1.outerHeight;
-      const item2Bottom = item2.top + item2.outerHeight;
+      const item1Bottom = item1.top + item1._internal.outerHeight;
+      const item2Bottom = item2.top + item2._internal.outerHeight;
       if (item2.top <= item1.top && item2Bottom > item1.top) return true;
       if (item2.top >= item1.top && item2.top < item1Bottom) return true;
       if (item2.top >= item1.top && item2Bottom < item1Bottom) return true;
@@ -253,13 +266,13 @@ export function getInternalApi(state) {
         let actualHeight = 0;
         this.fixOverlappedItems(row._internal.items);
         for (const item of row._internal.items) {
-          actualHeight = Math.max(actualHeight, item.top + item.outerHeight);
+          actualHeight = Math.max(actualHeight, item.top + item._internal.outerHeight);
         }
         if (actualHeight < row.height) actualHeight = row.height;
-        row.actualHeight = actualHeight;
-        row.outerHeight = row.actualHeight + row.gap.top + row.gap.bottom;
+        row._internal.actualHeight = actualHeight;
+        row._internal.outerHeight = row._internal.actualHeight + row.gap.top + row.gap.bottom;
         row.top = top;
-        top += row.outerHeight;
+        top += row._internal.outerHeight;
       }
       return top;
     },
@@ -430,7 +443,7 @@ export function getInternalApi(state) {
     time: new TimeApi(state),
 
     scrollToTime(toTime: number, centered = true): number {
-      const time: ChartInternalTime = state.get('_internal.chart.time');
+      const time: InternalChartTime = state.get('_internal.chart.time');
       let pos = 0;
       state.update('config.scroll.horizontal', (scrollHorizontal: ScrollTypeHorizontal) => {
         let leftGlobal = toTime;

@@ -87,7 +87,7 @@ export default function ChartTimelineGridRow(vido: vido<DeepState, Api>, props: 
     props = changedProps;
     reuseComponents(rowsCellsComponents, props.cells, cell => cell, GridCellComponent);
     styleMap.setStyle({});
-    styleMap.style.height = props.row.outerHeight + 'px';
+    styleMap.style.height = props.row._internal.outerHeight + 'px';
     styleMap.style.width = props.width + 'px';
     const rows = state.get('config.list.rows');
     for (const parentId of props.row._internal.parents) {

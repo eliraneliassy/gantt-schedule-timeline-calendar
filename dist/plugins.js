@@ -20,6 +20,7 @@ function Plugin(options = { enabled: true }) {
         return {
             enabled: options.enabled,
             isMoving: false,
+            pointerState: 'up',
             currentTarget: null,
             realTarget: null,
             targetType: '',
@@ -77,6 +78,7 @@ function Plugin(options = { enabled: true }) {
         pointerDown(ev) {
             if (!this.data.enabled)
                 return;
+            this.data.pointerState = 'down';
             this.data.currentTarget = ev.target;
             this.data.realTarget = this.getRealTarget(ev);
             if (this.data.realTarget) {
@@ -109,6 +111,7 @@ function Plugin(options = { enabled: true }) {
         pointerUp(ev) {
             if (!this.data.enabled)
                 return;
+            this.data.pointerState = 'up';
             this.data.isMoving = false;
             this.data.events.up = ev;
             this.data.currentPosition = this.getRealPosition(ev);
@@ -117,6 +120,7 @@ function Plugin(options = { enabled: true }) {
         pointerMove(ev) {
             if (!this.data.enabled || !this.data.isMoving)
                 return;
+            this.data.pointerState = 'move';
             this.data.events.move = ev;
             this.data.currentPosition = this.getRealPosition(ev);
             this.updateData();
@@ -141,6 +145,7 @@ function Plugin(options = { enabled: true }) {
         };
     };
 }
+//# sourceMappingURL=TimelinePointer.plugin.js.map
 
 var TimelinePointer = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -230,6 +235,7 @@ function ItemHold(options = {}) {
         });
     };
 }
+//# sourceMappingURL=ItemHold.plugin.js.map
 
 var ItemHold$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -245,20 +251,101 @@ var ItemHold$1 = /*#__PURE__*/Object.freeze({
  * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
-function Plugin$1() {
-    let vido, state, api;
-    function onSelectionChange(data) {
+function prepareOptions(options) {
+    return Object.assign({ enabled: true, className: '' }, options);
+}
+const pluginPath = 'config.plugin.ItemMovement';
+function gemerateEmptyPluginData(options) {
+    return Object.assign({ moving: [], lastMoved: [], movement: {
+            px: { horizontal: 0, vertical: 0 },
+            time: 0
+        }, onStart(items) {
+            console.log('start moving', items);
+        },
+        onMove(items) {
+            console.log('move', items);
+        },
+        onEnd(items) {
+            console.log('end move', items);
+        },
+        snapStart({ startTime, time }) {
+            return startTime.startOf(time.period);
+        },
+        snapEnd({ endTime, time }) {
+            return endTime.endOf(time.period);
+        } }, options);
+}
+class ItemMovement {
+    constructor(vido) {
+        this.onDestroy = [];
+        this.lastPointerState = 'up';
+        this.vido = vido;
+        this.api = vido.api;
+        this.state = vido.state;
+        this.onDestroy.push(this.state.subscribe(pluginPath, data => (this.data = data)));
+        if (!this.data.className)
+            this.data.className = this.api.getClass('chart-timeline-items-row-item--moving');
+        this.onSelectionChange = this.onSelectionChange.bind(this);
+        this.onDestroy.push(this.state.subscribe('config.plugin.Selection', this.onSelectionChange));
     }
+    destroy() {
+        this.onDestroy.forEach(unsub => unsub());
+    }
+    updateData() {
+        this.state.update(pluginPath, this.data);
+    }
+    getItemTime(currentTime) {
+        return currentTime;
+    }
+    moveItems() {
+        for (const item of this.data.lastMoved) {
+            const startTime = this.getItemTime(item._internal.time.startDate);
+        }
+    }
+    updatePointerState() {
+        if (this.lastPointerState === 'up' && this.selection.pointerState === 'down') {
+            this.data.onStart(this.data.moving);
+        }
+        else if ((this.lastPointerState === 'down' || this.lastPointerState === 'move') &&
+            this.selection.pointerState === 'up') {
+            this.data.moving = [];
+            this.data.onEnd(this.data.lastMoved);
+        }
+        else if (this.selection.pointerState === 'move') {
+            this.data.onMove(this.data.moving);
+        }
+        this.lastPointerState = this.selection.pointerState;
+    }
+    onSelectionChange(data) {
+        if (!this.data.enabled)
+            return;
+        this.selection = data;
+        if (this.selection.events.move) {
+            this.selection.events.move.preventDefault();
+            this.selection.events.move.stopPropagation();
+        }
+        if (this.selection.events.down) {
+            this.selection.events.down.preventDefault();
+            this.selection.events.down.stopPropagation();
+        }
+        this.data.moving = [...this.selection.selected[ITEM]];
+        if (this.data.moving.length)
+            this.data.lastMoved = [...this.data.moving];
+        this.updatePointerState();
+        this.data.movement.px.horizontal = this.selection.currentPosition.x - this.selection.initialPosition.x;
+        this.data.movement.px.vertical = this.selection.currentPosition.y - this.selection.initialPosition.y;
+        this.moveItems();
+        this.updateData();
+    }
+}
+function Plugin$1(options = {}) {
     return function initialize(vidoInstance) {
-        vido = vidoInstance;
-        state = vido.state;
-        api = vido.api;
-        const unsub = state.subscribe('config.plugin.Selection', onSelectionChange);
-        return function destroy() { };
+        vidoInstance.state.update(pluginPath, gemerateEmptyPluginData(prepareOptions(options)));
+        new ItemMovement(vidoInstance);
     };
 }
 
-var ItemMovement = /*#__PURE__*/Object.freeze({
+var ItemMovement$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   Plugin: Plugin$1
 });
@@ -309,6 +396,7 @@ function Wrap(oldWrapper, vidoInstance) {
     }));
     return ChartTimelineWrapper;
 }
+//# sourceMappingURL=Wrapper.js.map
 
 /**
  * Selection plugin
@@ -319,7 +407,7 @@ function Wrap(oldWrapper, vidoInstance) {
  * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
-function prepareOptions(options) {
+function prepareOptions$1(options) {
     const defaultOptions = {
         enabled: true,
         grid: false,
@@ -341,11 +429,12 @@ function prepareOptions(options) {
     options = Object.assign(Object.assign({}, defaultOptions), options);
     return options;
 }
-const pluginPath = 'config.plugin.Selection';
+const pluginPath$1 = 'config.plugin.Selection';
 function generateEmptyData() {
     return {
         enabled: true,
         isSelecting: false,
+        pointerState: 'up',
         initialPosition: { x: 0, y: 0 },
         currentPosition: { x: 0, y: 0 },
         selectionArea: { x: 0, y: 0, width: 0, height: 0 },
@@ -377,7 +466,7 @@ class SelectionPlugin {
             this.onPointerData();
         }));
         this.updateData();
-        this.unsub.push(this.state.subscribe(pluginPath, value => {
+        this.unsub.push(this.state.subscribe(pluginPath$1, value => {
             this.data = value;
         }));
     }
@@ -385,7 +474,7 @@ class SelectionPlugin {
         this.unsub.forEach(unsub => unsub());
     }
     updateData() {
-        this.state.update(pluginPath, Object.assign({}, this.data));
+        this.state.update(pluginPath$1, Object.assign({}, this.data));
     }
     getItemsUnderSelectionArea() {
         return [];
@@ -432,12 +521,15 @@ class SelectionPlugin {
             const selectingItems = this.getItemsUnderSelectionArea();
             if (selectingItems.length === 0) {
                 this.state.update(`config.chart.items.*.selected`, false);
+                this.data.selected[ITEM].length = 0;
             }
             // TODO save selecting items and cells
         }
         else if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-items-row-item') {
             this.data.isSelecting = false;
             this.data.selectionArea = this.getSelectionArea();
+            this.data.currentPosition = this.poitnerData.currentPosition;
+            this.data.initialPosition = this.poitnerData.initialPosition;
             const item = this.poitnerData.targetData;
             const selected = this.collectLinkedItems(item, [item]);
             this.data.selected[ITEM] = selected;
@@ -450,14 +542,15 @@ class SelectionPlugin {
             this.data.isSelecting = false;
         }
         this.data.events = this.poitnerData.events;
+        this.data.pointerState = this.poitnerData.pointerState;
         this.updateData();
     }
 }
 function Plugin$2(options = {}) {
-    options = prepareOptions(options);
+    options = prepareOptions$1(options);
     return function initialize(vidoInstance) {
         const selectionPlugin = new SelectionPlugin(vidoInstance, options);
-        vidoInstance.state.update(pluginPath, generateEmptyData());
+        vidoInstance.state.update(pluginPath$1, generateEmptyData());
         vidoInstance.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
             return Wrap(oldWrapper, vidoInstance);
         });
@@ -466,6 +559,7 @@ function Plugin$2(options = {}) {
         };
     };
 }
+//# sourceMappingURL=Selection.plugin.js.map
 
 var Selection = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -583,6 +677,7 @@ function Plugin$3(options = defaultOptions) {
         });
     };
 }
+//# sourceMappingURL=CalendarScroll.plugin.js.map
 
 var CalendarScroll = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -612,6 +707,7 @@ const marker = `{{lit-${String(Math.random()).slice(2)}}}`;
  * slower
  */
 const markerNode = document.createComment('');
+//# sourceMappingURL=template.js.map
 
 /**
  * @license
@@ -631,6 +727,7 @@ const markerNode = document.createComment('');
  * slower
  */
 const emptyTemplateNode = document.createElement('template');
+//# sourceMappingURL=template-result.js.map
 
 /**
  * @license
@@ -673,6 +770,7 @@ let eventOptionsSupported = false;
         // noop
     }
 })();
+//# sourceMappingURL=parts.js.map
 
 /**
  * @license
@@ -695,6 +793,7 @@ if (isBrowser) {
     // If we run in the browser set version
     (window['litHtmlVersions'] || (window['litHtmlVersions'] = [])).push('1.1.7');
 }
+//# sourceMappingURL=lit-html.js.map
 
 /**
  * @license
@@ -716,6 +815,7 @@ var __asyncValues = (undefined && undefined.__asyncValues) || function (o) {
     function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
+//# sourceMappingURL=async-append.js.map
 
 /**
  * @license
@@ -737,6 +837,7 @@ var __asyncValues$1 = (undefined && undefined.__asyncValues) || function (o) {
     function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
+//# sourceMappingURL=async-replace.js.map
 
 /**
  * @license
@@ -756,6 +857,7 @@ var __asyncValues$1 = (undefined && undefined.__asyncValues) || function (o) {
  * slower
  */
 const emptyTemplateNode$1 = document.createElement('template');
+//# sourceMappingURL=unsafe-html.js.map
 
 class Action {
     constructor() {
@@ -763,6 +865,7 @@ class Action {
     }
 }
 Action.prototype.isAction = true;
+//# sourceMappingURL=Action.js.map
 
 const defaultOptions$1 = {
     element: document.createTextNode(''),
@@ -773,6 +876,7 @@ const defaultOptions$1 = {
     onUp(data) { },
     onWheel(data) { }
 };
+//# sourceMappingURL=PointerAction.js.map
 
 /**
  * Weekend highlight plugin
@@ -826,13 +930,15 @@ function Plugin$4(options = {}) {
         };
     };
 }
+//# sourceMappingURL=WeekendHighlight.plugin.js.map
 
 var WeekendHighlight = /*#__PURE__*/Object.freeze({
   __proto__: null,
   Plugin: Plugin$4
 });
 
-var plugins = { TimelinePointer, ItemHold: ItemHold$1, ItemMovement, Selection, CalendarScroll, WeekendHighlight };
+var plugins = { TimelinePointer, ItemHold: ItemHold$1, ItemMovement: ItemMovement$1, Selection, CalendarScroll, WeekendHighlight };
+//# sourceMappingURL=plugins.js.map
 
 export default plugins;
 //# sourceMappingURL=plugins.js.map

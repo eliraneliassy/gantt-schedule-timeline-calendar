@@ -3,6 +3,8 @@ import { Dayjs, OpUnitType } from 'dayjs/index.d';
 import { Properties as CSSProps } from 'csstype';
 
 export interface RowInternal {
+  actualHeight: number;
+  outerHeight: number;
   parents: string[];
   children: string[];
   items: Item[];
@@ -33,8 +35,6 @@ export interface Row {
   parentId?: string;
   expanded?: boolean;
   height?: number;
-  actualHeight?: number;
-  outerHeight?: number;
   _internal?: RowInternal;
   top?: number;
   gap?: RowGap;
@@ -51,14 +51,23 @@ export interface ItemTime {
   end: number;
 }
 
+export interface ItemInternalTime {
+  startDate: Dayjs;
+  endDate: Dayjs;
+}
+
+export interface ItemInternal {
+  time: ItemInternalTime;
+  actualHeight?: number;
+  outerHeight?: number;
+}
+
 export interface Item {
   id: string;
   rowId: string;
   time: ItemTime;
   label: string;
   height?: number;
-  actualHeight?: number;
-  outerHeight?: number;
   top?: number;
   gap?: ItemGap;
   style?: CSSProps;
@@ -66,6 +75,7 @@ export interface Item {
   isHTML?: boolean;
   linkedWith?: string[];
   selected?: boolean;
+  _internal: ItemInternal;
 }
 
 export interface Items {
@@ -217,7 +227,7 @@ export type ChartTimeDates = ChartTimeDate[];
 
 export type ChartTimeOnLevelDatesArgs = {
   dates: ChartInternalTimeLevel;
-  time: ChartInternalTime;
+  time: InternalChartTime;
   format: ChartCalendarFormat;
   level: ChartCalendarLevel;
   levelIndex: number;
@@ -276,7 +286,7 @@ export interface ChartInternalTimeLevelDate {
   rightPercent?: number;
 }
 export type ChartInternalTimeLevel = ChartInternalTimeLevelDate[];
-export interface ChartInternalTime {
+export interface InternalChartTime {
   period: Period;
   leftGlobal: number;
   leftGlobalDate: Dayjs;
@@ -440,4 +450,55 @@ export interface Config {
   locale?: Locale;
   utcMode?: boolean;
   usageStatistics?: boolean;
+}
+
+export interface TreeMapData {
+  parents: string[];
+  children: Row[];
+  items: Item[];
+}
+
+export interface TreeMap {
+  id: string;
+  _internal: TreeMapData;
+}
+
+export interface InternalList {
+  width: number;
+  visibleRows: Row[];
+}
+
+export interface Dimensions {
+  width: number;
+  height: number;
+}
+
+export interface InternalChartDimensions extends Dimensions {
+  innerWidth: number;
+}
+
+export interface InternalChart {
+  dimensions: InternalChartDimensions;
+  visibleItems: Item[];
+  time: InternalChartTime;
+}
+
+export interface InternalElements {
+  [key: string]: HTMLElement;
+}
+
+export interface InternalLoaded {
+  [key: string]: boolean;
+}
+
+export interface Internal {
+  components: Components;
+  treeMap: TreeMap;
+  flatTreeMap: string[];
+  flatTreeMapById: Rows;
+  list: InternalList;
+  dimensions: Dimensions;
+  chart: InternalChart;
+  elements: InternalElements;
+  loaded: InternalLoaded;
 }

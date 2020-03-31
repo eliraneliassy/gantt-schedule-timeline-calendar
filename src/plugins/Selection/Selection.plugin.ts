@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { PluginData as TimelinePointerPluginData, ITEM, CELL, Point } from '../TimelinePointer.plugin';
+import { PluginData as TimelinePointerPluginData, ITEM, CELL, Point, PointerState } from '../TimelinePointer.plugin';
 
 import { Wrap } from './Wrapper';
 import { Item, Cell, Items } from '../../types';
@@ -86,6 +86,7 @@ export interface PointerEvents {
 export interface PluginData {
   enabled: boolean;
   isSelecting: boolean;
+  pointerState: PointerState;
   initialPosition: Point;
   currentPosition: Point;
   selectionArea: Area;
@@ -98,6 +99,7 @@ function generateEmptyData(): PluginData {
   return {
     enabled: true,
     isSelecting: false,
+    pointerState: 'up',
     initialPosition: { x: 0, y: 0 },
     currentPosition: { x: 0, y: 0 },
     selectionArea: { x: 0, y: 0, width: 0, height: 0 },
@@ -200,11 +202,14 @@ class SelectionPlugin {
       const selectingItems = this.getItemsUnderSelectionArea();
       if (selectingItems.length === 0) {
         this.state.update(`config.chart.items.*.selected`, false);
+        this.data.selected[ITEM].length = 0;
       }
       // TODO save selecting items and cells
     } else if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-items-row-item') {
       this.data.isSelecting = false;
       this.data.selectionArea = this.getSelectionArea();
+      this.data.currentPosition = this.poitnerData.currentPosition;
+      this.data.initialPosition = this.poitnerData.initialPosition;
       const item: Item = this.poitnerData.targetData;
       const selected: Item[] = this.collectLinkedItems(item, [item]);
       this.data.selected[ITEM] = selected;
@@ -216,6 +221,7 @@ class SelectionPlugin {
       this.data.isSelecting = false;
     }
     this.data.events = this.poitnerData.events;
+    this.data.pointerState = this.poitnerData.pointerState;
     this.updateData();
   }
 }

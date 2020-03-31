@@ -12,22 +12,20 @@ import Vido from '@neuronet.io/vido/vido';
 //import Vido from '../../vido/vido';
 import publicApi, { getInternalApi } from './api/Api';
 import Main from './components/Main';
+import { Internal } from './types';
 
 function GSTC(options) {
   const state = options.state;
   const api = getInternalApi(state);
-  const _internal = {
+  const _internal: Internal = {
     components: {
       Main
     },
-    height: 0,
-    treeMap: {},
+    treeMap: { id: '', _internal: { children: [], parents: [], items: [] } },
     flatTreeMap: [],
     flatTreeMapById: {},
     list: {
-      expandedHeight: 0,
       visibleRows: [],
-      rows: {},
       width: 0
     },
     dimensions: {
@@ -37,14 +35,22 @@ function GSTC(options) {
     chart: {
       dimensions: {
         width: 0,
-        innerWidth: 0
+        innerWidth: 0,
+        height: 0
       },
       visibleItems: [],
       time: {
+        zoom: 0,
+        format: {
+          period: 'day',
+          zoomTo: 0,
+          format() {
+            return '';
+          }
+        },
+        level: 0,
         levels: [],
         timePerPixel: 0,
-        firstTaskTime: 0,
-        lastTaskTime: 0,
         totalViewDurationMs: 0,
         totalViewDurationPx: 0,
         leftGlobal: 0,
@@ -53,13 +59,22 @@ function GSTC(options) {
         rightPx: 0,
         leftInner: 0,
         rightInner: 0,
-        maxWidth: {}
+        period: 'day',
+        leftGlobalDate: null,
+        rightGlobalDate: null,
+        centerGlobal: 0,
+        centerGlobalDate: null,
+        from: 0,
+        to: 0,
+        fromDate: null,
+        toDate: null,
+        finalFrom: null,
+        finalTo: null,
+        finalFromDate: null,
+        finalToDate: null
       }
     },
     elements: {},
-    cache: {
-      calendar: {}
-    },
     loaded: {}
   };
   if (typeof options.debug === 'boolean' && options.debug) {

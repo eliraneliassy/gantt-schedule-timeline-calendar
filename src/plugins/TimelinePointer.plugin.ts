@@ -26,9 +26,12 @@ export interface Point {
   y: number;
 }
 
+export type PointerState = 'up' | 'down' | 'move';
+
 export interface PluginData {
   enabled: boolean;
   isMoving: boolean;
+  pointerState: PointerState;
   currentTarget: HTMLElement | null;
   realTarget: HTMLElement | null;
   targetType: 'chart-timeline-items-row-item' | 'chart-timeline-grid-row-cell' | '';
@@ -51,6 +54,7 @@ export function Plugin(options = { enabled: true }) {
     return {
       enabled: options.enabled,
       isMoving: false,
+      pointerState: 'up',
       currentTarget: null,
       realTarget: null,
       targetType: '',
@@ -116,6 +120,7 @@ export function Plugin(options = { enabled: true }) {
 
     private pointerDown(ev: PointerEvent) {
       if (!this.data.enabled) return;
+      this.data.pointerState = 'down';
       this.data.currentTarget = ev.target as HTMLElement;
       this.data.realTarget = this.getRealTarget(ev);
       if (this.data.realTarget) {
@@ -145,6 +150,7 @@ export function Plugin(options = { enabled: true }) {
 
     private pointerUp(ev: PointerEvent) {
       if (!this.data.enabled) return;
+      this.data.pointerState = 'up';
       this.data.isMoving = false;
       this.data.events.up = ev;
       this.data.currentPosition = this.getRealPosition(ev);
@@ -153,6 +159,7 @@ export function Plugin(options = { enabled: true }) {
 
     private pointerMove(ev: PointerEvent) {
       if (!this.data.enabled || !this.data.isMoving) return;
+      this.data.pointerState = 'move';
       this.data.events.move = ev;
       this.data.currentPosition = this.getRealPosition(ev);
       this.updateData();

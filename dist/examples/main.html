@@ -41,11 +41,12 @@
     <script src="../ItemMovement.plugin.js"></script>
     <script src="../TimelinePointer.plugin.js"></script>
     <script src="../Selection.plugin.js"></script>
+    <script src="../ItemMovement.plugin.js"></script>
     <script src="../CalendarScroll.plugin.js"></script>
     <script src="../WeekendHighlight.plugin.js"></script>
     <script src="../index.umd.js?12345"></script>
     <script>
-      const iterations = 10000;
+      const iterations = 500;
 
       const pallete = [
         '#E74C3C',
@@ -153,7 +154,7 @@
 
       let selectionApi;
       const config = {
-        plugins: [WeekendHighlight.Plugin(), TimelinePointer.Plugin(), Selection.Plugin()],
+        plugins: [WeekendHighlight.Plugin(), TimelinePointer.Plugin(), Selection.Plugin(), ItemMovement.Plugin()],
         height: 623,
         list: {
           rows,

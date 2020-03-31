@@ -11,7 +11,7 @@
 import ResizeObserver from 'resize-observer-polyfill';
 import {
   ChartTime,
-  ChartInternalTime,
+  InternalChartTime,
   ChartInternalTimeLevel,
   ChartCalendar,
   ChartInternalTimeLevelDate,
@@ -186,9 +186,9 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     let count = 0;
     for (let i = rowsWithParentsExpanded.length - 1; i >= 0; i--) {
       const row = rowsWithParentsExpanded[i];
-      currentHeight += row.outerHeight;
+      currentHeight += row._internal.outerHeight;
       if (currentHeight >= innerHeight) {
-        currentHeight = currentHeight - row.outerHeight;
+        currentHeight = currentHeight - row._internal.outerHeight;
         break;
       }
       count++;
@@ -271,7 +271,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
 
   const generatePeriodDates = (
     formatting: ChartCalendarFormat,
-    time: ChartInternalTime,
+    time: InternalChartTime,
     level: ChartCalendarLevel,
     levelIndex: number
   ): ChartInternalTimeLevel => {
@@ -305,7 +305,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     state.update('_internal.loadedEventTriggered', true);
   }
 
-  function limitGlobalAndSetCenter(time: ChartInternalTime, updateCenter = true, oldTime: ChartInternalTime, reason) {
+  function limitGlobalAndSetCenter(time: InternalChartTime, updateCenter = true, oldTime: InternalChartTime, reason) {
     if (time.leftGlobal < time.finalFrom) time.leftGlobal = time.finalFrom;
     if (time.rightGlobal > time.finalTo) time.rightGlobal = time.finalTo;
     time.leftGlobalDate = api.time.date(time.leftGlobal).startOf(time.period);
@@ -347,7 +347,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     return time;
   }
 
-  function guessPeriod(time: ChartInternalTime, levels: ChartCalendarLevel[]) {
+  function guessPeriod(time: InternalChartTime, levels: ChartCalendarLevel[]) {
     if (!time.zoom) return time;
     for (const level of levels) {
       const formatting = level.formats.find(format => +time.zoom <= +format.zoomTo);
@@ -372,7 +372,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     return scrollWidth;
   }
 
-  function generateAllDates(time: ChartInternalTime, levels: ChartCalendarLevel[], chartWidth: number): number {
+  function generateAllDates(time: InternalChartTime, levels: ChartCalendarLevel[], chartWidth: number): number {
     if (!time.zoom) return 0;
     time.allDates = new Array(levels.length);
 
@@ -392,7 +392,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     return calculateDatesPercents(time.allDates[time.level], chartWidth);
   }
 
-  function getPeriodDates(allLevelDates: ChartTimeDates, time: ChartInternalTime): ChartTimeDate[] {
+  function getPeriodDates(allLevelDates: ChartTimeDates, time: InternalChartTime): ChartTimeDate[] {
     if (!allLevelDates.length) return [];
     const filtered = allLevelDates.filter(date => {
       return (
@@ -426,7 +426,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     });
   }
 
-  function updateLevels(time: ChartInternalTime, levels: ChartCalendarLevel[]) {
+  function updateLevels(time: InternalChartTime, levels: ChartCalendarLevel[]) {
     time.levels = [];
     let levelIndex = 0;
     for (const level of levels) {
@@ -446,7 +446,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     }
   }
 
-  function calculateTotalViewDuration(time: ChartInternalTime) {
+  function calculateTotalViewDuration(time: InternalChartTime) {
     let width = 0;
     let ms = 0;
     for (const date of time.allDates[time.level]) {
@@ -482,7 +482,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     const configTime: ChartTime = state.get('config.chart.time');
     const calendar: ChartCalendar = state.get('config.chart.calendar');
     const oldTime = { ...state.get('_internal.chart.time') };
-    let time: ChartInternalTime = api.mergeDeep({}, configTime);
+    let time: InternalChartTime = api.mergeDeep({}, configTime);
     if ((!time.from || !time.to) && !Object.keys(state.get('config.chart.items')).length) {
       return;
     }

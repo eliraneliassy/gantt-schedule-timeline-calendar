@@ -70,8 +70,8 @@ const ChartTimelineItemsRow = (vido: vido<DeepState, Api>, props: Props) => {
       shouldDetach = true;
       return;
     }
-    styleMap.style.height = props.row.actualHeight + 'px';
-    styleMap.style['--row-height'] = props.row.actualHeight + 'px';
+    styleMap.style.height = props.row._internal.outerHeight + 'px';
+    styleMap.style['--row-height'] = props.row._internal.outerHeight + 'px';
   };
 
   function updateRow(row) {
