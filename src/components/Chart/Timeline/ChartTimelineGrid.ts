@@ -18,11 +18,11 @@ import { Api } from '../../../api/Api';
  */
 class BindElementAction {
   constructor(element: HTMLElement, data) {
-    const old = data.state.get('_internal.elements.chart-timeline-grid');
-    if (old !== element) data.state.update('_internal.elements.chart-timeline-grid', element);
+    const old = data.state.get('$data.elements.chart-timeline-grid');
+    if (old !== element) data.state.update('$data.elements.chart-timeline-grid', element);
   }
   public destroy(element, data) {
-    data.state.update('_internal.elements', elements => {
+    data.state.update('$data.elements', elements => {
       delete elements['chart-timeline-grid'];
       return elements;
     });
@@ -60,15 +60,15 @@ export default function ChartTimelineGrid(vido: vido<DeepState, Api>, props) {
    * Generate cells
    */
   function generateCells() {
-    const width = state.get('_internal.chart.dimensions.width');
-    const height = state.get('_internal.innerHeight');
-    const time = state.get('_internal.chart.time');
-    const periodDates = state.get(`_internal.chart.time.levels.${time.level}`);
+    const width = state.get('$data.chart.dimensions.width');
+    const height = state.get('$data.innerHeight');
+    const time = state.get('$data.chart.time');
+    const periodDates = state.get(`$data.chart.time.levels.${time.level}`);
     if (!periodDates || periodDates.length === 0) {
-      state.update('_internal.chart.grid.rowsWithCells', []);
+      state.update('$data.chart.grid.rowsWithCells', []);
       return;
     }
-    const visibleRows = state.get('_internal.list.visibleRows');
+    const visibleRows = state.get('$data.list.visibleRows');
     styleMap.style.height = height + 'px';
     styleMap.style.width = width + 'px';
     let top = 0;
@@ -93,16 +93,11 @@ export default function ChartTimelineGrid(vido: vido<DeepState, Api>, props) {
       rowsWithCells.push({ row, cells, top, width });
       top += row.height;
     }
-    state.update('_internal.chart.grid.rowsWithCells', rowsWithCells);
+    state.update('$data.chart.grid.rowsWithCells', rowsWithCells);
   }
   onDestroy(
     state.subscribeAll(
-      [
-        '_internal.list.visibleRows;',
-        `_internal.chart.time.levels`,
-        '_internal.innerHeight',
-        '_internal.chart.dimensions.width'
-      ],
+      ['$data.list.visibleRows;', `$data.chart.time.levels`, '$data.innerHeight', '$data.chart.dimensions.width'],
       generateCells,
       {
         bulk: true
@@ -118,7 +113,7 @@ export default function ChartTimelineGrid(vido: vido<DeepState, Api>, props) {
     reuseComponents(rowsComponents, rowsWithCells || [], row => row, GridRowComponent);
     update();
   }
-  onDestroy(state.subscribe('_internal.chart.grid.rowsWithCells', generateRowsComponents));
+  onDestroy(state.subscribe('$data.chart.grid.rowsWithCells', generateRowsComponents));
   onDestroy(() => {
     rowsComponents.forEach(row => row.destroy());
   });

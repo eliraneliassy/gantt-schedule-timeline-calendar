@@ -31,7 +31,7 @@ export default function List(vido: vido<DeepState, Api>, props = {}) {
       const html = icons[iconName];
       rendered[iconName] = api.getSVGIconSrc(html);
     }
-    state.update('_internal.list.expander.icons', rendered);
+    state.update('$data.list.expander.icons', rendered);
   }
   renderExpanderIcons();
 
@@ -45,7 +45,7 @@ export default function List(vido: vido<DeepState, Api>, props = {}) {
       const html = icons[iconName];
       toggleIconsSrc[iconName] = api.getSVGIconSrc(html);
     }
-    state.update('_internal.list.toggle.icons', toggleIconsSrc);
+    state.update('$data.list.toggle.icons', toggleIconsSrc);
   }
   renderToggleIcons();
 
@@ -110,13 +110,13 @@ export default function List(vido: vido<DeepState, Api>, props = {}) {
       if (percent === 0) {
         width = 0;
       }
-      state.update('_internal.list.width', width);
+      state.update('$data.list.width', width);
     }
   }
 
   class ListAction {
     constructor(element, data) {
-      data.state.update('_internal.elements.list', element);
+      data.state.update('$data.elements.list', element);
       getWidth(element);
     }
     update(element) {

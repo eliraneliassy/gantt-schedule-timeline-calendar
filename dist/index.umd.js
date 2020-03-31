@@ -1,5 +1,3 @@
-
-(function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.head.appendChild(r) })(window.document);
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
@@ -1620,7 +1618,6 @@
 	        // tslint:disable-next-line:no-any
 	        typeof o.isDirective === 'boolean';
 	};
-	//# sourceMappingURL=directive.js.map
 
 	/**
 	 * @license
@@ -1666,7 +1663,6 @@
 	        start = n;
 	    }
 	};
-	//# sourceMappingURL=dom.js.map
 
 	/**
 	 * @license
@@ -1690,7 +1686,6 @@
 	 * A sentinel value that signals a NodePart to fully clear its content.
 	 */
 	const nothing = {};
-	//# sourceMappingURL=part.js.map
 
 	/**
 	 * @license
@@ -1917,7 +1912,6 @@
 	const lastAttributeNameRegex = 
 	// eslint-disable-next-line no-control-regex
 	/([ \x09\x0a\x0c\x0d])([^\0-\x1F\x7F-\x9F "'>=/]+)([ \x09\x0a\x0c\x0d]*=[ \x09\x0a\x0c\x0d]*(?:[^ \x09\x0a\x0c\x0d"'`<>=]*|"[^"]*|'[^']*))$/;
-	//# sourceMappingURL=template.js.map
 
 	/**
 	 * @license
@@ -2050,7 +2044,6 @@
 	        return fragment;
 	    }
 	}
-	//# sourceMappingURL=template-instance.js.map
 
 	/**
 	 * @license
@@ -2186,7 +2179,6 @@
 	        return template;
 	    }
 	}
-	//# sourceMappingURL=template-result.js.map
 
 	/**
 	 * @license
@@ -2756,7 +2748,6 @@
 	    (eventOptionsSupported ?
 	        { capture: o.capture, passive: o.passive, once: o.once } :
 	        o.capture);
-	//# sourceMappingURL=parts.js.map
 
 	/**
 	 * @license
@@ -2808,7 +2799,6 @@
 	    }
 	}
 	const defaultTemplateProcessor = new DefaultTemplateProcessor();
-	//# sourceMappingURL=default-template-processor.js.map
 
 	/**
 	 * @license
@@ -2856,7 +2846,6 @@
 	    return template;
 	}
 	const templateCaches = new Map();
-	//# sourceMappingURL=template-factory.js.map
 
 	/**
 	 * @license
@@ -2897,7 +2886,6 @@
 	    part.setValue(result);
 	    part.commit();
 	};
-	//# sourceMappingURL=render.js.map
 
 	/**
 	 * @license
@@ -2930,7 +2918,6 @@
 	 * render to and update a container.
 	 */
 	const svg = (strings, ...values) => new SVGTemplateResult(strings, values, 'svg', defaultTemplateProcessor);
-	//# sourceMappingURL=lit-html.js.map
 
 	var lithtml = /*#__PURE__*/Object.freeze({
 		__proto__: null,
@@ -3074,7 +3061,6 @@
 	        finally { if (e_1) throw e_1.error; }
 	    }
 	});
-	//# sourceMappingURL=async-append.js.map
 
 	/**
 	 * @license
@@ -3165,7 +3151,6 @@
 	        finally { if (e_1) throw e_1.error; }
 	    }
 	});
-	//# sourceMappingURL=async-replace.js.map
 
 	/**
 	 * @license
@@ -3241,7 +3226,6 @@
 	    }
 	    part.setValue(value);
 	});
-	//# sourceMappingURL=cache.js.map
 
 	/**
 	 * @license
@@ -3312,7 +3296,6 @@
 	        }
 	    }
 	});
-	//# sourceMappingURL=class-map.js.map
 
 	/**
 	 * @license
@@ -3381,7 +3364,6 @@
 	    // what the previous values were.
 	    previousValues.set(part, Array.isArray(value) ? Array.from(value) : value);
 	});
-	//# sourceMappingURL=guard.js.map
 
 	/**
 	 * @license
@@ -3413,7 +3395,6 @@
 	        part.setValue(value);
 	    }
 	});
-	//# sourceMappingURL=if-defined.js.map
 
 	/**
 	 * @license
@@ -3827,7 +3808,6 @@
 	        keyListCache.set(containerPart, newKeys);
 	    };
 	});
-	//# sourceMappingURL=repeat.js.map
 
 	/**
 	 * @license
@@ -3875,7 +3855,6 @@
 	    part.setValue(fragment);
 	    previousValues$1.set(part, { value, fragment });
 	});
-	//# sourceMappingURL=unsafe-html.js.map
 
 	/**
 	 * @license
@@ -3960,7 +3939,6 @@
 	        });
 	    }
 	});
-	//# sourceMappingURL=until.js.map
 
 	const detached = new WeakMap();
 	class Detach extends Directive {
@@ -3987,7 +3965,6 @@
 	        }
 	    }
 	}
-	//# sourceMappingURL=Detach.js.map
 
 	const toRemove = [], toUpdate = [];
 	class StyleMap extends Directive {
@@ -4051,7 +4028,6 @@
 	        }
 	    }
 	}
-	//# sourceMappingURL=StyleMap.js.map
 
 	class Action {
 	    constructor() {
@@ -4059,7 +4035,6 @@
 	    }
 	}
 	Action.prototype.isAction = true;
-	//# sourceMappingURL=Action.js.map
 
 	const defaultOptions = {
 	    element: document.createTextNode(''),
@@ -4312,7 +4287,6 @@
 	        }
 	    }
 	}
-	//# sourceMappingURL=PointerAction.js.map
 
 	function getPublicComponentMethods(components, actionsByInstance, clone) {
 	    return class PublicComponentMethods {
@@ -4382,7 +4356,6 @@
 	        }
 	    };
 	}
-	//# sourceMappingURL=PublicComponentMethods.js.map
 
 	function getActionsCollector(actionsByInstance) {
 	    return class ActionsCollector extends Directive {
@@ -4435,7 +4408,6 @@
 	        }
 	    };
 	}
-	//# sourceMappingURL=ActionsCollector.js.map
 
 	function getInternalComponentMethods(components, actionsByInstance, clone) {
 	    return class InternalComponentMethods {
@@ -4497,7 +4469,6 @@
 	        }
 	    };
 	}
-	//# sourceMappingURL=InternalComponentMethods.js.map
 
 	/**
 	 * Schedule - a throttle function that uses requestAnimationFrame to limit the rate at which a function is called.
@@ -4586,7 +4557,6 @@
 	    }
 	    return mergeDeep({}, source);
 	}
-	//# sourceMappingURL=helpers.js.map
 
 	/**
 	 * Vido library
@@ -4862,7 +4832,6 @@
 	Vido.prototype.repeat = repeat;
 	Vido.prototype.unsafeHTML = unsafeHTML;
 	Vido.prototype.unti = until;
-	//# sourceMappingURL=vido.js.map
 
 	/**
 	 * A collection of shims that provide minimal functionality of the ES6 collections.
@@ -5856,7 +5825,7 @@
 	        const config = state.get('config');
 	        const scrollBarHeight = state.get('config.scroll.horizontal.size');
 	        const height = config.height - config.headerHeight - scrollBarHeight;
-	        state.update('_internal.innerHeight', height);
+	        state.update('$data.innerHeight', height);
 	        styleMap.style['--height'] = config.height + 'px';
 	        update();
 	    }
@@ -5873,14 +5842,14 @@
 	        }
 	        update();
 	    }
-	    onDestroy(state.subscribe('_internal.list.columns.resizer.active', resizerActiveChange));
+	    onDestroy(state.subscribe('$data.list.columns.resizer.active', resizerActiveChange));
 	    /**
 	     * Generate tree
 	     * @param {object} bulk
 	     * @param {object} eventInfo
 	     */
 	    function generateTree(bulk, eventInfo) {
-	        if (state.get('_internal.flatTreeMap').length && eventInfo.type === 'subscribe') {
+	        if (state.get('$data.flatTreeMap').length && eventInfo.type === 'subscribe') {
 	            return;
 	        }
 	        const configRows = state.get('config.list.rows');
@@ -5898,11 +5867,11 @@
 	        const treeMap = api.makeTreeMap(rows, items);
 	        const flatTreeMapById = api.getFlatTreeMapById(treeMap);
 	        const flatTreeMap = api.flattenTreeMap(treeMap);
-	        state.update('_internal', _internal => {
-	            _internal.treeMap = treeMap;
-	            _internal.flatTreeMapById = flatTreeMapById;
-	            _internal.flatTreeMap = flatTreeMap;
-	            return _internal;
+	        state.update('$data', $data => {
+	            $data.treeMap = treeMap;
+	            $data.flatTreeMapById = flatTreeMapById;
+	            $data.flatTreeMap = flatTreeMap;
+	            return $data;
 	        });
 	        update();
 	    }
@@ -5910,16 +5879,16 @@
 	    onDestroy(state.subscribeAll(['config.list.rows.*.parentId', 'config.chart.items.*.rowId'], generateTree, { bulk: true }));
 	    function prepareExpanded() {
 	        const configRows = state.get('config.list.rows');
-	        const rowsWithParentsExpanded = api.getRowsFromIds(api.getRowsWithParentsExpanded(state.get('_internal.flatTreeMap'), state.get('_internal.flatTreeMapById'), configRows), configRows);
+	        const rowsWithParentsExpanded = api.getRowsFromIds(api.getRowsWithParentsExpanded(state.get('$data.flatTreeMap'), state.get('$data.flatTreeMapById'), configRows), configRows);
 	        rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
-	        state.update('_internal.list', list => {
+	        state.update('$data.list', list => {
 	            list.rowsHeight = rowsHeight;
 	            list.rowsWithParentsExpanded = rowsWithParentsExpanded;
 	            return list;
 	        });
 	        update();
 	    }
-	    onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '_internal.treeMap;', 'config.list.rows.*.height'], prepareExpanded, { bulk: true }));
+	    onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;', 'config.list.rows.*.height'], prepareExpanded, { bulk: true }));
 	    function getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded) {
 	        if (rowsWithParentsExpanded.length === 0)
 	            return 0;
@@ -5927,9 +5896,9 @@
 	        let count = 0;
 	        for (let i = rowsWithParentsExpanded.length - 1; i >= 0; i--) {
 	            const row = rowsWithParentsExpanded[i];
-	            currentHeight += row._internal.outerHeight;
+	            currentHeight += row.$data.outerHeight;
 	            if (currentHeight >= innerHeight) {
-	                currentHeight = currentHeight - row._internal.outerHeight;
+	                currentHeight = currentHeight - row.$data.outerHeight;
 	                break;
 	            }
 	            count++;
@@ -5938,10 +5907,10 @@
 	        state.update('config.scroll.vertical.lastPageCount', count);
 	        return currentHeight;
 	    }
-	    onDestroy(state.subscribeAll(['_internal.list.rowsWithParentsExpanded;', '_internal.innerHeight', '_internal.list.rowsHeight'], () => {
-	        const rowsWithParentsExpanded = state.get('_internal.list.rowsWithParentsExpanded');
-	        const rowsHeight = state.get('_internal.list.rowsHeight');
-	        const innerHeight = state.get('_internal.innerHeight');
+	    onDestroy(state.subscribeAll(['$data.list.rowsWithParentsExpanded;', '$data.innerHeight', '$data.list.rowsHeight'], () => {
+	        const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
+	        const rowsHeight = state.get('$data.list.rowsHeight');
+	        const innerHeight = state.get('$data.innerHeight');
 	        const lastPageHeight = getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded);
 	        state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight);
 	    }));
@@ -5949,8 +5918,8 @@
 	     * Generate visible rows
 	     */
 	    function generateVisibleRowsAndItems() {
-	        const visibleRows = api.getVisibleRows(state.get('_internal.list.rowsWithParentsExpanded'));
-	        const currentVisibleRows = state.get('_internal.list.visibleRows');
+	        const visibleRows = api.getVisibleRows(state.get('$data.list.rowsWithParentsExpanded'));
+	        const currentVisibleRows = state.get('$data.list.visibleRows');
 	        let shouldUpdate = true;
 	        if (visibleRows.length !== currentVisibleRows.length) {
 	            shouldUpdate = true;
@@ -5964,18 +5933,18 @@
 	            });
 	        }
 	        if (shouldUpdate) {
-	            state.update('_internal.list.visibleRows', visibleRows);
+	            state.update('$data.list.visibleRows', visibleRows);
 	        }
 	        const visibleItems = [];
 	        for (const row of visibleRows) {
-	            for (const item of row._internal.items) {
+	            for (const item of row.$data.items) {
 	                visibleItems.push(item);
 	            }
 	        }
-	        state.update('_internal.chart.visibleItems', visibleItems);
+	        state.update('$data.chart.visibleItems', visibleItems);
 	        update();
 	    }
-	    onDestroy(state.subscribeAll(['_internal.list.rowsWithParentsExpanded;', 'config.scroll.vertical.data', 'config.chart.items'], generateVisibleRowsAndItems, { bulk: true }));
+	    onDestroy(state.subscribeAll(['$data.list.rowsWithParentsExpanded;', 'config.scroll.vertical.data', 'config.chart.items'], generateVisibleRowsAndItems, { bulk: true }));
 	    function getLastPageDatesWidth(chartWidth, allDates) {
 	        if (allDates.length === 0)
 	            return 0;
@@ -6016,16 +5985,16 @@
 	        return dates;
 	    };
 	    function triggerLoadedEvent() {
-	        if (state.get('_internal.loadedEventTriggered'))
+	        if (state.get('$data.loadedEventTriggered'))
 	            return;
 	        Promise.resolve().then(() => {
-	            const element = state.get('_internal.elements.main');
+	            const element = state.get('$data.elements.main');
 	            const parent = element.parentNode;
 	            const event = new Event('gstc-loaded');
 	            element.dispatchEvent(event);
 	            parent.dispatchEvent(event);
 	        });
-	        state.update('_internal.loadedEventTriggered', true);
+	        state.update('$data.loadedEventTriggered', true);
 	    }
 	    function limitGlobalAndSetCenter(time, updateCenter = true, oldTime, reason) {
 	        if (time.leftGlobal < time.finalFrom)
@@ -6189,12 +6158,12 @@
 	    }
 	    let timeLoadedEventFired = false;
 	    function recalculateTimes(reason) {
-	        const chartWidth = state.get('_internal.chart.dimensions.width');
+	        const chartWidth = state.get('$data.chart.dimensions.width');
 	        if (!chartWidth)
 	            return;
 	        const configTime = state.get('config.chart.time');
 	        const calendar = state.get('config.chart.calendar');
-	        const oldTime = Object.assign({}, state.get('_internal.chart.time'));
+	        const oldTime = Object.assign({}, state.get('$data.chart.time'));
 	        let time = api.mergeDeep({}, configTime);
 	        if ((!time.from || !time.to) && !Object.keys(state.get('config.chart.items')).length) {
 	            return;
@@ -6216,7 +6185,7 @@
 	            }
 	            guessPeriod(time, calendar.levels);
 	        }
-	        // If _internal.chart.time (leftGlobal, centerGlobal, rightGlobal, from , to) was changed
+	        // If $data.chart.time (leftGlobal, centerGlobal, rightGlobal, from , to) was changed
 	        // then we need to apply those values - no recalculation is needed (values form plugins etc)
 	        const justApply = ['leftGlobal', 'centerGlobal', 'rightGlobal', 'from', 'to'].includes(reason.name);
 	        if (justApply) {
@@ -6313,7 +6282,7 @@
 	            time.rightPx = mainLevelDates[mainLevelDates.length - 1].leftPx;
 	        }
 	        updateLevels(time, calendar.levels);
-	        state.update(`_internal.chart.time`, time);
+	        state.update(`$data.chart.time`, time);
 	        state.update('config.chart.time', configTime => {
 	            configTime.zoom = time.zoom;
 	            configTime.period = time.format.period;
@@ -6329,7 +6298,7 @@
 	        });
 	        update().then(() => {
 	            if (!timeLoadedEventFired) {
-	                state.update('_internal.loaded.time', true);
+	                state.update('$data.loaded.time', true);
 	                timeLoadedEventFired = true;
 	            }
 	        });
@@ -6346,7 +6315,7 @@
 	    function recalculationIsNeeded() {
 	        const configTime = state.get('config.chart.time');
 	        const dataIndex = state.get('config.scroll.horizontal.dataIndex');
-	        const chartWidth = state.get('_internal.chart.dimensions.width');
+	        const chartWidth = state.get('$data.chart.dimensions.width');
 	        const cache = Object.assign({}, recalculationTriggerCache);
 	        recalculationTriggerCache.zoom = configTime.zoom;
 	        recalculationTriggerCache.period = configTime.period;
@@ -6381,7 +6350,7 @@
 	        'config.chart.time',
 	        'config.chart.calendar.levels',
 	        'config.scroll.horizontal.dataIndex',
-	        '_internal.chart.dimensions.width'
+	        '$data.chart.dimensions.width'
 	    ], () => {
 	        let reason = recalculationIsNeeded();
 	        if (reason)
@@ -6453,11 +6422,11 @@
 	                    if (dimensions.width !== width || dimensions.height !== height) {
 	                        dimensions.width = width;
 	                        dimensions.height = height;
-	                        state.update('_internal.dimensions', dimensions);
+	                        state.update('$data.dimensions', dimensions);
 	                    }
 	                });
 	                ro.observe(element);
-	                state.update('_internal.elements.main', element);
+	                state.update('$data.elements.main', element);
 	            }
 	        }
 	        update() { }
@@ -6471,13 +6440,13 @@
 	    onDestroy(() => {
 	        ro.disconnect();
 	    });
-	    onDestroy(state.subscribeAll(['_internal.loaded', '_internal.chart.time.totalViewDurationPx'], () => {
-	        if (state.get('_internal.loadedEventTriggered'))
+	    onDestroy(state.subscribeAll(['$data.loaded', '$data.chart.time.totalViewDurationPx'], () => {
+	        if (state.get('$data.loadedEventTriggered'))
 	            return;
-	        const loaded = state.get('_internal.loaded');
+	        const loaded = state.get('$data.loaded');
 	        if (loaded.main && loaded.chart && loaded.time && loaded['horizontal-scroll-inner']) {
-	            const scroll = state.get('_internal.elements.horizontal-scroll-inner');
-	            const width = state.get('_internal.chart.time.totalViewDurationPx');
+	            const scroll = state.get('$data.elements.horizontal-scroll-inner');
+	            const width = state.get('$data.chart.time.totalViewDurationPx');
 	            if (scroll && scroll.clientWidth === Math.round(width)) {
 	                setTimeout(triggerLoadedEvent, 0);
 	            }
@@ -6485,7 +6454,7 @@
 	    }));
 	    function onWheel(ev) { }
 	    function LoadedEventAction() {
-	        state.update('_internal.loaded.main', true);
+	        state.update('$data.loaded.main', true);
 	    }
 	    if (!componentActions.includes(LoadedEventAction))
 	        componentActions.push(LoadedEventAction);
@@ -6503,7 +6472,6 @@
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=Main.js.map
 
 	/**
 	 * ScrollBar component
@@ -6577,7 +6545,7 @@
 	            return;
 	        state.update('config.scroll.horizontal', (scrollHorizontal) => {
 	            scrollHorizontal.data = date;
-	            const time = state.get('_internal.chart.time');
+	            const time = state.get('$data.chart.time');
 	            scrollHorizontal.posPx = api.time.calculateScrollPosPxFromTime(scrollHorizontal.data.leftGlobal, time, scrollHorizontal);
 	            scrollHorizontal.dataIndex = dataIndex;
 	            return scrollHorizontal;
@@ -6603,8 +6571,8 @@
 	    }
 	    if (props.type === 'horizontal') {
 	        let lastDataIndex = 0;
-	        onDestroy(state.subscribe('_internal.chart.time', () => {
-	            const time = state.get('_internal.chart.time');
+	        onDestroy(state.subscribe('$data.chart.time', () => {
+	            const time = state.get('$data.chart.time');
 	            if (!time.leftGlobalDate)
 	                return;
 	            const horizontal = state.get('config.scroll.horizontal');
@@ -6640,15 +6608,15 @@
 	    }
 	    let working = false;
 	    onDestroy(state.subscribeAll(props.type === 'horizontal'
-	        ? [`config.scroll.${props.type}`, '_internal.chart.time']
-	        : [`config.scroll.${props.type}`, '_internal.innerHeight', '_internal.list.rowsWithParentsExpanded'], () => {
+	        ? [`config.scroll.${props.type}`, '$data.chart.time']
+	        : [`config.scroll.${props.type}`, '$data.innerHeight', '$data.list.rowsWithParentsExpanded'], () => {
 	        if (working)
 	            return;
 	        working = true;
-	        const time = state.get('_internal.chart.time');
+	        const time = state.get('$data.chart.time');
 	        const scroll = state.get(`config.scroll.${props.type}`);
-	        const chartWidth = state.get('_internal.chart.dimensions.width');
-	        const chartHeight = state.get('_internal.innerHeight');
+	        const chartWidth = state.get('$data.chart.dimensions.width');
+	        const chartHeight = state.get('$data.innerHeight');
 	        size = scroll.size;
 	        invSize = props.type === 'horizontal' ? chartWidth : chartHeight;
 	        invSize = invSize || 0;
@@ -6676,7 +6644,7 @@
 	            }
 	        }
 	        else {
-	            const rowsWithParentsExpanded = state.get('_internal.list.rowsWithParentsExpanded');
+	            const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
 	            if (rowsWithParentsExpanded) {
 	                rows = rowsWithParentsExpanded;
 	            }
@@ -6738,7 +6706,7 @@
 	    class OuterAction extends Action {
 	        constructor(element) {
 	            super();
-	            state.update(`_internal.elements.scroll-bar--${props.type}`, element);
+	            state.update(`$data.elements.scroll-bar--${props.type}`, element);
 	        }
 	        update() { }
 	        destroy() { }
@@ -6752,7 +6720,7 @@
 	            this.cumulation = 0;
 	            this.lastData = 0;
 	            this.dataIndex = 0;
-	            state.update(`_internal.elements.scroll-bar-inner--${props.type}`, element);
+	            state.update(`$data.elements.scroll-bar-inner--${props.type}`, element);
 	            this.pointerDown = this.pointerDown.bind(this);
 	            this.pointerUp = this.pointerUp.bind(this);
 	            const pointerMove = this.pointerMove.bind(this);
@@ -6862,7 +6830,6 @@
       </div>
     `;
 	}
-	//# sourceMappingURL=ScrollBar.js.map
 
 	/**
 	 * List component
@@ -6888,7 +6855,7 @@
 	            const html = icons[iconName];
 	            rendered[iconName] = api.getSVGIconSrc(html);
 	        }
-	        state.update('_internal.list.expander.icons', rendered);
+	        state.update('$data.list.expander.icons', rendered);
 	    }
 	    renderExpanderIcons();
 	    function renderToggleIcons() {
@@ -6901,7 +6868,7 @@
 	            const html = icons[iconName];
 	            toggleIconsSrc[iconName] = api.getSVGIconSrc(html);
 	        }
-	        state.update('_internal.list.toggle.icons', toggleIconsSrc);
+	        state.update('$data.list.toggle.icons', toggleIconsSrc);
 	    }
 	    renderToggleIcons();
 	    let className;
@@ -6949,12 +6916,12 @@
 	            if (percent === 0) {
 	                width = 0;
 	            }
-	            state.update('_internal.list.width', width);
+	            state.update('$data.list.width', width);
 	        }
 	    }
 	    class ListAction {
 	        constructor(element, data) {
-	            data.state.update('_internal.elements.list', element);
+	            data.state.update('$data.elements.list', element);
 	            getWidth(element);
 	        }
 	        update(element) {
@@ -6971,7 +6938,6 @@
             `
 	        : ''), { vido, props: {}, templateProps });
 	}
-	//# sourceMappingURL=List.js.map
 
 	/**
 	 * ListColumn component
@@ -6988,7 +6954,7 @@
 	class BindElementAction {
 	    constructor(element, data) {
 	        let shouldUpdate = false;
-	        let elements = data.state.get('_internal.elements.list-columns');
+	        let elements = data.state.get('$data.elements.list-columns');
 	        if (typeof elements === 'undefined') {
 	            elements = [];
 	            shouldUpdate = true;
@@ -6998,10 +6964,10 @@
 	            shouldUpdate = true;
 	        }
 	        if (shouldUpdate)
-	            data.state.update('_internal.elements.list-columns', elements);
+	            data.state.update('$data.elements.list-columns', elements);
 	    }
 	    destroy(element, data) {
-	        data.state.update('_internal.elements.list-columns', elements => {
+	        data.state.update('$data.elements.list-columns', elements => {
 	            return elements.filter(el => el !== element);
 	        });
 	    }
@@ -7033,7 +6999,7 @@
 	        const list = state.get('config.list');
 	        calculatedWidth = list.columns.data[column.id].width * list.columns.percent * 0.01;
 	        width = calculatedWidth;
-	        const height = state.get('_internal.innerHeight');
+	        const height = state.get('$data.innerHeight');
 	        widthStyleMap.style.width = width + 'px';
 	        widthStyleMap.style['--width'] = width + 'px';
 	        containerStyleMap.style.height = height + 'px';
@@ -7042,9 +7008,9 @@
 	        'config.list.columns.percent',
 	        'config.list.columns.resizer.width',
 	        `config.list.columns.data.${column.id}.width`,
-	        '_internal.chart.dimensions.width',
-	        '_internal.innerHeight',
-	        '_internal.list.width'
+	        '$data.chart.dimensions.width',
+	        '$data.innerHeight',
+	        '$data.list.width'
 	    ], calculateStyle, { bulk: true });
 	    const ListColumnHeader = createComponent(ListColumnHeaderComponent, { columnId: props.columnId });
 	    onDestroy(ListColumnHeader.destroy);
@@ -7067,9 +7033,9 @@
 	            'config.list.columns.percent',
 	            'config.list.columns.resizer.width',
 	            `config.list.columns.data.${column.id}.width`,
-	            '_internal.chart.dimensions.width',
-	            '_internal.innerHeight',
-	            '_internal.list.width'
+	            '$data.chart.dimensions.width',
+	            '$data.innerHeight',
+	            '$data.list.width'
 	        ], calculateStyle, { bulk: true });
 	        ListColumnHeader.change(props);
 	    });
@@ -7088,7 +7054,7 @@
 	        update();
 	        return destroy;
 	    };
-	    onDestroy(state.subscribe('_internal.list.visibleRows;', visibleRowsChange));
+	    onDestroy(state.subscribe('$data.list.visibleRows;', visibleRowsChange));
 	    onDestroy(() => {
 	        visibleRows.forEach(row => row.destroy());
 	        componentsSub.forEach(unsub => unsub());
@@ -7108,7 +7074,6 @@
         </div>
       `, { vido, props, templateProps });
 	}
-	//# sourceMappingURL=ListColumn.js.map
 
 	/**
 	 * ListColumnHeader component
@@ -7194,7 +7159,6 @@
         </div>
       `, { vido, props, templateProps });
 	}
-	//# sourceMappingURL=ListColumnHeader.js.map
 
 	/**
 	 * ListColumnHeaderResizer component
@@ -7237,7 +7201,7 @@
 	        calculatedWidth = column.width * list.columns.percent * 0.01;
 	        dotsStyleMap.style['--width'] = list.columns.resizer.width + 'px';
 	        inRealTime = list.columns.resizer.inRealTime;
-	        state.update('_internal.list.width', calculatedWidth);
+	        state.update('$data.list.width', calculatedWidth);
 	        update();
 	    }));
 	    let dots = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -7297,7 +7261,6 @@
         </div>
       `, { vido, props, templateProps });
 	}
-	//# sourceMappingURL=ListColumnHeaderResizer.js.map
 
 	/**
 	 * ListColumnRow component
@@ -7313,7 +7276,7 @@
 	 */
 	class BindElementAction$1 {
 	    constructor(element, data) {
-	        let elements = data.state.get('_internal.elements.list-column-rows');
+	        let elements = data.state.get('$data.elements.list-column-rows');
 	        let shouldUpdate = false;
 	        if (typeof elements === 'undefined') {
 	            shouldUpdate = true;
@@ -7324,10 +7287,10 @@
 	            shouldUpdate = true;
 	        }
 	        if (shouldUpdate)
-	            data.state.update('_internal.elements.list-column-rows', elements);
+	            data.state.update('$data.elements.list-column-rows', elements);
 	    }
 	    destroy(element, data) {
-	        data.state.update('_internal.elements.list-column-rows', elements => {
+	        data.state.update('$data.elements.list-column-rows', elements => {
 	            return elements.filter(el => el !== element);
 	        });
 	    }
@@ -7342,7 +7305,7 @@
 	    onDestroy(state.subscribe('config.wrappers.ListColumnRow', value => (wrapper = value)));
 	    let ListColumnRowExpanderComponent;
 	    onDestroy(state.subscribe('config.components.ListColumnRowExpander', value => (ListColumnRowExpanderComponent = value)));
-	    let rowPath = `_internal.flatTreeMapById.${props.rowId}`, row = state.get(rowPath);
+	    let rowPath = `$data.flatTreeMapById.${props.rowId}`, row = state.get(rowPath);
 	    let colPath = `config.list.columns.data.${props.columnId}`, column = state.get(colPath);
 	    const styleMap = new StyleMap(column.expander
 	        ? {
@@ -7386,7 +7349,7 @@
 	            rowSub();
 	        if (colSub)
 	            colSub();
-	        rowPath = `_internal.flatTreeMapById.${rowId}`;
+	        rowPath = `$data.flatTreeMapById.${rowId}`;
 	        colPath = `config.list.columns.data.${columnId}`;
 	        rowSub = state.subscribeAll([rowPath, colPath, 'config.list.expander'], bulk => {
 	            column = state.get(colPath);
@@ -7401,13 +7364,13 @@
 	            const expander = state.get('config.list.expander');
 	            // @ts-ignore
 	            styleMap.setStyle({}); // we must reset style because of user specified styling
-	            styleMap.style['height'] = row._internal.outerHeight + 'px';
-	            styleMap.style['--height'] = row._internal.outerHeight + 'px';
+	            styleMap.style['height'] = row.$data.outerHeight + 'px';
+	            styleMap.style['--height'] = row.$data.outerHeight + 'px';
 	            if (column.expander) {
-	                styleMap.style['--expander-padding-width'] = expander.padding * (row._internal.parents.length + 1) + 'px';
+	                styleMap.style['--expander-padding-width'] = expander.padding * (row.$data.parents.length + 1) + 'px';
 	            }
-	            for (const parentId of row._internal.parents) {
-	                const parent = state.get(`_internal.flatTreeMapById.${parentId}`);
+	            for (const parentId of row.$data.parents) {
+	                const parent = state.get(`$data.flatTreeMapById.${parentId}`);
 	                if (typeof parent.style === 'object' && parent.style.constructor.name === 'Object') {
 	                    if (typeof parent.style.children === 'object') {
 	                        const childrenStyle = parent.style.children;
@@ -7475,7 +7438,6 @@
         </div>
       `, { vido, props, templateProps });
 	}
-	//# sourceMappingURL=ListColumnRow.js.map
 
 	/**
 	 * ListColumnRowExpander component
@@ -7522,7 +7484,6 @@
         </div>
       `, { vido, props, templateProps });
 	}
-	//# sourceMappingURL=ListColumnRowExpander.js.map
 
 	/**
 	 * ListColumnRowExpanderToggle component
@@ -7550,7 +7511,7 @@
 	        classNameClosed = className + '-closed';
 	        update();
 	    }));
-	    onDestroy(state.subscribe('_internal.list.expander.icons', icons => {
+	    onDestroy(state.subscribe('$data.list.expander.icons', icons => {
 	        if (icons) {
 	            iconChild = icons.child;
 	            iconOpen = icons.open;
@@ -7610,7 +7571,7 @@
 	    const getIcon = () => {
 	        var _a, _b, _c;
 	        if (iconChild) {
-	            if (((_c = (_b = (_a = props.row) === null || _a === void 0 ? void 0 : _a._internal) === null || _b === void 0 ? void 0 : _b.children) === null || _c === void 0 ? void 0 : _c.length) === 0) {
+	            if (((_c = (_b = (_a = props.row) === null || _a === void 0 ? void 0 : _a.$data) === null || _b === void 0 ? void 0 : _b.children) === null || _c === void 0 ? void 0 : _c.length) === 0) {
 	                return html `
           <img width="16" height="16" class=${classNameChild} src=${iconChild} />
         `;
@@ -7632,7 +7593,6 @@
         </div>
       `, { vido, props, templateProps });
 	}
-	//# sourceMappingURL=ListColumnRowExpanderToggle.js.map
 
 	/**
 	 * ListToggle component
@@ -7656,7 +7616,7 @@
 	        open: '',
 	        close: ''
 	    };
-	    onDestroy(state.subscribe('_internal.list.toggle.icons', value => {
+	    onDestroy(state.subscribe('$data.list.toggle.icons', value => {
 	        if (value) {
 	            toggleIconsSrc = value;
 	            update();
@@ -7685,7 +7645,6 @@
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=ListToggle.js.map
 
 	/**
 	 * Chart component
@@ -7747,12 +7706,12 @@
 	                const innerWidth = width - state.get('config.scroll.horizontal.size');
 	                if (chartWidth !== width) {
 	                    chartWidth = width;
-	                    state.update('_internal.chart.dimensions', { width, innerWidth, height });
+	                    state.update('$data.chart.dimensions', { width, innerWidth, height });
 	                }
 	            });
 	            ro.observe(element);
-	            state.update('_internal.elements.chart', element);
-	            state.update('_internal.loaded.chart', true);
+	            state.update('$data.elements.chart', element);
+	            state.update('$data.loaded.chart', true);
 	        }
 	    });
 	    onDestroy(() => {
@@ -7767,7 +7726,6 @@
         </div>
       `, { vido, props: {}, templateProps });
 	}
-	//# sourceMappingURL=Chart.js.map
 
 	/**
 	 * ChartCalendar component
@@ -7800,7 +7758,7 @@
 	        update();
 	    }));
 	    const components = [[], []];
-	    onDestroy(state.subscribe(`_internal.chart.time.levels`, levels => {
+	    onDestroy(state.subscribe(`$data.chart.time.levels`, levels => {
 	        let level = 0;
 	        for (const dates of levels) {
 	            if (!dates.length)
@@ -7830,7 +7788,7 @@
 	        components.forEach(level => level.forEach(component => component.destroy()));
 	    });
 	    componentActions.push(element => {
-	        state.update('_internal.elements.chart-calendar', element);
+	        state.update('$data.elements.chart-calendar', element);
 	    });
 	    const actions = Actions.create(componentActions, actionProps);
 	    return templateProps => wrapper(html `
@@ -7843,7 +7801,6 @@
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=ChartCalendar.js.map
 
 	/**
 	 * ChartCalendarDay component
@@ -7862,7 +7819,7 @@
 	class BindElementAction$2 extends Action {
 	    constructor(element, data) {
 	        super();
-	        data.state.update('_internal.elements.chart-calendar-dates', elements => {
+	        data.state.update('$data.elements.chart-calendar-dates', elements => {
 	            if (typeof elements === 'undefined') {
 	                elements = [];
 	            }
@@ -7892,7 +7849,7 @@
 	            return;
 	        const level = state.get(`config.chart.calendar.levels.${props.level}`);
 	        styleMap.style.width = props.date.currentView.width + 'px';
-	        time = state.get('_internal.chart.time');
+	        time = state.get('$data.chart.time');
 	        const formatting = level.formats.find(formatting => +time.zoom <= +formatting.zoomTo);
 	        if (props.date.current) {
 	            additionalClass = ' gstc-current';
@@ -7937,7 +7894,7 @@
 	        if (timeSub) {
 	            timeSub();
 	        }
-	        timeSub = state.subscribeAll(['_internal.chart.time', 'config.chart.calendar.levels'], updateDate, {
+	        timeSub = state.subscribeAll(['$data.chart.time', 'config.chart.calendar.levels'], updateDate, {
 	            bulk: true
 	        });
 	    });
@@ -7966,7 +7923,6 @@
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=ChartCalendarDate.js.map
 
 	/**
 	 * ChartTimeline component
@@ -8002,9 +7958,9 @@
 	    onDestroy(state.subscribe('config.list.toggle.display', val => (showToggle = val)));
 	    const styleMap = new StyleMap({}), innerStyleMap = new StyleMap({});
 	    function calculateStyle() {
-	        const width = state.get('_internal.chart.dimensions.width');
-	        const height = state.get('_internal.list.rowsHeight');
-	        styleMap.style.height = state.get('_internal.innerHeight') + 'px';
+	        const width = state.get('$data.chart.dimensions.width');
+	        const height = state.get('$data.list.rowsHeight');
+	        styleMap.style.height = state.get('$data.innerHeight') + 'px';
 	        styleMap.style['--height'] = styleMap.style.height;
 	        if (width) {
 	            styleMap.style.width = width + 'px';
@@ -8023,12 +7979,7 @@
 	        }
 	        update();
 	    }
-	    onDestroy(state.subscribeAll([
-	        '_internal.innerHeight',
-	        '_internal.chart.dimensions.width',
-	        '_internal.list.rowsHeight',
-	        '_internal.chart.time.dates.day'
-	    ], calculateStyle));
+	    onDestroy(state.subscribeAll(['$data.innerHeight', '$data.chart.dimensions.width', '$data.list.rowsHeight', '$data.chart.time.dates.day'], calculateStyle));
 	    let componentActions = [];
 	    onDestroy(state.subscribe('config.actions.chart-timeline', actions => {
 	        componentActions = actions;
@@ -8036,9 +7987,9 @@
 	    componentActions.push(class BindElementAction extends Action {
 	        constructor(element) {
 	            super();
-	            const old = state.get('_internal.elements.chart-timeline');
+	            const old = state.get('$data.elements.chart-timeline');
 	            if (old !== element)
-	                state.update('_internal.elements.chart-timeline', element);
+	                state.update('$data.elements.chart-timeline', element);
 	        }
 	    });
 	    const actions = Actions.create(componentActions, actionProps);
@@ -8050,7 +8001,6 @@
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=ChartTimeline.js.map
 
 	/**
 	 * ChartTimelineGrid component
@@ -8066,12 +8016,12 @@
 	 */
 	class BindElementAction$3 {
 	    constructor(element, data) {
-	        const old = data.state.get('_internal.elements.chart-timeline-grid');
+	        const old = data.state.get('$data.elements.chart-timeline-grid');
 	        if (old !== element)
-	            data.state.update('_internal.elements.chart-timeline-grid', element);
+	            data.state.update('$data.elements.chart-timeline-grid', element);
 	    }
 	    destroy(element, data) {
-	        data.state.update('_internal.elements', elements => {
+	        data.state.update('$data.elements', elements => {
 	            delete elements['chart-timeline-grid'];
 	            return elements;
 	        });
@@ -8100,15 +8050,15 @@
 	     * Generate cells
 	     */
 	    function generateCells() {
-	        const width = state.get('_internal.chart.dimensions.width');
-	        const height = state.get('_internal.innerHeight');
-	        const time = state.get('_internal.chart.time');
-	        const periodDates = state.get(`_internal.chart.time.levels.${time.level}`);
+	        const width = state.get('$data.chart.dimensions.width');
+	        const height = state.get('$data.innerHeight');
+	        const time = state.get('$data.chart.time');
+	        const periodDates = state.get(`$data.chart.time.levels.${time.level}`);
 	        if (!periodDates || periodDates.length === 0) {
-	            state.update('_internal.chart.grid.rowsWithCells', []);
+	            state.update('$data.chart.grid.rowsWithCells', []);
 	            return;
 	        }
-	        const visibleRows = state.get('_internal.list.visibleRows');
+	        const visibleRows = state.get('$data.list.visibleRows');
 	        styleMap.style.height = height + 'px';
 	        styleMap.style.width = width + 'px';
 	        let top = 0;
@@ -8134,14 +8084,9 @@
 	            rowsWithCells.push({ row, cells, top, width });
 	            top += row.height;
 	        }
-	        state.update('_internal.chart.grid.rowsWithCells', rowsWithCells);
+	        state.update('$data.chart.grid.rowsWithCells', rowsWithCells);
 	    }
-	    onDestroy(state.subscribeAll([
-	        '_internal.list.visibleRows;',
-	        `_internal.chart.time.levels`,
-	        '_internal.innerHeight',
-	        '_internal.chart.dimensions.width'
-	    ], generateCells, {
+	    onDestroy(state.subscribeAll(['$data.list.visibleRows;', `$data.chart.time.levels`, '$data.innerHeight', '$data.chart.dimensions.width'], generateCells, {
 	        bulk: true
 	    }));
 	    /**
@@ -8152,7 +8097,7 @@
 	        reuseComponents(rowsComponents, rowsWithCells || [], row => row, GridRowComponent);
 	        update();
 	    }
-	    onDestroy(state.subscribe('_internal.chart.grid.rowsWithCells', generateRowsComponents));
+	    onDestroy(state.subscribe('$data.chart.grid.rowsWithCells', generateRowsComponents));
 	    onDestroy(() => {
 	        rowsComponents.forEach(row => row.destroy());
 	    });
@@ -8164,7 +8109,6 @@
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=ChartTimelineGrid.js.map
 
 	/**
 	 * ChartTimelineGridRow component
@@ -8181,7 +8125,7 @@
 	class BindElementAction$4 {
 	    constructor(element, data) {
 	        let shouldUpdate = false;
-	        let rows = data.state.get('_internal.elements.chart-timeline-grid-rows');
+	        let rows = data.state.get('$data.elements.chart-timeline-grid-rows');
 	        if (typeof rows === 'undefined') {
 	            rows = [];
 	            shouldUpdate = true;
@@ -8191,10 +8135,10 @@
 	            shouldUpdate = true;
 	        }
 	        if (shouldUpdate)
-	            data.state.update('_internal.elements.chart-timeline-grid-rows', rows, { only: null });
+	            data.state.update('$data.elements.chart-timeline-grid-rows', rows, { only: null });
 	    }
 	    destroy(element, data) {
-	        data.state.update('_internal.elements.chart-timeline-grid-rows', rows => {
+	        data.state.update('$data.elements.chart-timeline-grid-rows', rows => {
 	            return rows.filter(el => el !== element);
 	        });
 	    }
@@ -8235,10 +8179,10 @@
 	        props = changedProps;
 	        reuseComponents(rowsCellsComponents, props.cells, cell => cell, GridCellComponent);
 	        styleMap.setStyle({});
-	        styleMap.style.height = props.row._internal.outerHeight + 'px';
+	        styleMap.style.height = props.row.$data.outerHeight + 'px';
 	        styleMap.style.width = props.width + 'px';
 	        const rows = state.get('config.list.rows');
-	        for (const parentId of props.row._internal.parents) {
+	        for (const parentId of props.row.$data.parents) {
 	            const parent = rows[parentId];
 	            const childrenStyle = (_c = (_b = (_a = parent === null || parent === void 0 ? void 0 : parent.style) === null || _a === void 0 ? void 0 : _a.grid) === null || _b === void 0 ? void 0 : _b.row) === null || _c === void 0 ? void 0 : _c.children;
 	            if (childrenStyle)
@@ -8271,7 +8215,6 @@
       `, { vido, props, templateProps });
 	    };
 	}
-	//# sourceMappingURL=ChartTimelineGridRow.js.map
 
 	/**
 	 * ChartTimelineGridRowCell component
@@ -8291,7 +8234,7 @@
 	class BindElementAction$5 {
 	    constructor(element, data) {
 	        let shouldUpdate = false;
-	        let cells = data.state.get('_internal.elements.chart-timeline-grid-row-cells');
+	        let cells = data.state.get('$data.elements.chart-timeline-grid-row-cells');
 	        if (typeof cells === 'undefined') {
 	            cells = [];
 	            shouldUpdate = true;
@@ -8301,10 +8244,10 @@
 	            shouldUpdate = true;
 	        }
 	        if (shouldUpdate)
-	            data.state.update('_internal.elements.chart-timeline-grid-row-cells', cells, { only: null });
+	            data.state.update('$data.elements.chart-timeline-grid-row-cells', cells, { only: null });
 	    }
 	    destroy(element, data) {
-	        data.state.update('_internal.elements.chart-timeline-grid-row-cells', cells => {
+	        data.state.update('$data.elements.chart-timeline-grid-row-cells', cells => {
 	            return cells.filter(el => el !== element);
 	        }, { only: [''] });
 	    }
@@ -8349,9 +8292,9 @@
 	        updateClassName(props.time);
 	        styleMap.setStyle({});
 	        styleMap.style.width = (((_a = props === null || props === void 0 ? void 0 : props.time) === null || _a === void 0 ? void 0 : _a.width) || 0) + 'px';
-	        styleMap.style.height = (((_c = (_b = props === null || props === void 0 ? void 0 : props.row) === null || _b === void 0 ? void 0 : _b._internal) === null || _c === void 0 ? void 0 : _c.outerHeight) || 0) + 'px';
+	        styleMap.style.height = (((_c = (_b = props === null || props === void 0 ? void 0 : props.row) === null || _b === void 0 ? void 0 : _b.$data) === null || _c === void 0 ? void 0 : _c.outerHeight) || 0) + 'px';
 	        const rows = state.get('config.list.rows');
-	        for (const parentId of props.row._internal.parents) {
+	        for (const parentId of props.row.$data.parents) {
 	            const parent = rows[parentId];
 	            const childrenStyle = (_f = (_e = (_d = parent === null || parent === void 0 ? void 0 : parent.style) === null || _d === void 0 ? void 0 : _d.grid) === null || _e === void 0 ? void 0 : _e.cell) === null || _f === void 0 ? void 0 : _f.children;
 	            if (childrenStyle)
@@ -8396,19 +8339,19 @@
 	    }));
 	    const styleMap = new StyleMap({}, true);
 	    function calculateStyle() {
-	        const width = state.get('_internal.chart.dimensions.width');
-	        const height = state.get('_internal.innerHeight');
+	        const width = state.get('$data.chart.dimensions.width');
+	        const height = state.get('$data.innerHeight');
 	        styleMap.style.width = width + 'px';
 	        styleMap.style.height = height + 'px';
 	    }
-	    onDestroy(state.subscribeAll(['_internal.innerHeight', '_internal.chart.dimensions.width'], calculateStyle));
+	    onDestroy(state.subscribeAll(['$data.innerHeight', '$data.chart.dimensions.width'], calculateStyle));
 	    const rowsComponents = [];
 	    function createRowComponents() {
-	        const visibleRows = state.get('_internal.list.visibleRows');
+	        const visibleRows = state.get('$data.list.visibleRows');
 	        reuseComponents(rowsComponents, visibleRows || [], row => ({ row }), ItemsRowComponent);
 	        update();
 	    }
-	    onDestroy(state.subscribeAll(['_internal.list.visibleRows;', 'config.chart.items'], createRowComponents));
+	    onDestroy(state.subscribeAll(['$data.list.visibleRows;', 'config.chart.items'], createRowComponents));
 	    onDestroy(() => {
 	        rowsComponents.forEach(row => row.destroy());
 	    });
@@ -8419,7 +8362,6 @@
         </div>
       `, { props, vido, templateProps });
 	}
-	//# sourceMappingURL=ChartTimelineItems.js.map
 
 	/**
 	 * ChartTimelineItemsRow component
@@ -8438,7 +8380,7 @@
 	class BindElementAction$6 {
 	    constructor(element, data) {
 	        let shouldUpdate = false;
-	        let rows = data.state.get('_internal.elements.chart-timeline-items-rows');
+	        let rows = data.state.get('$data.elements.chart-timeline-items-rows');
 	        if (typeof rows === 'undefined') {
 	            rows = [];
 	            shouldUpdate = true;
@@ -8448,10 +8390,10 @@
 	            shouldUpdate = true;
 	        }
 	        if (shouldUpdate)
-	            data.state.update('_internal.elements.chart-timeline-items-rows', rows, { only: null });
+	            data.state.update('$data.elements.chart-timeline-items-rows', rows, { only: null });
 	    }
 	    destroy(element, data) {
-	        data.state.update('_internal.elements.chart-timeline-items-rows', rows => {
+	        data.state.update('$data.elements.chart-timeline-items-rows', rows => {
 	            return rows.filter(el => el !== element);
 	        });
 	    }
@@ -8463,32 +8405,32 @@
 	    onDestroy(state.subscribe('config.wrappers.ChartTimelineItemsRow', value => (wrapper = value)));
 	    let ItemComponent;
 	    onDestroy(state.subscribe('config.components.ChartTimelineItemsRowItem', value => (ItemComponent = value)));
-	    let itemsPath = `_internal.flatTreeMapById.${props.row.id}._internal.items`;
+	    let itemsPath = `$data.flatTreeMapById.${props.row.id}.$data.items`;
 	    let rowSub, itemsSub;
 	    let classNameCurrent = '';
 	    const itemComponents = [], styleMap = new StyleMap({ width: '', height: '' }, true);
 	    let shouldDetach = false;
 	    const detach = new Detach(() => shouldDetach);
 	    const updateDom = () => {
-	        const chart = state.get('_internal.chart');
+	        const chart = state.get('$data.chart');
 	        shouldDetach = false;
 	        styleMap.style.width = chart.dimensions.width + 'px';
 	        if (!props) {
 	            shouldDetach = true;
 	            return;
 	        }
-	        styleMap.style.height = props.row._internal.outerHeight + 'px';
-	        styleMap.style['--row-height'] = props.row._internal.outerHeight + 'px';
+	        styleMap.style.height = props.row.$data.outerHeight + 'px';
+	        styleMap.style['--row-height'] = props.row.$data.outerHeight + 'px';
 	    };
 	    function updateRow(row) {
-	        itemsPath = `_internal.flatTreeMapById.${row.id}._internal.items`;
+	        itemsPath = `$data.flatTreeMapById.${row.id}.$data.items`;
 	        if (typeof rowSub === 'function') {
 	            rowSub();
 	        }
 	        if (typeof itemsSub === 'function') {
 	            itemsSub();
 	        }
-	        rowSub = state.subscribe('_internal.chart', value => {
+	        rowSub = state.subscribe('$data.chart', value => {
 	            if (value === undefined) {
 	                shouldDetach = true;
 	                return update();
@@ -8551,7 +8493,6 @@
       `, { props, vido, templateProps });
 	    };
 	};
-	//# sourceMappingURL=ChartTimelineItemsRow.js.map
 
 	/**
 	 * ChartTimelineItemsRowItem component
@@ -8568,7 +8509,7 @@
 	class BindElementAction$7 {
 	    constructor(element, data) {
 	        let shouldUpdate = false;
-	        let items = data.state.get('_internal.elements.chart-timeline-items-row-items');
+	        let items = data.state.get('$data.elements.chart-timeline-items-row-items');
 	        if (typeof items === 'undefined') {
 	            items = [];
 	            shouldUpdate = true;
@@ -8578,10 +8519,10 @@
 	            shouldUpdate = true;
 	        }
 	        if (shouldUpdate)
-	            data.state.update('_internal.elements.chart-timeline-items-row-items', items, { only: null });
+	            data.state.update('$data.elements.chart-timeline-items-row-items', items, { only: null });
 	    }
 	    destroy(element, data) {
-	        data.state.update('_internal.elements.chart-timeline-items-row-items', items => {
+	        data.state.update('$data.elements.chart-timeline-items-row-items', items => {
 	            return items.filter(el => el !== element);
 	        });
 	    }
@@ -8600,7 +8541,7 @@
 	        state
 	    };
 	    let shouldDetach = false;
-	    function updateItem(time = state.get('_internal.chart.time')) {
+	    function updateItem(time = state.get('$data.chart.time')) {
 	        var _a, _b, _c, _d, _e, _f, _g, _h;
 	        if (leave || time.levels.length === 0 || !time.levels[time.level] || time.levels[time.level].length === 0) {
 	            shouldDetach = true;
@@ -8647,7 +8588,7 @@
 	            styleMap.style.width = itemWidthPx + 'px';
 	            styleMap.style.left = itemLeftPx + 'px';
 	            styleMap.style.top = props.item.gap.top + props.item.top + 'px';
-	            styleMap.style.height = props.item._internal.actualHeight + 'px';
+	            styleMap.style.height = props.item.$data.actualHeight + 'px';
 	        }
 	        else {
 	            styleMap.style.width = oldWidth;
@@ -8656,7 +8597,7 @@
 	            styleMap.style.height = oldHeight;
 	        }
 	        const rows = state.get('config.list.rows');
-	        for (const parentId of props.row._internal.parents) {
+	        for (const parentId of props.row.$data.parents) {
 	            const parent = rows[parentId];
 	            const childrenStyle = (_c = (_b = (_a = parent === null || parent === void 0 ? void 0 : parent.style) === null || _a === void 0 ? void 0 : _a.items) === null || _b === void 0 ? void 0 : _b.item) === null || _c === void 0 ? void 0 : _c.children;
 	            if (childrenStyle)
@@ -8711,7 +8652,7 @@
 	        labelClassName = api.getClass(componentName + '-label');
 	        update();
 	    }));
-	    onDestroy(state.subscribe('_internal.chart.time', updateItem));
+	    onDestroy(state.subscribe('$data.chart.time', updateItem));
 	    componentActions.push(BindElementAction$7);
 	    const actions = Actions.create(componentActions, actionProps);
 	    const detach = new Detach(() => shouldDetach);
@@ -8727,7 +8668,6 @@
       `, { vido, props, templateProps });
 	    };
 	}
-	//# sourceMappingURL=ChartTimelineItemsRowItem.js.map
 
 	/**
 	 * Gantt-Schedule-Timeline-Calendar
@@ -9170,7 +9110,6 @@
 	        usageStatistics: true
 	    };
 	}
-	//# sourceMappingURL=default-config.js.map
 
 	var dayjs_min = createCommonjsModule(function (module, exports) {
 	!function(t,n){module.exports=n();}(commonjsGlobal,function(){var t="millisecond",n="second",e="minute",r="hour",i="day",s="week",u="month",o="quarter",a="year",h=/^(\d{4})-?(\d{1,2})-?(\d{0,2})[^0-9]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?.?(\d{1,3})?$/,f=/\[([^\]]+)]|Y{2,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g,c=function(t,n,e){var r=String(t);return !r||r.length>=n?t:""+Array(n+1-r.length).join(e)+t},d={s:c,z:function(t){var n=-t.utcOffset(),e=Math.abs(n),r=Math.floor(e/60),i=e%60;return (n<=0?"+":"-")+c(r,2,"0")+":"+c(i,2,"0")},m:function(t,n){var e=12*(n.year()-t.year())+(n.month()-t.month()),r=t.clone().add(e,u),i=n-r<0,s=t.clone().add(e+(i?-1:1),u);return Number(-(e+(n-r)/(i?r-s:s-r))||0)},a:function(t){return t<0?Math.ceil(t)||0:Math.floor(t)},p:function(h){return {M:u,y:a,w:s,d:i,D:"date",h:r,m:e,s:n,ms:t,Q:o}[h]||String(h||"").toLowerCase().replace(/s$/,"")},u:function(t){return void 0===t}},$={name:"en",weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_")},l="en",m={};m[l]=$;var y=function(t){return t instanceof v},M=function(t,n,e){var r;if(!t)return l;if("string"==typeof t)m[t]&&(r=t),n&&(m[t]=n,r=t);else {var i=t.name;m[i]=t,r=i;}return !e&&r&&(l=r),r||!e&&l},g=function(t,n,e){if(y(t))return t.clone();var r=n?"string"==typeof n?{format:n,pl:e}:n:{};return r.date=t,new v(r)},D=d;D.l=M,D.i=y,D.w=function(t,n){return g(t,{locale:n.$L,utc:n.$u,$offset:n.$offset})};var v=function(){function c(t){this.$L=this.$L||M(t.locale,null,!0),this.parse(t);}var d=c.prototype;return d.parse=function(t){this.$d=function(t){var n=t.date,e=t.utc;if(null===n)return new Date(NaN);if(D.u(n))return new Date;if(n instanceof Date)return new Date(n);if("string"==typeof n&&!/Z$/i.test(n)){var r=n.match(h);if(r)return e?new Date(Date.UTC(r[1],r[2]-1,r[3]||1,r[4]||0,r[5]||0,r[6]||0,r[7]||0)):new Date(r[1],r[2]-1,r[3]||1,r[4]||0,r[5]||0,r[6]||0,r[7]||0)}return new Date(n)}(t),this.init();},d.init=function(){var t=this.$d;this.$y=t.getFullYear(),this.$M=t.getMonth(),this.$D=t.getDate(),this.$W=t.getDay(),this.$H=t.getHours(),this.$m=t.getMinutes(),this.$s=t.getSeconds(),this.$ms=t.getMilliseconds();},d.$utils=function(){return D},d.isValid=function(){return !("Invalid Date"===this.$d.toString())},d.isSame=function(t,n){var e=g(t);return this.startOf(n)<=e&&e<=this.endOf(n)},d.isAfter=function(t,n){return g(t)<this.startOf(n)},d.isBefore=function(t,n){return this.endOf(n)<g(t)},d.$g=function(t,n,e){return D.u(t)?this[n]:this.set(e,t)},d.year=function(t){return this.$g(t,"$y",a)},d.month=function(t){return this.$g(t,"$M",u)},d.day=function(t){return this.$g(t,"$W",i)},d.date=function(t){return this.$g(t,"$D","date")},d.hour=function(t){return this.$g(t,"$H",r)},d.minute=function(t){return this.$g(t,"$m",e)},d.second=function(t){return this.$g(t,"$s",n)},d.millisecond=function(n){return this.$g(n,"$ms",t)},d.unix=function(){return Math.floor(this.valueOf()/1e3)},d.valueOf=function(){return this.$d.getTime()},d.startOf=function(t,o){var h=this,f=!!D.u(o)||o,c=D.p(t),d=function(t,n){var e=D.w(h.$u?Date.UTC(h.$y,n,t):new Date(h.$y,n,t),h);return f?e:e.endOf(i)},$=function(t,n){return D.w(h.toDate()[t].apply(h.toDate(),(f?[0,0,0,0]:[23,59,59,999]).slice(n)),h)},l=this.$W,m=this.$M,y=this.$D,M="set"+(this.$u?"UTC":"");switch(c){case a:return f?d(1,0):d(31,11);case u:return f?d(1,m):d(0,m+1);case s:var g=this.$locale().weekStart||0,v=(l<g?l+7:l)-g;return d(f?y-v:y+(6-v),m);case i:case"date":return $(M+"Hours",0);case r:return $(M+"Minutes",1);case e:return $(M+"Seconds",2);case n:return $(M+"Milliseconds",3);default:return this.clone()}},d.endOf=function(t){return this.startOf(t,!1)},d.$set=function(s,o){var h,f=D.p(s),c="set"+(this.$u?"UTC":""),d=(h={},h[i]=c+"Date",h.date=c+"Date",h[u]=c+"Month",h[a]=c+"FullYear",h[r]=c+"Hours",h[e]=c+"Minutes",h[n]=c+"Seconds",h[t]=c+"Milliseconds",h)[f],$=f===i?this.$D+(o-this.$W):o;if(f===u||f===a){var l=this.clone().set("date",1);l.$d[d]($),l.init(),this.$d=l.set("date",Math.min(this.$D,l.daysInMonth())).toDate();}else d&&this.$d[d]($);return this.init(),this},d.set=function(t,n){return this.clone().$set(t,n)},d.get=function(t){return this[D.p(t)]()},d.add=function(t,o){var h,f=this;t=Number(t);var c=D.p(o),d=function(n){var e=g(f);return D.w(e.date(e.date()+Math.round(n*t)),f)};if(c===u)return this.set(u,this.$M+t);if(c===a)return this.set(a,this.$y+t);if(c===i)return d(1);if(c===s)return d(7);var $=(h={},h[e]=6e4,h[r]=36e5,h[n]=1e3,h)[c]||1,l=this.$d.getTime()+t*$;return D.w(l,this)},d.subtract=function(t,n){return this.add(-1*t,n)},d.format=function(t){var n=this;if(!this.isValid())return "Invalid Date";var e=t||"YYYY-MM-DDTHH:mm:ssZ",r=D.z(this),i=this.$locale(),s=this.$H,u=this.$m,o=this.$M,a=i.weekdays,h=i.months,c=function(t,r,i,s){return t&&(t[r]||t(n,e))||i[r].substr(0,s)},d=function(t){return D.s(s%12||12,t,"0")},$=i.meridiem||function(t,n,e){var r=t<12?"AM":"PM";return e?r.toLowerCase():r},l={YY:String(this.$y).slice(-2),YYYY:this.$y,M:o+1,MM:D.s(o+1,2,"0"),MMM:c(i.monthsShort,o,h,3),MMMM:h[o]||h(this,e),D:this.$D,DD:D.s(this.$D,2,"0"),d:String(this.$W),dd:c(i.weekdaysMin,this.$W,a,2),ddd:c(i.weekdaysShort,this.$W,a,3),dddd:a[this.$W],H:String(s),HH:D.s(s,2,"0"),h:d(1),hh:d(2),a:$(s,u,!0),A:$(s,u,!1),m:String(u),mm:D.s(u,2,"0"),s:String(this.$s),ss:D.s(this.$s,2,"0"),SSS:D.s(this.$ms,3,"0"),Z:r};return e.replace(f,function(t,n){return n||l[t]||r.replace(":","")})},d.utcOffset=function(){return 15*-Math.round(this.$d.getTimezoneOffset()/15)},d.diff=function(t,h,f){var c,d=D.p(h),$=g(t),l=6e4*($.utcOffset()-this.utcOffset()),m=this-$,y=D.m(this,$);return y=(c={},c[a]=y/12,c[u]=y,c[o]=y/3,c[s]=(m-l)/6048e5,c[i]=(m-l)/864e5,c[r]=m/36e5,c[e]=m/6e4,c[n]=m/1e3,c)[d]||m,f?y:D.a(y)},d.daysInMonth=function(){return this.endOf(u).$D},d.$locale=function(){return m[this.$L]},d.locale=function(t,n){if(!t)return this.$L;var e=this.clone(),r=M(t,n,!0);return r&&(e.$L=r),e},d.clone=function(){return D.w(this.$d,this)},d.toDate=function(){return new Date(this.valueOf())},d.toJSON=function(){return this.isValid()?this.toISOString():null},d.toISOString=function(){return this.$d.toISOString()},d.toString=function(){return this.$d.toUTCString()},c}();return g.prototype=v.prototype,g.extend=function(t,n){return t(n,v,g),g},g.locale=M,g.isDayjs=y,g.unix=function(t){return g(1e3*t)},g.en=m[l],g.Ls=m,g});
@@ -9303,7 +9242,7 @@
 	        if (!scroll.maxPosPx)
 	            return 0;
 	        if (!time)
-	            time = this.state.get('_internal.chart.time');
+	            time = this.state.get('$data.chart.time');
 	        const date = this.findDateAtTime(milliseconds, time.allDates[time.level]);
 	        return Math.round((scroll.maxPosPx - scroll.innerSize) * date.leftPercent);
 	    }
@@ -9414,7 +9353,6 @@
 	        return inverse ? -width : width;
 	    }
 	}
-	//# sourceMappingURL=Time.js.map
 
 	// forked from https://github.com/joonhocho/superwild
 	function Matcher(pattern, wchar = '*') {
@@ -9491,7 +9429,6 @@
 	    }
 	    return true;
 	};
-	//# sourceMappingURL=stringMatcher.js.map
 
 	function WildcardObject(obj, delimeter, wildcard) {
 	    this.obj = obj;
@@ -9574,7 +9511,6 @@
 	WildcardObject.prototype.get = function get(wildcard) {
 	    return this.goFurther(wildcard, this.obj, 0, '');
 	};
-	//# sourceMappingURL=wildcard-object-scan.js.map
 
 	class ObjectPath {
 	    static get(path, obj, copiedPath = null) {
@@ -9620,7 +9556,6 @@
 	        ObjectPath.set(path, newValue, obj[currentPath], copiedPath);
 	    }
 	}
-	//# sourceMappingURL=ObjectPath.js.map
 
 	function log(message, info) {
 	    console.debug(message, info);
@@ -10339,7 +10274,6 @@
 	        return groupedListener.listener.options.debug || groupedListener.eventInfo.options.debug ? Date.now() : 0;
 	    }
 	}
-	//# sourceMappingURL=index.js.map
 
 	/**
 	 * Api functions
@@ -10390,7 +10324,7 @@
 	    },
 	    dayjs: dayjs_min
 	};
-	function getInternalApi(state) {
+	function getDataApi(state) {
 	    let $state = state.get();
 	    let unsubscribes = [];
 	    const iconsCache = {};
@@ -10435,18 +10369,18 @@
 	                item.id = String(item.id);
 	                if (typeof item.height !== 'number')
 	                    item.height = defaultItemHeight;
-	                if (!item._internal)
-	                    item._internal = {
+	                if (!item.$data)
+	                    item.$data = {
 	                        actualHeight: 0,
 	                        outerHeight: 0,
 	                        time: null
 	                    };
-	                if (!item._internal.time)
-	                    item._internal.time = {
+	                if (!item.$data.time)
+	                    item.$data.time = {
 	                        startDate: this.time.date(item.time.start),
 	                        endDate: this.time.date(item.time.end)
 	                    };
-	                item._internal.actualHeight = item.height;
+	                item.$data.actualHeight = item.height;
 	                if (typeof item.top !== 'number')
 	                    item.top = 0;
 	                if (!item.gap)
@@ -10455,7 +10389,7 @@
 	                    item.gap.top = state.get('config.chart.item.gap.top');
 	                if (typeof item.gap.bottom !== 'number')
 	                    item.gap.bottom = state.get('config.chart.item.gap.bottom');
-	                item._internal.outerHeight = item._internal.actualHeight + item.gap.top + item.gap.bottom;
+	                item.$data.outerHeight = item.$data.actualHeight + item.gap.top + item.gap.bottom;
 	            }
 	            return items;
 	        },
@@ -10463,7 +10397,7 @@
 	            let top = 0;
 	            for (const rowId in rows) {
 	                const row = rows[rowId];
-	                row._internal = {
+	                row.$data = {
 	                    parents: [],
 	                    children: [],
 	                    items: [],
@@ -10473,7 +10407,7 @@
 	                if (typeof row.height !== 'number') {
 	                    row.height = $state.config.list.row.height;
 	                }
-	                row._internal.actualHeight = row.height;
+	                row.$data.actualHeight = row.height;
 	                if (typeof row.expanded !== 'boolean') {
 	                    row.expanded = false;
 	                }
@@ -10484,14 +10418,14 @@
 	                    row.gap.top = 0;
 	                if (typeof row.gap.bottom !== 'number')
 	                    row.gap.bottom = 0;
-	                row._internal.outerHeight = row._internal.actualHeight + row.gap.top + row.gap.bottom;
-	                top += row._internal.outerHeight;
+	                row.$data.outerHeight = row.$data.actualHeight + row.gap.top + row.gap.bottom;
+	                top += row.$data.outerHeight;
 	            }
 	            return rows;
 	        },
 	        itemsOnTheSameLevel(item1, item2) {
-	            const item1Bottom = item1.top + item1._internal.outerHeight;
-	            const item2Bottom = item2.top + item2._internal.outerHeight;
+	            const item1Bottom = item1.top + item1.$data.outerHeight;
+	            const item2Bottom = item2.top + item2.$data.outerHeight;
 	            if (item2.top <= item1.top && item2Bottom > item1.top)
 	                return true;
 	            if (item2.top >= item1.top && item2.top < item1Bottom)
@@ -10539,16 +10473,16 @@
 	            let top = 0;
 	            for (const row of rows) {
 	                let actualHeight = 0;
-	                this.fixOverlappedItems(row._internal.items);
-	                for (const item of row._internal.items) {
-	                    actualHeight = Math.max(actualHeight, item.top + item._internal.outerHeight);
+	                this.fixOverlappedItems(row.$data.items);
+	                for (const item of row.$data.items) {
+	                    actualHeight = Math.max(actualHeight, item.top + item.$data.outerHeight);
 	                }
 	                if (actualHeight < row.height)
 	                    actualHeight = row.height;
-	                row._internal.actualHeight = actualHeight;
-	                row._internal.outerHeight = row._internal.actualHeight + row.gap.top + row.gap.bottom;
+	                row.$data.actualHeight = actualHeight;
+	                row.$data.outerHeight = row.$data.actualHeight + row.gap.top + row.gap.bottom;
 	                row.top = top;
-	                top += row._internal.outerHeight;
+	                top += row.$data.outerHeight;
 	            }
 	            return top;
 	        },
@@ -10565,15 +10499,15 @@
 	        },
 	        fastTree(rowParents, node, parents = []) {
 	            const children = rowParents[node.id];
-	            node._internal.parents = parents;
+	            node.$data.parents = parents;
 	            if (typeof children === 'undefined') {
-	                node._internal.children = [];
+	                node.$data.children = [];
 	                return node;
 	            }
 	            if (node.id !== '') {
 	                parents = [...parents, node.id];
 	            }
-	            node._internal.children = Object.values(children);
+	            node.$data.children = Object.values(children);
 	            for (const childrenId in children) {
 	                const child = children[childrenId];
 	                this.fastTree(rowParents, child, parents);
@@ -10583,21 +10517,21 @@
 	        makeTreeMap(rows, items) {
 	            const itemParents = this.generateParents(items, 'rowId');
 	            for (const row of rows) {
-	                row._internal.items = itemParents[row.id] !== undefined ? Object.values(itemParents[row.id]) : [];
+	                row.$data.items = itemParents[row.id] !== undefined ? Object.values(itemParents[row.id]) : [];
 	            }
 	            const rowParents = this.generateParents(rows);
-	            const tree = { id: '', _internal: { children: [], parents: [], items: [] } };
+	            const tree = { id: '', $data: { children: [], parents: [], items: [] } };
 	            return this.fastTree(rowParents, tree);
 	        },
 	        getFlatTreeMapById(treeMap, flatTreeMapById = {}) {
-	            for (const child of treeMap._internal.children) {
+	            for (const child of treeMap.$data.children) {
 	                flatTreeMapById[child.id] = child;
 	                this.getFlatTreeMapById(child, flatTreeMapById);
 	            }
 	            return flatTreeMapById;
 	        },
 	        flattenTreeMap(treeMap, rows = []) {
-	            for (const child of treeMap._internal.children) {
+	            for (const child of treeMap.$data.children) {
 	                rows.push(child.id);
 	                this.flattenTreeMap(child, rows);
 	            }
@@ -10624,7 +10558,7 @@
 	            }
 	            const rowsWithParentsExpanded = [];
 	            next: for (const rowId of flatTreeMap) {
-	                for (const parentId of flatTreeMapById[rowId]._internal.parents) {
+	                for (const parentId of flatTreeMapById[rowId].$data.parents) {
 	                    const parent = rows[parentId];
 	                    if (!parent || !parent.expanded) {
 	                        continue next;
@@ -10654,7 +10588,7 @@
 	            let topRow = state.get('config.scroll.vertical.data');
 	            if (!topRow)
 	                topRow = rowsWithParentsExpanded[0];
-	            const innerHeight = state.get('_internal.innerHeight');
+	            const innerHeight = state.get('$data.innerHeight');
 	            let strictTopRow = rowsWithParentsExpanded.find(row => row.id === topRow.id);
 	            let index = rowsWithParentsExpanded.indexOf(strictTopRow);
 	            if (index === undefined)
@@ -10709,12 +10643,12 @@
 	        },
 	        time: new TimeApi(state),
 	        scrollToTime(toTime, centered = true) {
-	            const time = state.get('_internal.chart.time');
+	            const time = state.get('$data.chart.time');
 	            let pos = 0;
 	            state.update('config.scroll.horizontal', (scrollHorizontal) => {
 	                let leftGlobal = toTime;
 	                if (centered) {
-	                    const chartWidth = state.get('_internal.chart.dimensions.width');
+	                    const chartWidth = state.get('$data.chart.dimensions.width');
 	                    const halfChartTime = (chartWidth / 2) * time.timePerPixel;
 	                    leftGlobal = toTime - halfChartTime;
 	                }
@@ -10763,7 +10697,6 @@
 	    }
 	    return api;
 	}
-	//# sourceMappingURL=Api.js.map
 
 	/**
 	 * Gantt-Schedule-Timeline-Calendar
@@ -10775,12 +10708,12 @@
 	 */
 	function GSTC(options) {
 	    const state = options.state;
-	    const api = getInternalApi(state);
-	    const _internal = {
+	    const api = getDataApi(state);
+	    const $data = {
 	        components: {
 	            Main
 	        },
-	        treeMap: { id: '', _internal: { children: [], parents: [], items: [] } },
+	        treeMap: { id: '', $data: { children: [], parents: [], items: [] } },
 	        flatTreeMap: [],
 	        flatTreeMapById: {},
 	        list: {
@@ -10843,7 +10776,7 @@
 	    state.update('', oldValue => {
 	        return {
 	            config: oldValue.config,
-	            _internal
+	            $data
 	        };
 	    });
 	    // @ts-ignore
@@ -10854,7 +10787,6 @@
 	    return { state, app, api: internalApi };
 	}
 	GSTC.api = publicApi;
-	//# sourceMappingURL=index.js.map
 
 	return GSTC;
 

@@ -225,7 +225,7 @@ function Plugin(options = {}) {
     return function initialize(vidoInstance) {
         api = vidoInstance.api;
         className = options.className || api.getClass('chart-timeline-grid-row-cell') + '--weekend';
-        const destroy = vidoInstance.state.subscribe('_internal.chart.time.format.period', period => (enabled = period === 'day'));
+        const destroy = vidoInstance.state.subscribe('$data.chart.time.format.period', period => (enabled = period === 'day'));
         vidoInstance.state.update('config.actions.chart-timeline-grid-row-cell', actions => {
             actions.push(WeekendHighlightAction);
             return actions;

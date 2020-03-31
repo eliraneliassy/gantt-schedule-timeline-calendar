@@ -48,9 +48,9 @@ export default function ChartTimeline(vido: vido<DeepState, Api>, props) {
     innerStyleMap = new StyleMap({});
 
   function calculateStyle() {
-    const width = state.get('_internal.chart.dimensions.width');
-    const height = state.get('_internal.list.rowsHeight');
-    styleMap.style.height = state.get('_internal.innerHeight') + 'px';
+    const width = state.get('$data.chart.dimensions.width');
+    const height = state.get('$data.list.rowsHeight');
+    styleMap.style.height = state.get('$data.innerHeight') + 'px';
     styleMap.style['--height'] = styleMap.style.height;
     if (width) {
       styleMap.style.width = width + 'px';
@@ -70,12 +70,7 @@ export default function ChartTimeline(vido: vido<DeepState, Api>, props) {
 
   onDestroy(
     state.subscribeAll(
-      [
-        '_internal.innerHeight',
-        '_internal.chart.dimensions.width',
-        '_internal.list.rowsHeight',
-        '_internal.chart.time.dates.day'
-      ],
+      ['$data.innerHeight', '$data.chart.dimensions.width', '$data.list.rowsHeight', '$data.chart.time.dates.day'],
       calculateStyle
     )
   );
@@ -91,8 +86,8 @@ export default function ChartTimeline(vido: vido<DeepState, Api>, props) {
     class BindElementAction extends Action {
       constructor(element) {
         super();
-        const old = state.get('_internal.elements.chart-timeline');
-        if (old !== element) state.update('_internal.elements.chart-timeline', element);
+        const old = state.get('$data.elements.chart-timeline');
+        if (old !== element) state.update('$data.elements.chart-timeline', element);
       }
     }
   );

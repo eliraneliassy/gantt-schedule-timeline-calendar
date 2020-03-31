@@ -18,7 +18,7 @@ import { Api } from '../../api/Api';
  */
 class BindElementAction {
   constructor(element, data) {
-    let elements = data.state.get('_internal.elements.list-column-rows');
+    let elements = data.state.get('$data.elements.list-column-rows');
     let shouldUpdate = false;
     if (typeof elements === 'undefined') {
       shouldUpdate = true;
@@ -28,10 +28,10 @@ class BindElementAction {
       elements.push(element);
       shouldUpdate = true;
     }
-    if (shouldUpdate) data.state.update('_internal.elements.list-column-rows', elements);
+    if (shouldUpdate) data.state.update('$data.elements.list-column-rows', elements);
   }
   public destroy(element, data) {
-    data.state.update('_internal.elements.list-column-rows', elements => {
+    data.state.update('$data.elements.list-column-rows', elements => {
       return elements.filter(el => el !== element);
     });
   }
@@ -70,7 +70,7 @@ export default function ListColumnRow(vido: vido<DeepState, Api>, props: Props) 
     state.subscribe('config.components.ListColumnRowExpander', value => (ListColumnRowExpanderComponent = value))
   );
 
-  let rowPath = `_internal.flatTreeMapById.${props.rowId}`,
+  let rowPath = `$data.flatTreeMapById.${props.rowId}`,
     row: Row = state.get(rowPath);
   let colPath = `config.list.columns.data.${props.columnId}`,
     column: ColumnData = state.get(colPath);
@@ -119,7 +119,7 @@ export default function ListColumnRow(vido: vido<DeepState, Api>, props: Props) 
     const columnId = props.columnId;
     if (rowSub) rowSub();
     if (colSub) colSub();
-    rowPath = `_internal.flatTreeMapById.${rowId}`;
+    rowPath = `$data.flatTreeMapById.${rowId}`;
     colPath = `config.list.columns.data.${columnId}`;
     rowSub = state.subscribeAll(
       [rowPath, colPath, 'config.list.expander'],
@@ -135,13 +135,13 @@ export default function ListColumnRow(vido: vido<DeepState, Api>, props: Props) 
         const expander = state.get('config.list.expander');
         // @ts-ignore
         styleMap.setStyle({}); // we must reset style because of user specified styling
-        styleMap.style['height'] = row._internal.outerHeight + 'px';
-        styleMap.style['--height'] = row._internal.outerHeight + 'px';
+        styleMap.style['height'] = row.$data.outerHeight + 'px';
+        styleMap.style['--height'] = row.$data.outerHeight + 'px';
         if (column.expander) {
-          styleMap.style['--expander-padding-width'] = expander.padding * (row._internal.parents.length + 1) + 'px';
+          styleMap.style['--expander-padding-width'] = expander.padding * (row.$data.parents.length + 1) + 'px';
         }
-        for (const parentId of row._internal.parents) {
-          const parent = state.get(`_internal.flatTreeMapById.${parentId}`);
+        for (const parentId of row.$data.parents) {
+          const parent = state.get(`$data.flatTreeMapById.${parentId}`);
           if (typeof parent.style === 'object' && parent.style.constructor.name === 'Object') {
             if (typeof parent.style.children === 'object') {
               const childrenStyle = parent.style.children;

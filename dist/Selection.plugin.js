@@ -15,7 +15,6 @@
    */
   const CELL = 'chart-timeline-grid-row-cell';
   const ITEM = 'chart-timeline-items-row-item';
-  //# sourceMappingURL=TimelinePointer.plugin.js.map
 
   /**
    * Selection ChartTimeline Wrapper
@@ -63,7 +62,6 @@
       }));
       return ChartTimelineWrapper;
   }
-  //# sourceMappingURL=Wrapper.js.map
 
   /**
    * Selection plugin

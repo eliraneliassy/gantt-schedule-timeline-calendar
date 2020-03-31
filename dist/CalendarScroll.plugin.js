@@ -56,7 +56,7 @@
               }
           }
           handleHorizontalMovement(diff, ev) {
-              const time = state.get('_internal.chart.time');
+              const time = state.get('$data.chart.time');
               if (diff.x > 0) {
                   // go backward - move dates forward
                   if (this.initialDataIndex.x === 0) {

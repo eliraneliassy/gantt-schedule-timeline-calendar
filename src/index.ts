@@ -10,18 +10,18 @@
 import 'pepjs';
 import Vido from '@neuronet.io/vido/vido';
 //import Vido from '../../vido/vido';
-import publicApi, { getInternalApi } from './api/Api';
+import publicApi, { getDataApi } from './api/Api';
 import Main from './components/Main';
-import { Internal } from './types';
+import { Data } from './types';
 
 function GSTC(options) {
   const state = options.state;
-  const api = getInternalApi(state);
-  const _internal: Internal = {
+  const api = getDataApi(state);
+  const $data: Data = {
     components: {
       Main
     },
-    treeMap: { id: '', _internal: { children: [], parents: [], items: [] } },
+    treeMap: { id: '', $data: { children: [], parents: [], items: [] } },
     flatTreeMap: [],
     flatTreeMapById: {},
     list: {
@@ -85,7 +85,7 @@ function GSTC(options) {
   state.update('', oldValue => {
     return {
       config: oldValue.config,
-      _internal
+      $data
     };
   });
   // @ts-ignore

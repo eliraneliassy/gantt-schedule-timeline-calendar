@@ -29,7 +29,7 @@ export default function ListToggle(vido: vido<DeepState, Api>, props = {}) {
     close: ''
   };
   onDestroy(
-    state.subscribe('_internal.list.toggle.icons', value => {
+    state.subscribe('$data.list.toggle.icons', value => {
       if (value) {
         toggleIconsSrc = value;
         update();

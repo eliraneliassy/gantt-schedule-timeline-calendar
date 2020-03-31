@@ -18,7 +18,7 @@ import { Api } from '../../api/Api';
 class BindElementAction {
   constructor(element, data) {
     let shouldUpdate = false;
-    let elements = data.state.get('_internal.elements.list-columns');
+    let elements = data.state.get('$data.elements.list-columns');
     if (typeof elements === 'undefined') {
       elements = [];
       shouldUpdate = true;
@@ -27,10 +27,10 @@ class BindElementAction {
       elements.push(element);
       shouldUpdate = true;
     }
-    if (shouldUpdate) data.state.update('_internal.elements.list-columns', elements);
+    if (shouldUpdate) data.state.update('$data.elements.list-columns', elements);
   }
   public destroy(element, data) {
-    data.state.update('_internal.elements.list-columns', elements => {
+    data.state.update('$data.elements.list-columns', elements => {
       return elements.filter(el => el !== element);
     });
   }
@@ -78,7 +78,7 @@ export default function ListColumn(vido: vido<DeepState, Api>, props: Props) {
     const list = state.get('config.list');
     calculatedWidth = list.columns.data[column.id].width * list.columns.percent * 0.01;
     width = calculatedWidth;
-    const height = state.get('_internal.innerHeight');
+    const height = state.get('$data.innerHeight');
     widthStyleMap.style.width = width + 'px';
     widthStyleMap.style['--width'] = width + 'px';
     containerStyleMap.style.height = height + 'px';
@@ -88,9 +88,9 @@ export default function ListColumn(vido: vido<DeepState, Api>, props: Props) {
       'config.list.columns.percent',
       'config.list.columns.resizer.width',
       `config.list.columns.data.${column.id}.width`,
-      '_internal.chart.dimensions.width',
-      '_internal.innerHeight',
-      '_internal.list.width'
+      '$data.chart.dimensions.width',
+      '$data.innerHeight',
+      '$data.list.width'
     ],
     calculateStyle,
     { bulk: true }
@@ -118,9 +118,9 @@ export default function ListColumn(vido: vido<DeepState, Api>, props: Props) {
         'config.list.columns.percent',
         'config.list.columns.resizer.width',
         `config.list.columns.data.${column.id}.width`,
-        '_internal.chart.dimensions.width',
-        '_internal.innerHeight',
-        '_internal.list.width'
+        '$data.chart.dimensions.width',
+        '$data.innerHeight',
+        '$data.list.width'
       ],
       calculateStyle,
       { bulk: true }
@@ -153,7 +153,7 @@ export default function ListColumn(vido: vido<DeepState, Api>, props: Props) {
     update();
     return destroy;
   };
-  onDestroy(state.subscribe('_internal.list.visibleRows;', visibleRowsChange));
+  onDestroy(state.subscribe('$data.list.visibleRows;', visibleRowsChange));
 
   onDestroy(() => {
     visibleRows.forEach(row => row.destroy());

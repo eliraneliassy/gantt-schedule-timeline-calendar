@@ -59,7 +59,7 @@ export default function ListColumnHeaderResizer(vido: vido<DeepState, Api>, prop
         calculatedWidth = column.width * list.columns.percent * 0.01;
         dotsStyleMap.style['--width'] = list.columns.resizer.width + 'px';
         inRealTime = list.columns.resizer.inRealTime;
-        state.update('_internal.list.width', calculatedWidth);
+        state.update('$data.list.width', calculatedWidth);
         update();
       }
     )

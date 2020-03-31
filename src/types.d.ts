@@ -2,7 +2,7 @@ import { lithtml } from '@neuronet.io/vido';
 import { Dayjs, OpUnitType } from 'dayjs/index.d';
 import { Properties as CSSProps } from 'csstype';
 
-export interface RowInternal {
+export interface RowData {
   actualHeight: number;
   outerHeight: number;
   parents: string[];
@@ -35,7 +35,7 @@ export interface Row {
   parentId?: string;
   expanded?: boolean;
   height?: number;
-  _internal?: RowInternal;
+  $data?: RowData;
   top?: number;
   gap?: RowGap;
   style?: RowStyle;
@@ -51,13 +51,13 @@ export interface ItemTime {
   end: number;
 }
 
-export interface ItemInternalTime {
+export interface ItemDataTime {
   startDate: Dayjs;
   endDate: Dayjs;
 }
 
-export interface ItemInternal {
-  time: ItemInternalTime;
+export interface ItemData {
+  time: ItemDataTime;
   actualHeight?: number;
   outerHeight?: number;
 }
@@ -75,7 +75,7 @@ export interface Item {
   isHTML?: boolean;
   linkedWith?: string[];
   selected?: boolean;
-  _internal: ItemInternal;
+  $data: ItemData;
 }
 
 export interface Items {
@@ -221,19 +221,19 @@ export interface Scroll {
   vertical?: ScrollTypeVertical;
 }
 
-export interface ChartTimeDate extends ChartInternalTimeLevelDate {}
+export interface ChartTimeDate extends DataChartTimeLevelDate {}
 
 export type ChartTimeDates = ChartTimeDate[];
 
 export type ChartTimeOnLevelDatesArgs = {
-  dates: ChartInternalTimeLevel;
-  time: InternalChartTime;
+  dates: DataChartTimeLevel;
+  time: DataChartTime;
   format: ChartCalendarFormat;
   level: ChartCalendarLevel;
   levelIndex: number;
 };
 
-export type ChartTimeOnLevelDates = (arg: ChartTimeOnLevelDatesArgs) => ChartInternalTimeLevel;
+export type ChartTimeOnLevelDates = (arg: ChartTimeOnLevelDatesArgs) => DataChartTimeLevel;
 
 export interface ChartTime {
   period?: Period;
@@ -262,13 +262,13 @@ export interface ChartTime {
   forceUpdate?: boolean;
 }
 
-export interface ChartInternalTimeLevelDateCurrentView {
+export interface DataChartTimeLevelDateCurrentView {
   leftPx: number;
   rightPx: number;
   width: number;
 }
 
-export interface ChartInternalTimeLevelDate {
+export interface DataChartTimeLevelDate {
   leftGlobal: number;
   leftGlobalDate: Dayjs;
   rightGlobal: number;
@@ -281,12 +281,12 @@ export interface ChartInternalTimeLevelDate {
   current: boolean;
   next: boolean;
   previous: boolean;
-  currentView?: ChartInternalTimeLevelDateCurrentView;
+  currentView?: DataChartTimeLevelDateCurrentView;
   leftPercent?: number;
   rightPercent?: number;
 }
-export type ChartInternalTimeLevel = ChartInternalTimeLevelDate[];
-export interface InternalChartTime {
+export type DataChartTimeLevel = DataChartTimeLevelDate[];
+export interface DataChartTime {
   period: Period;
   leftGlobal: number;
   leftGlobalDate: Dayjs;
@@ -314,7 +314,7 @@ export interface InternalChartTime {
   zoom: number;
   format: ChartCalendarFormat;
   level: number;
-  levels: ChartInternalTimeLevel[];
+  levels: DataChartTimeLevel[];
   additionalSpaces?: ChartCalendarAdditionalSpaces;
   calculatedZoomMode?: boolean;
   onLevelDates?: ChartTimeOnLevelDates[];
@@ -460,10 +460,10 @@ export interface TreeMapData {
 
 export interface TreeMap {
   id: string;
-  _internal: TreeMapData;
+  $data: TreeMapData;
 }
 
-export interface InternalList {
+export interface DataList {
   width: number;
   visibleRows: Row[];
 }
@@ -473,32 +473,32 @@ export interface Dimensions {
   height: number;
 }
 
-export interface InternalChartDimensions extends Dimensions {
+export interface DataChartDimensions extends Dimensions {
   innerWidth: number;
 }
 
-export interface InternalChart {
-  dimensions: InternalChartDimensions;
+export interface DataChart {
+  dimensions: DataChartDimensions;
   visibleItems: Item[];
-  time: InternalChartTime;
+  time: DataChartTime;
 }
 
-export interface InternalElements {
+export interface DataElements {
   [key: string]: HTMLElement;
 }
 
-export interface InternalLoaded {
+export interface DataLoaded {
   [key: string]: boolean;
 }
 
-export interface Internal {
+export interface Data {
   components: Components;
   treeMap: TreeMap;
   flatTreeMap: string[];
   flatTreeMapById: Rows;
-  list: InternalList;
+  list: DataList;
   dimensions: Dimensions;
-  chart: InternalChart;
-  elements: InternalElements;
-  loaded: InternalLoaded;
+  chart: DataChart;
+  elements: DataElements;
+  loaded: DataLoaded;
 }

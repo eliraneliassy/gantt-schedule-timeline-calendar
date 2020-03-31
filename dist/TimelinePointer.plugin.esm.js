@@ -20,6 +20,7 @@ function Plugin(options = { enabled: true }) {
         return {
             enabled: options.enabled,
             isMoving: false,
+            pointerState: 'up',
             currentTarget: null,
             realTarget: null,
             targetType: '',
@@ -77,6 +78,7 @@ function Plugin(options = { enabled: true }) {
         pointerDown(ev) {
             if (!this.data.enabled)
                 return;
+            this.data.pointerState = 'down';
             this.data.currentTarget = ev.target;
             this.data.realTarget = this.getRealTarget(ev);
             if (this.data.realTarget) {
@@ -109,6 +111,7 @@ function Plugin(options = { enabled: true }) {
         pointerUp(ev) {
             if (!this.data.enabled)
                 return;
+            this.data.pointerState = 'up';
             this.data.isMoving = false;
             this.data.events.up = ev;
             this.data.currentPosition = this.getRealPosition(ev);
@@ -117,6 +120,7 @@ function Plugin(options = { enabled: true }) {
         pointerMove(ev) {
             if (!this.data.enabled || !this.data.isMoving)
                 return;
+            this.data.pointerState = 'move';
             this.data.events.move = ev;
             this.data.currentPosition = this.getRealPosition(ev);
             this.updateData();
@@ -128,7 +132,7 @@ function Plugin(options = { enabled: true }) {
         state = vido.state;
         classNames.cell = api.getClass(CELL);
         classNames.item = api.getClass(ITEM);
-        const unsub = state.subscribe('_internal.elements.chart-timeline', el => (chartTimelineElement = el));
+        const unsub = state.subscribe('$data.elements.chart-timeline', el => (chartTimelineElement = el));
         state.update('config.actions.chart-timeline', timelineActions => {
             timelineActions.push(TimelinePointerAction);
             return timelineActions;

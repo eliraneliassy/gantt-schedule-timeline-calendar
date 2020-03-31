@@ -23,7 +23,7 @@ import { Api } from '../../../api/Api';
 class BindElementAction {
   constructor(element, data) {
     let shouldUpdate = false;
-    let cells = data.state.get('_internal.elements.chart-timeline-grid-row-cells');
+    let cells = data.state.get('$data.elements.chart-timeline-grid-row-cells');
     if (typeof cells === 'undefined') {
       cells = [];
       shouldUpdate = true;
@@ -32,12 +32,12 @@ class BindElementAction {
       cells.push(element);
       shouldUpdate = true;
     }
-    if (shouldUpdate) data.state.update('_internal.elements.chart-timeline-grid-row-cells', cells, { only: null });
+    if (shouldUpdate) data.state.update('$data.elements.chart-timeline-grid-row-cells', cells, { only: null });
   }
 
   public destroy(element, data) {
     data.state.update(
-      '_internal.elements.chart-timeline-grid-row-cells',
+      '$data.elements.chart-timeline-grid-row-cells',
       cells => {
         return cells.filter(el => el !== element);
       },
@@ -98,9 +98,9 @@ function ChartTimelineGridRowCell(vido: vido<DeepState, Api>, props: Props) {
     updateClassName(props.time);
     styleMap.setStyle({});
     styleMap.style.width = (props?.time?.width || 0) + 'px';
-    styleMap.style.height = (props?.row?._internal?.outerHeight || 0) + 'px';
+    styleMap.style.height = (props?.row?.$data?.outerHeight || 0) + 'px';
     const rows: Rows = state.get('config.list.rows');
-    for (const parentId of props.row._internal.parents) {
+    for (const parentId of props.row.$data.parents) {
       const parent = rows[parentId];
       const childrenStyle = parent?.style?.grid?.cell?.children;
       if (childrenStyle) styleMap.setStyle({ ...styleMap.style, ...childrenStyle });

@@ -39,7 +39,7 @@ export default function ListColumnRowExpanderToggle(vido: vido<DeepState, Api>, 
     })
   );
   onDestroy(
-    state.subscribe('_internal.list.expander.icons', icons => {
+    state.subscribe('$data.list.expander.icons', icons => {
       if (icons) {
         iconChild = icons.child;
         iconOpen = icons.open;
@@ -100,7 +100,7 @@ export default function ListColumnRowExpanderToggle(vido: vido<DeepState, Api>, 
 
   const getIcon = () => {
     if (iconChild) {
-      if (props.row?._internal?.children?.length === 0) {
+      if (props.row?.$data?.children?.length === 0) {
         return html`
           <img width="16" height="16" class=${classNameChild} src=${iconChild} />
         `;

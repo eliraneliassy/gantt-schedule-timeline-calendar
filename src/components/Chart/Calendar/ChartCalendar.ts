@@ -44,7 +44,7 @@ export default function ChartCalendar(vido: vido<DeepState, Api>, props) {
 
   const components = [[], []];
   onDestroy(
-    state.subscribe(`_internal.chart.time.levels`, levels => {
+    state.subscribe(`$data.chart.time.levels`, levels => {
       let level = 0;
       for (const dates of levels) {
         if (!dates.length) continue;
@@ -80,7 +80,7 @@ export default function ChartCalendar(vido: vido<DeepState, Api>, props) {
   });
 
   componentActions.push(element => {
-    state.update('_internal.elements.chart-calendar', element);
+    state.update('$data.elements.chart-calendar', element);
   });
 
   const actions = Actions.create(componentActions, actionProps);

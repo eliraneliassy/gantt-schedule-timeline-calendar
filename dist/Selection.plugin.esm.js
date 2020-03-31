@@ -93,6 +93,7 @@ function generateEmptyData() {
     return {
         enabled: true,
         isSelecting: false,
+        pointerState: 'up',
         initialPosition: { x: 0, y: 0 },
         currentPosition: { x: 0, y: 0 },
         selectionArea: { x: 0, y: 0, width: 0, height: 0 },
@@ -179,12 +180,15 @@ class SelectionPlugin {
             const selectingItems = this.getItemsUnderSelectionArea();
             if (selectingItems.length === 0) {
                 this.state.update(`config.chart.items.*.selected`, false);
+                this.data.selected[ITEM].length = 0;
             }
             // TODO save selecting items and cells
         }
         else if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-items-row-item') {
             this.data.isSelecting = false;
             this.data.selectionArea = this.getSelectionArea();
+            this.data.currentPosition = this.poitnerData.currentPosition;
+            this.data.initialPosition = this.poitnerData.initialPosition;
             const item = this.poitnerData.targetData;
             const selected = this.collectLinkedItems(item, [item]);
             this.data.selected[ITEM] = selected;
@@ -197,6 +201,7 @@ class SelectionPlugin {
             this.data.isSelecting = false;
         }
         this.data.events = this.poitnerData.events;
+        this.data.pointerState = this.poitnerData.pointerState;
         this.updateData();
     }
 }

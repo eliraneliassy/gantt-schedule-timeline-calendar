@@ -11,10 +11,10 @@
 import ResizeObserver from 'resize-observer-polyfill';
 import {
   ChartTime,
-  InternalChartTime,
-  ChartInternalTimeLevel,
+  DataChartTime,
+  DataChartTimeLevel,
   ChartCalendar,
-  ChartInternalTimeLevelDate,
+  DataChartTimeLevelDate,
   ChartCalendarLevel,
   ChartTimeDate,
   ChartTimeDates,
@@ -94,7 +94,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     const config = state.get('config');
     const scrollBarHeight = state.get('config.scroll.horizontal.size');
     const height = config.height - config.headerHeight - scrollBarHeight;
-    state.update('_internal.innerHeight', height);
+    state.update('$data.innerHeight', height);
     styleMap.style['--height'] = config.height + 'px';
     update();
   }
@@ -114,7 +114,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     }
     update();
   }
-  onDestroy(state.subscribe('_internal.list.columns.resizer.active', resizerActiveChange));
+  onDestroy(state.subscribe('$data.list.columns.resizer.active', resizerActiveChange));
 
   /**
    * Generate tree
@@ -122,7 +122,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
    * @param {object} eventInfo
    */
   function generateTree(bulk, eventInfo) {
-    if (state.get('_internal.flatTreeMap').length && eventInfo.type === 'subscribe') {
+    if (state.get('$data.flatTreeMap').length && eventInfo.type === 'subscribe') {
       return;
     }
     const configRows = state.get('config.list.rows');
@@ -140,11 +140,11 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     const treeMap = api.makeTreeMap(rows, items);
     const flatTreeMapById = api.getFlatTreeMapById(treeMap);
     const flatTreeMap = api.flattenTreeMap(treeMap);
-    state.update('_internal', _internal => {
-      _internal.treeMap = treeMap;
-      _internal.flatTreeMapById = flatTreeMapById;
-      _internal.flatTreeMap = flatTreeMap;
-      return _internal;
+    state.update('$data', $data => {
+      $data.treeMap = treeMap;
+      $data.flatTreeMapById = flatTreeMapById;
+      $data.flatTreeMap = flatTreeMap;
+      return $data;
     });
     update();
   }
@@ -157,15 +157,11 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
   function prepareExpanded() {
     const configRows: Rows = state.get('config.list.rows');
     const rowsWithParentsExpanded: Row[] = api.getRowsFromIds(
-      api.getRowsWithParentsExpanded(
-        state.get('_internal.flatTreeMap'),
-        state.get('_internal.flatTreeMapById'),
-        configRows
-      ),
+      api.getRowsWithParentsExpanded(state.get('$data.flatTreeMap'), state.get('$data.flatTreeMapById'), configRows),
       configRows
     );
     rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
-    state.update('_internal.list', list => {
+    state.update('$data.list', list => {
       list.rowsHeight = rowsHeight;
       list.rowsWithParentsExpanded = rowsWithParentsExpanded;
       return list;
@@ -174,7 +170,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
   }
   onDestroy(
     state.subscribeAll(
-      ['config.list.rows.*.expanded', '_internal.treeMap;', 'config.list.rows.*.height'],
+      ['config.list.rows.*.expanded', '$data.treeMap;', 'config.list.rows.*.height'],
       prepareExpanded,
       { bulk: true }
     )
@@ -186,9 +182,9 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     let count = 0;
     for (let i = rowsWithParentsExpanded.length - 1; i >= 0; i--) {
       const row = rowsWithParentsExpanded[i];
-      currentHeight += row._internal.outerHeight;
+      currentHeight += row.$data.outerHeight;
       if (currentHeight >= innerHeight) {
-        currentHeight = currentHeight - row._internal.outerHeight;
+        currentHeight = currentHeight - row.$data.outerHeight;
         break;
       }
       count++;
@@ -199,24 +195,21 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
   }
 
   onDestroy(
-    state.subscribeAll(
-      ['_internal.list.rowsWithParentsExpanded;', '_internal.innerHeight', '_internal.list.rowsHeight'],
-      () => {
-        const rowsWithParentsExpanded = state.get('_internal.list.rowsWithParentsExpanded');
-        const rowsHeight = state.get('_internal.list.rowsHeight');
-        const innerHeight = state.get('_internal.innerHeight');
-        const lastPageHeight = getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded);
-        state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight);
-      }
-    )
+    state.subscribeAll(['$data.list.rowsWithParentsExpanded;', '$data.innerHeight', '$data.list.rowsHeight'], () => {
+      const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
+      const rowsHeight = state.get('$data.list.rowsHeight');
+      const innerHeight = state.get('$data.innerHeight');
+      const lastPageHeight = getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded);
+      state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight);
+    })
   );
 
   /**
    * Generate visible rows
    */
   function generateVisibleRowsAndItems() {
-    const visibleRows = api.getVisibleRows(state.get('_internal.list.rowsWithParentsExpanded'));
-    const currentVisibleRows = state.get('_internal.list.visibleRows');
+    const visibleRows = api.getVisibleRows(state.get('$data.list.rowsWithParentsExpanded'));
+    const currentVisibleRows = state.get('$data.list.visibleRows');
     let shouldUpdate = true;
     if (visibleRows.length !== currentVisibleRows.length) {
       shouldUpdate = true;
@@ -229,26 +222,26 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
       });
     }
     if (shouldUpdate) {
-      state.update('_internal.list.visibleRows', visibleRows);
+      state.update('$data.list.visibleRows', visibleRows);
     }
     const visibleItems = [];
     for (const row of visibleRows) {
-      for (const item of row._internal.items) {
+      for (const item of row.$data.items) {
         visibleItems.push(item);
       }
     }
-    state.update('_internal.chart.visibleItems', visibleItems);
+    state.update('$data.chart.visibleItems', visibleItems);
     update();
   }
   onDestroy(
     state.subscribeAll(
-      ['_internal.list.rowsWithParentsExpanded;', 'config.scroll.vertical.data', 'config.chart.items'],
+      ['$data.list.rowsWithParentsExpanded;', 'config.scroll.vertical.data', 'config.chart.items'],
       generateVisibleRowsAndItems,
       { bulk: true }
     )
   );
 
-  function getLastPageDatesWidth(chartWidth: number, allDates: ChartInternalTimeLevelDate[]): number {
+  function getLastPageDatesWidth(chartWidth: number, allDates: DataChartTimeLevelDate[]): number {
     if (allDates.length === 0) return 0;
     let currentWidth = 0;
     let count = 0;
@@ -271,10 +264,10 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
 
   const generatePeriodDates = (
     formatting: ChartCalendarFormat,
-    time: InternalChartTime,
+    time: DataChartTime,
     level: ChartCalendarLevel,
     levelIndex: number
-  ): ChartInternalTimeLevel => {
+  ): DataChartTimeLevel => {
     const period = formatting.period;
     let finalFrom = time.finalFrom;
     let leftDate = api.time.date(finalFrom).startOf(period);
@@ -294,18 +287,18 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
   };
 
   function triggerLoadedEvent() {
-    if (state.get('_internal.loadedEventTriggered')) return;
+    if (state.get('$data.loadedEventTriggered')) return;
     Promise.resolve().then(() => {
-      const element = state.get('_internal.elements.main');
+      const element = state.get('$data.elements.main');
       const parent = element.parentNode;
       const event = new Event('gstc-loaded');
       element.dispatchEvent(event);
       parent.dispatchEvent(event);
     });
-    state.update('_internal.loadedEventTriggered', true);
+    state.update('$data.loadedEventTriggered', true);
   }
 
-  function limitGlobalAndSetCenter(time: InternalChartTime, updateCenter = true, oldTime: InternalChartTime, reason) {
+  function limitGlobalAndSetCenter(time: DataChartTime, updateCenter = true, oldTime: DataChartTime, reason) {
     if (time.leftGlobal < time.finalFrom) time.leftGlobal = time.finalFrom;
     if (time.rightGlobal > time.finalTo) time.rightGlobal = time.finalTo;
     time.leftGlobalDate = api.time.date(time.leftGlobal).startOf(time.period);
@@ -347,7 +340,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     return time;
   }
 
-  function guessPeriod(time: InternalChartTime, levels: ChartCalendarLevel[]) {
+  function guessPeriod(time: DataChartTime, levels: ChartCalendarLevel[]) {
     if (!time.zoom) return time;
     for (const level of levels) {
       const formatting = level.formats.find(format => +time.zoom <= +format.zoomTo);
@@ -358,7 +351,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     return time;
   }
 
-  function calculateDatesPercents(allMainDates: ChartInternalTimeLevelDate[], chartWidth: number): number {
+  function calculateDatesPercents(allMainDates: DataChartTimeLevelDate[], chartWidth: number): number {
     const lastPageWidth = getLastPageDatesWidth(chartWidth, allMainDates);
     let totalWidth = 0;
     for (const date of allMainDates) {
@@ -372,7 +365,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     return scrollWidth;
   }
 
-  function generateAllDates(time: InternalChartTime, levels: ChartCalendarLevel[], chartWidth: number): number {
+  function generateAllDates(time: DataChartTime, levels: ChartCalendarLevel[], chartWidth: number): number {
     if (!time.zoom) return 0;
     time.allDates = new Array(levels.length);
 
@@ -392,7 +385,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     return calculateDatesPercents(time.allDates[time.level], chartWidth);
   }
 
-  function getPeriodDates(allLevelDates: ChartTimeDates, time: InternalChartTime): ChartTimeDate[] {
+  function getPeriodDates(allLevelDates: ChartTimeDates, time: DataChartTime): ChartTimeDate[] {
     if (!allLevelDates.length) return [];
     const filtered = allLevelDates.filter(date => {
       return (
@@ -426,7 +419,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     });
   }
 
-  function updateLevels(time: InternalChartTime, levels: ChartCalendarLevel[]) {
+  function updateLevels(time: DataChartTime, levels: ChartCalendarLevel[]) {
     time.levels = [];
     let levelIndex = 0;
     for (const level of levels) {
@@ -446,7 +439,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     }
   }
 
-  function calculateTotalViewDuration(time: InternalChartTime) {
+  function calculateTotalViewDuration(time: DataChartTime) {
     let width = 0;
     let ms = 0;
     for (const date of time.allDates[time.level]) {
@@ -460,7 +453,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
   function calculateRightGlobal(
     leftGlobal: number,
     chartWidth: number,
-    allMainDates: ChartInternalTimeLevelDate[]
+    allMainDates: DataChartTimeLevelDate[]
   ): number {
     const date = api.time.findDateAtTime(leftGlobal, allMainDates);
     let index = allMainDates.indexOf(date);
@@ -477,12 +470,12 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
 
   let timeLoadedEventFired = false;
   function recalculateTimes(reason) {
-    const chartWidth: number = state.get('_internal.chart.dimensions.width');
+    const chartWidth: number = state.get('$data.chart.dimensions.width');
     if (!chartWidth) return;
     const configTime: ChartTime = state.get('config.chart.time');
     const calendar: ChartCalendar = state.get('config.chart.calendar');
-    const oldTime = { ...state.get('_internal.chart.time') };
-    let time: InternalChartTime = api.mergeDeep({}, configTime);
+    const oldTime = { ...state.get('$data.chart.time') };
+    let time: DataChartTime = api.mergeDeep({}, configTime);
     if ((!time.from || !time.to) && !Object.keys(state.get('config.chart.items')).length) {
       return;
     }
@@ -506,7 +499,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
       guessPeriod(time, calendar.levels);
     }
 
-    // If _internal.chart.time (leftGlobal, centerGlobal, rightGlobal, from , to) was changed
+    // If $data.chart.time (leftGlobal, centerGlobal, rightGlobal, from , to) was changed
     // then we need to apply those values - no recalculation is needed (values form plugins etc)
 
     const justApply = ['leftGlobal', 'centerGlobal', 'rightGlobal', 'from', 'to'].includes(reason.name);
@@ -623,7 +616,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
 
     updateLevels(time, calendar.levels);
 
-    state.update(`_internal.chart.time`, time);
+    state.update(`$data.chart.time`, time);
     state.update('config.chart.time', configTime => {
       configTime.zoom = time.zoom;
       configTime.period = time.format.period;
@@ -639,7 +632,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     });
     update().then(() => {
       if (!timeLoadedEventFired) {
-        state.update('_internal.loaded.time', true);
+        state.update('$data.loaded.time', true);
         timeLoadedEventFired = true;
       }
     });
@@ -657,7 +650,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
   function recalculationIsNeeded() {
     const configTime = state.get('config.chart.time');
     const dataIndex = state.get('config.scroll.horizontal.dataIndex');
-    const chartWidth = state.get('_internal.chart.dimensions.width');
+    const chartWidth = state.get('$data.chart.dimensions.width');
     const cache = { ...recalculationTriggerCache };
     recalculationTriggerCache.zoom = configTime.zoom;
     recalculationTriggerCache.period = configTime.period;
@@ -692,7 +685,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
         'config.chart.time',
         'config.chart.calendar.levels',
         'config.scroll.horizontal.dataIndex',
-        '_internal.chart.dimensions.width'
+        '$data.chart.dimensions.width'
       ],
       () => {
         let reason = recalculationIsNeeded();
@@ -773,11 +766,11 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
           if (dimensions.width !== width || dimensions.height !== height) {
             dimensions.width = width;
             dimensions.height = height;
-            state.update('_internal.dimensions', dimensions);
+            state.update('$data.dimensions', dimensions);
           }
         });
         ro.observe(element);
-        state.update('_internal.elements.main', element);
+        state.update('$data.elements.main', element);
       }
     }
     public update() {}
@@ -794,12 +787,12 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
   });
 
   onDestroy(
-    state.subscribeAll(['_internal.loaded', '_internal.chart.time.totalViewDurationPx'], () => {
-      if (state.get('_internal.loadedEventTriggered')) return;
-      const loaded = state.get('_internal.loaded');
+    state.subscribeAll(['$data.loaded', '$data.chart.time.totalViewDurationPx'], () => {
+      if (state.get('$data.loadedEventTriggered')) return;
+      const loaded = state.get('$data.loaded');
       if (loaded.main && loaded.chart && loaded.time && loaded['horizontal-scroll-inner']) {
-        const scroll = state.get('_internal.elements.horizontal-scroll-inner');
-        const width = state.get('_internal.chart.time.totalViewDurationPx');
+        const scroll = state.get('$data.elements.horizontal-scroll-inner');
+        const width = state.get('$data.chart.time.totalViewDurationPx');
         if (scroll && scroll.clientWidth === Math.round(width)) {
           setTimeout(triggerLoadedEvent, 0);
         }
@@ -810,7 +803,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
   function onWheel(ev) {}
 
   function LoadedEventAction() {
-    state.update('_internal.loaded.main', true);
+    state.update('$data.loaded.main', true);
   }
   if (!componentActions.includes(LoadedEventAction)) componentActions.push(LoadedEventAction);
 

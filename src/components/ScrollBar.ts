@@ -9,7 +9,7 @@
  */
 
 import Action from '@neuronet.io/vido/Action';
-import { ChartInternalTimeLevelDate, ScrollTypeHorizontal, ScrollTypeVertical, ScrollType } from '../types';
+import { DataChartTimeLevelDate, ScrollTypeHorizontal, ScrollTypeVertical, ScrollType } from '../types';
 import { vido } from '@neuronet.io/vido/vido';
 import DeepState from 'deep-state-observer';
 import { Api } from '../api/Api';
@@ -85,7 +85,7 @@ export default function ScrollBar(vido: vido<DeepState, Api>, props: Props) {
     if (dataIndex === undefined) {
       dataIndex = 0;
     }
-    const date: ChartInternalTimeLevelDate = allDates[dataIndex];
+    const date: DataChartTimeLevelDate = allDates[dataIndex];
     if (!date) return;
     const horizontal: ScrollTypeHorizontal = state.get('config.scroll.horizontal');
     if (horizontal.data && horizontal.data.leftGlobal === date.leftGlobal) return;
@@ -93,7 +93,7 @@ export default function ScrollBar(vido: vido<DeepState, Api>, props: Props) {
       'config.scroll.horizontal',
       (scrollHorizontal: ScrollTypeHorizontal) => {
         scrollHorizontal.data = date;
-        const time = state.get('_internal.chart.time');
+        const time = state.get('$data.chart.time');
         scrollHorizontal.posPx = api.time.calculateScrollPosPxFromTime(
           scrollHorizontal.data.leftGlobal,
           time,
@@ -128,9 +128,9 @@ export default function ScrollBar(vido: vido<DeepState, Api>, props: Props) {
     let lastDataIndex = 0;
     onDestroy(
       state.subscribe(
-        '_internal.chart.time',
+        '$data.chart.time',
         () => {
-          const time = state.get('_internal.chart.time');
+          const time = state.get('$data.chart.time');
           if (!time.leftGlobalDate) return;
           const horizontal = state.get('config.scroll.horizontal');
           if (horizontal.area !== time.scrollWidth) {
@@ -174,15 +174,15 @@ export default function ScrollBar(vido: vido<DeepState, Api>, props: Props) {
   onDestroy(
     state.subscribeAll(
       props.type === 'horizontal'
-        ? [`config.scroll.${props.type}`, '_internal.chart.time']
-        : [`config.scroll.${props.type}`, '_internal.innerHeight', '_internal.list.rowsWithParentsExpanded'],
+        ? [`config.scroll.${props.type}`, '$data.chart.time']
+        : [`config.scroll.${props.type}`, '$data.innerHeight', '$data.list.rowsWithParentsExpanded'],
       () => {
         if (working) return;
         working = true;
-        const time = state.get('_internal.chart.time');
+        const time = state.get('$data.chart.time');
         const scroll = state.get(`config.scroll.${props.type}`);
-        const chartWidth = state.get('_internal.chart.dimensions.width');
-        const chartHeight = state.get('_internal.innerHeight');
+        const chartWidth = state.get('$data.chart.dimensions.width');
+        const chartHeight = state.get('$data.innerHeight');
         size = scroll.size;
         invSize = props.type === 'horizontal' ? chartWidth : chartHeight;
         invSize = invSize || 0;
@@ -206,7 +206,7 @@ export default function ScrollBar(vido: vido<DeepState, Api>, props: Props) {
             allDates = [];
           }
         } else {
-          const rowsWithParentsExpanded = state.get('_internal.list.rowsWithParentsExpanded');
+          const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
           if (rowsWithParentsExpanded) {
             rows = rowsWithParentsExpanded;
           } else {
@@ -273,7 +273,7 @@ export default function ScrollBar(vido: vido<DeepState, Api>, props: Props) {
   class OuterAction extends Action {
     constructor(element) {
       super();
-      state.update(`_internal.elements.scroll-bar--${props.type}`, element);
+      state.update(`$data.elements.scroll-bar--${props.type}`, element);
     }
     update() {}
     destroy() {}
@@ -290,7 +290,7 @@ export default function ScrollBar(vido: vido<DeepState, Api>, props: Props) {
 
     constructor(element) {
       super();
-      state.update(`_internal.elements.scroll-bar-inner--${props.type}`, element);
+      state.update(`$data.elements.scroll-bar-inner--${props.type}`, element);
       this.pointerDown = this.pointerDown.bind(this);
       this.pointerUp = this.pointerUp.bind(this);
       const pointerMove = this.pointerMove.bind(this);

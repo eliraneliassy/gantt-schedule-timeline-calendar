@@ -899,7 +899,7 @@ const config = {
           // check if there is any item that lives inside current cell
           return currentlySelecting.filter(selected => {
             if (!selected.row.canSelect) return false;
-            for (const item of selected.row._internal.items) {
+            for (const item of selected.row.$data.items) {
               if (
                 (item.time.start >= selected.time.leftGlobal && item.time.start <= selected.time.rightGlobal) ||
                 (item.time.end >= selected.time.leftGlobal && item.time.end <= selected.time.rightGlobal) ||

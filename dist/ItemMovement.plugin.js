@@ -14,7 +14,6 @@
    * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
    */
   const ITEM = 'chart-timeline-items-row-item';
-  //# sourceMappingURL=TimelinePointer.plugin.js.map
 
   /**
    * ItemMovement plugin
@@ -73,7 +72,7 @@
       }
       moveItems() {
           for (const item of this.data.lastMoved) {
-              const startTime = this.getItemTime(item._internal.time.startDate);
+              const startTime = this.getItemTime(item.$data.time.startDate);
           }
       }
       updatePointerState() {

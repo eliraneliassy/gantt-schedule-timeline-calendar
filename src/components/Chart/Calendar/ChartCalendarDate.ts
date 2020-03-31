@@ -22,7 +22,7 @@ import { Api } from '../../../api/Api';
 class BindElementAction extends Action {
   constructor(element, data) {
     super();
-    data.state.update('_internal.elements.chart-calendar-dates', elements => {
+    data.state.update('$data.elements.chart-calendar-dates', elements => {
       if (typeof elements === 'undefined') {
         elements = [];
       }
@@ -65,7 +65,7 @@ export default function ChartCalendarDay(vido: vido<DeepState, Api>, props: Prop
     if (!props) return;
     const level = state.get(`config.chart.calendar.levels.${props.level}`);
     styleMap.style.width = props.date.currentView.width + 'px';
-    time = state.get('_internal.chart.time');
+    time = state.get('$data.chart.time');
     const formatting = level.formats.find(formatting => +time.zoom <= +formatting.zoomTo);
     if (props.date.current) {
       additionalClass = ' gstc-current';
@@ -108,7 +108,7 @@ export default function ChartCalendarDay(vido: vido<DeepState, Api>, props: Prop
     if (timeSub) {
       timeSub();
     }
-    timeSub = state.subscribeAll(['_internal.chart.time', 'config.chart.calendar.levels'], updateDate, {
+    timeSub = state.subscribeAll(['$data.chart.time', 'config.chart.calendar.levels'], updateDate, {
       bulk: true
     });
   });

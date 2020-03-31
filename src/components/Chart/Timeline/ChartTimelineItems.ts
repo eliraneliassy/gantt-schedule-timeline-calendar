@@ -31,20 +31,20 @@ export default function ChartTimelineItems(vido: vido<DeepState, Api>, props = {
   );
   const styleMap = new StyleMap({}, true);
   function calculateStyle() {
-    const width = state.get('_internal.chart.dimensions.width');
-    const height = state.get('_internal.innerHeight');
+    const width = state.get('$data.chart.dimensions.width');
+    const height = state.get('$data.innerHeight');
     styleMap.style.width = width + 'px';
     styleMap.style.height = height + 'px';
   }
-  onDestroy(state.subscribeAll(['_internal.innerHeight', '_internal.chart.dimensions.width'], calculateStyle));
+  onDestroy(state.subscribeAll(['$data.innerHeight', '$data.chart.dimensions.width'], calculateStyle));
 
   const rowsComponents = [];
   function createRowComponents() {
-    const visibleRows = state.get('_internal.list.visibleRows');
+    const visibleRows = state.get('$data.list.visibleRows');
     reuseComponents(rowsComponents, visibleRows || [], row => ({ row }), ItemsRowComponent);
     update();
   }
-  onDestroy(state.subscribeAll(['_internal.list.visibleRows;', 'config.chart.items'], createRowComponents));
+  onDestroy(state.subscribeAll(['$data.list.visibleRows;', 'config.chart.items'], createRowComponents));
   onDestroy(() => {
     rowsComponents.forEach(row => row.destroy());
   });

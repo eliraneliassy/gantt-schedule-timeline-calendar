@@ -19,7 +19,7 @@ import { Api } from '../../../api/Api';
 class BindElementAction {
   constructor(element, data) {
     let shouldUpdate = false;
-    let rows = data.state.get('_internal.elements.chart-timeline-grid-rows');
+    let rows = data.state.get('$data.elements.chart-timeline-grid-rows');
     if (typeof rows === 'undefined') {
       rows = [];
       shouldUpdate = true;
@@ -28,10 +28,10 @@ class BindElementAction {
       rows.push(element);
       shouldUpdate = true;
     }
-    if (shouldUpdate) data.state.update('_internal.elements.chart-timeline-grid-rows', rows, { only: null });
+    if (shouldUpdate) data.state.update('$data.elements.chart-timeline-grid-rows', rows, { only: null });
   }
   public destroy(element, data) {
-    data.state.update('_internal.elements.chart-timeline-grid-rows', rows => {
+    data.state.update('$data.elements.chart-timeline-grid-rows', rows => {
       return rows.filter(el => el !== element);
     });
   }
@@ -87,10 +87,10 @@ export default function ChartTimelineGridRow(vido: vido<DeepState, Api>, props: 
     props = changedProps;
     reuseComponents(rowsCellsComponents, props.cells, cell => cell, GridCellComponent);
     styleMap.setStyle({});
-    styleMap.style.height = props.row._internal.outerHeight + 'px';
+    styleMap.style.height = props.row.$data.outerHeight + 'px';
     styleMap.style.width = props.width + 'px';
     const rows = state.get('config.list.rows');
-    for (const parentId of props.row._internal.parents) {
+    for (const parentId of props.row.$data.parents) {
       const parent = rows[parentId];
       const childrenStyle = parent?.style?.grid?.row?.children;
       if (childrenStyle)

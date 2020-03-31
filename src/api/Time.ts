@@ -11,8 +11,8 @@ import dayjs, { Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import {
   Locale,
-  InternalChartTime,
-  ChartInternalTimeLevelDate,
+  DataChartTime,
+  DataChartTimeLevelDate,
   ChartTimeDate,
   ScrollTypeHorizontal,
   Period,
@@ -45,7 +45,7 @@ export default class TimeApi {
     return time ? _dayjs(time).locale(this.locale.name) : _dayjs().locale(this.locale.name);
   }
 
-  private addAdditionalSpace(time: InternalChartTime) {
+  private addAdditionalSpace(time: DataChartTime) {
     if (time.additionalSpaces && time.additionalSpaces[time.period]) {
       const add = time.additionalSpaces[time.period];
       if (add.before) {
@@ -62,7 +62,7 @@ export default class TimeApi {
     return time;
   }
 
-  public recalculateFromTo(time: InternalChartTime) {
+  public recalculateFromTo(time: DataChartTime) {
     const period = time.period;
     time = { ...time };
     time.from = +time.from;
@@ -102,14 +102,14 @@ export default class TimeApi {
     return time;
   }
 
-  public getCenter(time: InternalChartTime) {
+  public getCenter(time: DataChartTime) {
     return time.leftGlobal + (time.rightGlobal - time.leftGlobal) / 2;
   }
 
   public getOffsetPxFromDates(
     date: Dayjs,
-    levelDates: ChartInternalTimeLevelDate[],
-    time: InternalChartTime,
+    levelDates: DataChartTimeLevelDate[],
+    time: DataChartTime,
     fromLeft = true
   ): number {
     const milliseconds = date.valueOf();
@@ -141,17 +141,17 @@ export default class TimeApi {
 
   public calculateScrollPosPxFromTime(
     milliseconds: number,
-    time: InternalChartTime | undefined,
+    time: DataChartTime | undefined,
     scroll: ScrollTypeHorizontal | undefined
   ) {
     if (!scroll) scroll = this.state.get('config.scroll.horizontal');
     if (!scroll.maxPosPx) return 0;
-    if (!time) time = this.state.get('_internal.chart.time');
-    const date: ChartInternalTimeLevelDate = this.findDateAtTime(milliseconds, time.allDates[time.level]);
+    if (!time) time = this.state.get('$data.chart.time');
+    const date: DataChartTimeLevelDate = this.findDateAtTime(milliseconds, time.allDates[time.level]);
     return Math.round((scroll.maxPosPx - scroll.innerSize) * date.leftPercent);
   }
 
-  public getCurrentFormatForLevel(level: ChartCalendarLevel, time: InternalChartTime) {
+  public getCurrentFormatForLevel(level: ChartCalendarLevel, time: DataChartTime) {
     return level.formats.find(format => +time.zoom <= +format.zoomTo);
   }
 
@@ -168,7 +168,7 @@ export default class TimeApi {
     period: Period;
     level: ChartCalendarLevel;
     levelIndex: number;
-    time: InternalChartTime;
+    time: DataChartTime;
   }) {
     if (!time.timePerPixel) return [];
     let leftPx = 0;
@@ -177,7 +177,7 @@ export default class TimeApi {
     let dates = [];
     for (let i = 0; i < diff; i++) {
       const rightGlobalDate = leftDate.endOf(period);
-      let date: ChartInternalTimeLevelDate = {
+      let date: DataChartTimeLevelDate = {
         leftGlobal: leftDate.valueOf(),
         leftGlobalDate: leftDate,
         rightGlobalDate,
@@ -206,7 +206,7 @@ export default class TimeApi {
     return dates;
   }
 
-  public getDatesDiffPx(fromTime: Dayjs, toTime: Dayjs, time: InternalChartTime): number {
+  public getDatesDiffPx(fromTime: Dayjs, toTime: Dayjs, time: DataChartTime): number {
     if (fromTime === toTime) return 0;
     const mainDates = time.allDates[time.level];
     if (mainDates.length === 0) return 0;

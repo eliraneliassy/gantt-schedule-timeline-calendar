@@ -54,7 +54,7 @@ export function Plugin(options: Options = {}) {
     api = vidoInstance.api;
     className = options.className || api.getClass('chart-timeline-grid-row-cell') + '--weekend';
     const destroy = vidoInstance.state.subscribe(
-      '_internal.chart.time.format.period',
+      '$data.chart.time.format.period',
       period => (enabled = period === 'day')
     );
     vidoInstance.state.update('config.actions.chart-timeline-grid-row-cell', actions => {

@@ -78,12 +78,12 @@ export default function Chart(vido: vido<DeepState, Api>, props = {}) {
         const innerWidth = width - state.get('config.scroll.horizontal.size');
         if (chartWidth !== width) {
           chartWidth = width;
-          state.update('_internal.chart.dimensions', { width, innerWidth, height });
+          state.update('$data.chart.dimensions', { width, innerWidth, height });
         }
       });
       ro.observe(element);
-      state.update('_internal.elements.chart', element);
-      state.update('_internal.loaded.chart', true);
+      state.update('$data.elements.chart', element);
+      state.update('$data.loaded.chart', true);
     }
   });
 

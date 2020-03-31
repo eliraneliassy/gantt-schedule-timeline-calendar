@@ -138,7 +138,7 @@
           state = vido.state;
           classNames.cell = api.getClass(CELL);
           classNames.item = api.getClass(ITEM);
-          const unsub = state.subscribe('_internal.elements.chart-timeline', el => (chartTimelineElement = el));
+          const unsub = state.subscribe('$data.elements.chart-timeline', el => (chartTimelineElement = el));
           state.update('config.actions.chart-timeline', timelineActions => {
               timelineActions.push(TimelinePointerAction);
               return timelineActions;

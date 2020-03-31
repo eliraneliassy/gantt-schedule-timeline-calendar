@@ -12,14 +12,14 @@ import DeepState from 'deep-state-observer';
 import { vido } from '@neuronet.io/vido/vido';
 import { Api } from '../api/Api';
 import { PluginData as SelectionPluginData } from './Selection/Selection.plugin';
-import { Item, InternalChartTime, Scroll, InternalChartDimensions } from '../types';
+import { Item, DataChartTime, Scroll, DataChartDimensions } from '../types';
 import { ITEM } from './TimelinePointer.plugin';
 import { Dayjs } from 'dayjs';
 
 export interface SnapArg {
-  time: InternalChartTime;
+  time: DataChartTime;
   scroll: Scroll;
-  dimensions: InternalChartDimensions;
+  dimensions: DataChartDimensions;
   vido: vido<DeepState, Api>;
   movement: Movement;
 }
@@ -128,7 +128,7 @@ class ItemMovement {
 
   moveItems() {
     for (const item of this.data.lastMoved) {
-      const startTime = this.getItemTime(item._internal.time.startDate);
+      const startTime = this.getItemTime(item.$data.time.startDate);
     }
   }
 

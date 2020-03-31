@@ -19,7 +19,7 @@ import { Api } from '../../../api/Api';
 class BindElementAction {
   constructor(element, data) {
     let shouldUpdate = false;
-    let items = data.state.get('_internal.elements.chart-timeline-items-row-items');
+    let items = data.state.get('$data.elements.chart-timeline-items-row-items');
     if (typeof items === 'undefined') {
       items = [];
       shouldUpdate = true;
@@ -28,10 +28,10 @@ class BindElementAction {
       items.push(element);
       shouldUpdate = true;
     }
-    if (shouldUpdate) data.state.update('_internal.elements.chart-timeline-items-row-items', items, { only: null });
+    if (shouldUpdate) data.state.update('$data.elements.chart-timeline-items-row-items', items, { only: null });
   }
   public destroy(element, data) {
-    data.state.update('_internal.elements.chart-timeline-items-row-items', items => {
+    data.state.update('$data.elements.chart-timeline-items-row-items', items => {
       return items.filter(el => el !== element);
     });
   }
@@ -65,7 +65,7 @@ export default function ChartTimelineItemsRowItem(vido: vido<DeepState, Api>, pr
     };
   let shouldDetach = false;
 
-  function updateItem(time = state.get('_internal.chart.time')) {
+  function updateItem(time = state.get('$data.chart.time')) {
     if (leave || time.levels.length === 0 || !time.levels[time.level] || time.levels[time.level].length === 0) {
       shouldDetach = true;
       return;
@@ -119,7 +119,7 @@ export default function ChartTimelineItemsRowItem(vido: vido<DeepState, Api>, pr
       styleMap.style.width = itemWidthPx + 'px';
       styleMap.style.left = itemLeftPx + 'px';
       styleMap.style.top = props.item.gap.top + props.item.top + 'px';
-      styleMap.style.height = props.item._internal.actualHeight + 'px';
+      styleMap.style.height = props.item.$data.actualHeight + 'px';
     } else {
       styleMap.style.width = oldWidth;
       styleMap.style.left = oldLeft;
@@ -127,7 +127,7 @@ export default function ChartTimelineItemsRowItem(vido: vido<DeepState, Api>, pr
       styleMap.style.height = oldHeight;
     }
     const rows = state.get('config.list.rows');
-    for (const parentId of props.row._internal.parents) {
+    for (const parentId of props.row.$data.parents) {
       const parent = rows[parentId];
       const childrenStyle = parent?.style?.items?.item?.children;
       if (childrenStyle) styleMap.setStyle({ ...styleMap.style, ...childrenStyle });
@@ -183,7 +183,7 @@ export default function ChartTimelineItemsRowItem(vido: vido<DeepState, Api>, pr
     })
   );
 
-  onDestroy(state.subscribe('_internal.chart.time', updateItem));
+  onDestroy(state.subscribe('$data.chart.time', updateItem));
 
   componentActions.push(BindElementAction);
   const actions = Actions.create(componentActions, actionProps);

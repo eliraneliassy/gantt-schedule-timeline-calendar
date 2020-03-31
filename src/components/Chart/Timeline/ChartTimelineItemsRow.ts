@@ -21,7 +21,7 @@ import { Api } from '../../../api/Api';
 class BindElementAction {
   constructor(element, data) {
     let shouldUpdate = false;
-    let rows = data.state.get('_internal.elements.chart-timeline-items-rows');
+    let rows = data.state.get('$data.elements.chart-timeline-items-rows');
     if (typeof rows === 'undefined') {
       rows = [];
       shouldUpdate = true;
@@ -30,10 +30,10 @@ class BindElementAction {
       rows.push(element);
       shouldUpdate = true;
     }
-    if (shouldUpdate) data.state.update('_internal.elements.chart-timeline-items-rows', rows, { only: null });
+    if (shouldUpdate) data.state.update('$data.elements.chart-timeline-items-rows', rows, { only: null });
   }
   public destroy(element, data) {
-    data.state.update('_internal.elements.chart-timeline-items-rows', rows => {
+    data.state.update('$data.elements.chart-timeline-items-rows', rows => {
       return rows.filter(el => el !== element);
     });
   }
@@ -52,7 +52,7 @@ const ChartTimelineItemsRow = (vido: vido<DeepState, Api>, props: Props) => {
   let ItemComponent;
   onDestroy(state.subscribe('config.components.ChartTimelineItemsRowItem', value => (ItemComponent = value)));
 
-  let itemsPath = `_internal.flatTreeMapById.${props.row.id}._internal.items`;
+  let itemsPath = `$data.flatTreeMapById.${props.row.id}.$data.items`;
   let rowSub, itemsSub;
   let classNameCurrent = '';
 
@@ -63,26 +63,26 @@ const ChartTimelineItemsRow = (vido: vido<DeepState, Api>, props: Props) => {
   const detach = new Detach(() => shouldDetach);
 
   const updateDom = () => {
-    const chart = state.get('_internal.chart');
+    const chart = state.get('$data.chart');
     shouldDetach = false;
     styleMap.style.width = chart.dimensions.width + 'px';
     if (!props) {
       shouldDetach = true;
       return;
     }
-    styleMap.style.height = props.row._internal.outerHeight + 'px';
-    styleMap.style['--row-height'] = props.row._internal.outerHeight + 'px';
+    styleMap.style.height = props.row.$data.outerHeight + 'px';
+    styleMap.style['--row-height'] = props.row.$data.outerHeight + 'px';
   };
 
   function updateRow(row) {
-    itemsPath = `_internal.flatTreeMapById.${row.id}._internal.items`;
+    itemsPath = `$data.flatTreeMapById.${row.id}.$data.items`;
     if (typeof rowSub === 'function') {
       rowSub();
     }
     if (typeof itemsSub === 'function') {
       itemsSub();
     }
-    rowSub = state.subscribe('_internal.chart', value => {
+    rowSub = state.subscribe('$data.chart', value => {
       if (value === undefined) {
         shouldDetach = true;
         return update();
