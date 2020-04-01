@@ -9,7 +9,7 @@
  */
 
 import Action from '@neuronet.io/vido/Action';
-import { DataChartTimeLevelDate, ScrollTypeHorizontal, ScrollTypeVertical, ScrollType } from '../types';
+import { DataChartTimeLevelDate, ScrollTypeHorizontal, ScrollTypeVertical, ScrollType, Row } from '../types';
 import { vido } from '@neuronet.io/vido/vido';
 import DeepState from 'deep-state-observer';
 import { Api } from '../api/Api';
@@ -42,7 +42,7 @@ export default function ScrollBar(vido: vido<DeepState, Api>, props: Props) {
   const styleMapInner = new StyleMap({});
   let maxPos = 0;
   let allDates = [];
-  let rows = [];
+  let rows: Row[] = [];
   let rowsOffsets = [];
   let rowsPercents = [];
   let innerSize = 0,
@@ -59,7 +59,7 @@ export default function ScrollBar(vido: vido<DeepState, Api>, props: Props) {
     for (let i = 0; i < len; i++) {
       const row = rows[i];
       rowsOffsets.push(top);
-      top += row.outerHeight;
+      top += row.$data.outerHeight;
     }
     const verticalHeight = state.get('config.scroll.vertical.area');
     for (const offsetTop of rowsOffsets) {
