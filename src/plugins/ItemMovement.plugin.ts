@@ -8,19 +8,18 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import DeepState from 'deep-state-observer';
-import { vido } from '@neuronet.io/vido/vido';
-import { Api } from '../api/Api';
 import { PluginData as SelectionPluginData } from './Selection/Selection.plugin';
-import { Item, DataChartTime, Scroll, DataChartDimensions } from '../types';
+import { Item, DataChartTime, Scroll, DataChartDimensions, ItemTime, ItemDataTime, Vido } from '../types';
 import { ITEM } from './TimelinePointer.plugin';
 import { Dayjs } from 'dayjs';
+import { Api } from '../api/Api';
+import DeepState from 'deep-state-observer';
 
 export interface SnapArg {
   time: DataChartTime;
   scroll: Scroll;
   dimensions: DataChartDimensions;
-  vido: vido<DeepState, Api>;
+  vido: Vido;
   movement: Movement;
 }
 
@@ -56,6 +55,8 @@ export interface PluginData extends Options {
   moving: Item[];
   lastMoved: Item[];
   movement: Movement;
+  state: 'up' | 'down' | 'move';
+  pointerMoved: boolean;
 }
 
 function prepareOptions(options: Options): Options {
@@ -72,6 +73,8 @@ function gemerateEmptyPluginData(options: Options): PluginData {
   return {
     moving: [],
     lastMoved: [],
+    state: 'up',
+    pointerMoved: false,
     movement: {
       px: { horizontal: 0, vertical: 0 },
       time: 0
@@ -96,15 +99,14 @@ function gemerateEmptyPluginData(options: Options): PluginData {
 }
 
 class ItemMovement {
-  private vido: vido<DeepState, Api>;
+  private vido: Vido;
   private api: Api;
   private state: DeepState;
   private onDestroy = [];
   private selection: SelectionPluginData;
-  private lastPointerState: 'up' | 'down' | 'move' = 'up';
   private data: PluginData;
 
-  constructor(vido: vido<DeepState, Api>) {
+  constructor(vido: Vido) {
     this.vido = vido;
     this.api = vido.api;
     this.state = vido.state;
@@ -122,34 +124,66 @@ class ItemMovement {
     this.state.update(pluginPath, this.data);
   }
 
-  getItemTime(currentTime: Dayjs): Dayjs {
-    return currentTime;
+  getItemMovingTime(item: Item, type: 'left' | 'right', time: DataChartTime): Dayjs {
+    const dates = time.allDates[time.level];
+    const x =
+      type === 'left'
+        ? item.$data.position.left + time.leftPx + this.data.movement.px.horizontal
+        : item.$data.position.right + time.leftPx + this.data.movement.px.horizontal;
+    const date = this.api.time.findDateAtOffsetPx(x, dates);
+    return date.leftGlobalDate.clone();
   }
 
   moveItems() {
+    const time: DataChartTime = this.state.get('$data.chart.time');
     for (const item of this.data.lastMoved) {
-      const startTime = this.getItemTime(item.$data.time.startDate);
+      const startTime = this.getItemMovingTime(item, 'left', time);
+      const endTime = this.getItemMovingTime(item, 'right', time);
+      this.state.update(`config.chart.items.${item.id}.time`, (itemTime: ItemTime) => {
+        itemTime.start = startTime.valueOf();
+        itemTime.end = endTime.valueOf();
+        return itemTime;
+      });
+      this.state.update(`config.chart.items.${item.id}.$data.time`, (itemDataTime: ItemDataTime) => {
+        itemDataTime.startDate = startTime;
+        itemDataTime.endDate = endTime;
+        return itemDataTime;
+      });
     }
   }
 
+  clearSelection() {
+    this.data.moving = [];
+    this.data.lastMoved = [];
+    this.data.movement.px.horizontal = 0;
+    this.data.movement.px.vertical = 0;
+    this.data.movement.time = 0;
+    this.data.state = 'up';
+    this.data.pointerMoved = false;
+  }
+
   updatePointerState() {
-    if (this.lastPointerState === 'up' && this.selection.pointerState === 'down') {
+    if (this.data.state === 'up' && this.selection.pointerState === 'down') {
       this.data.onStart(this.data.moving);
-    } else if (
-      (this.lastPointerState === 'down' || this.lastPointerState === 'move') &&
-      this.selection.pointerState === 'up'
-    ) {
+    } else if ((this.data.state === 'down' || this.data.state === 'move') && this.selection.pointerState === 'up') {
       this.data.moving = [];
       this.data.onEnd(this.data.lastMoved);
+      this.clearSelection();
     } else if (this.selection.pointerState === 'move') {
+      if (this.data.movement.px.horizontal || this.data.movement.px.vertical) {
+        this.data.pointerMoved = true;
+      }
       this.data.onMove(this.data.moving);
     }
-    this.lastPointerState = this.selection.pointerState;
+    this.data.state = this.selection.pointerState;
   }
 
   onSelectionChange(data: SelectionPluginData) {
     if (!this.data.enabled) return;
     this.selection = data;
+    if (this.selection.targetType !== ITEM) {
+      return this.clearSelection();
+    }
     if (this.selection.events.move) {
       this.selection.events.move.preventDefault();
       this.selection.events.move.stopPropagation();
@@ -161,10 +195,10 @@ class ItemMovement {
     this.data.moving = [...this.selection.selected[ITEM]];
     if (this.data.moving.length) this.data.lastMoved = [...this.data.moving];
 
-    this.updatePointerState();
-
     this.data.movement.px.horizontal = this.selection.currentPosition.x - this.selection.initialPosition.x;
     this.data.movement.px.vertical = this.selection.currentPosition.y - this.selection.initialPosition.y;
+
+    this.updatePointerState();
 
     this.moveItems();
     this.updateData();
@@ -172,7 +206,7 @@ class ItemMovement {
 }
 
 export function Plugin(options: Options = {}) {
-  return function initialize(vidoInstance: vido<DeepState, Api>) {
+  return function initialize(vidoInstance: Vido) {
     vidoInstance.state.update(pluginPath, gemerateEmptyPluginData(prepareOptions(options)));
     new ItemMovement(vidoInstance);
   };

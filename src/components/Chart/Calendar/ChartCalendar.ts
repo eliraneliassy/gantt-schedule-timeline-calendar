@@ -8,11 +8,11 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { vido } from '@neuronet.io/vido/vido';
-import DeepState from 'deep-state-observer';
-import { Api } from '../../../api/Api';
+import { Vido } from '../../../types';
+import { Component } from '@neuronet.io/vido/vido';
 
-export default function ChartCalendar(vido: vido<DeepState, Api>, props) {
+/** @type {Component} */
+export default function ChartCalendar(vido: Vido, props) {
   const { api, state, onDestroy, Actions, update, reuseComponents, html, StyleMap } = vido;
   const componentName = 'chart-calendar';
   const componentActions = api.getActions(componentName);
@@ -32,7 +32,7 @@ export default function ChartCalendar(vido: vido<DeepState, Api>, props) {
   );
 
   let headerHeight;
-  const styleMap = new StyleMap({ height: '', '--headerHeight': '', 'margin-left': '' });
+  const styleMap = new StyleMap({ height: '', ['--headerHeight' as any]: '', 'margin-left': '' });
   onDestroy(
     state.subscribe('config.headerHeight', value => {
       headerHeight = value;

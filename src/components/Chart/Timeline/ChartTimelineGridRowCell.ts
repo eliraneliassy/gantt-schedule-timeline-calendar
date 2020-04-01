@@ -8,10 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Row, ChartTimeDate, Rows } from '../../../types';
-import { vido } from '@neuronet.io/vido/vido';
-import DeepState from 'deep-state-observer';
-import { Api } from '../../../api/Api';
+import { Row, ChartTimeDate, Rows, Vido } from '../../../types';
 
 /**
  * Bind element action
@@ -51,7 +48,7 @@ interface Props {
   time: ChartTimeDate;
 }
 
-function ChartTimelineGridRowCell(vido: vido<DeepState, Api>, props: Props) {
+function ChartTimelineGridRowCell(vido: Vido, props: Props) {
   const { api, state, onDestroy, Detach, Actions, update, html, onChange, StyleMap } = vido;
   const componentName = 'chart-timeline-grid-row-cell';
   const actionProps = {

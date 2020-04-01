@@ -11,9 +11,12 @@
 import { vido } from '@neuronet.io/vido/vido';
 import DeepState from 'deep-state-observer';
 import { Api } from '../api/Api';
+import { Vido } from '../types';
 
 export const CELL = 'chart-timeline-grid-row-cell';
+export type CELL_TYPE = 'chart-timeline-grid-row-cell';
 export const ITEM = 'chart-timeline-items-row-item';
+export type ITEM_TYPE = 'chart-timeline-items-row-item';
 
 export interface PointerEvents {
   down: PointerEvent | null;
@@ -34,7 +37,7 @@ export interface PluginData {
   pointerState: PointerState;
   currentTarget: HTMLElement | null;
   realTarget: HTMLElement | null;
-  targetType: 'chart-timeline-items-row-item' | 'chart-timeline-grid-row-cell' | '';
+  targetType: ITEM_TYPE | CELL_TYPE | '';
   targetData: any | null;
   events: PointerEvents;
   initialPosition: Point;
@@ -42,7 +45,7 @@ export interface PluginData {
 }
 
 export function Plugin(options = { enabled: true }) {
-  let vido: vido<DeepState, Api>, api: Api, state: DeepState;
+  let vido: Vido, api: Api, state: DeepState;
   const pluginPath = 'config.plugin.TimelinePointer';
 
   const classNames = {
@@ -166,7 +169,7 @@ export function Plugin(options = { enabled: true }) {
     }
   }
 
-  return function initialize(vidoInstance: vido<DeepState, Api>) {
+  return function initialize(vidoInstance: Vido) {
     vido = vidoInstance;
     api = vido.api;
     state = vido.state;

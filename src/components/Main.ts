@@ -22,14 +22,17 @@ import {
   Row,
   ScrollTypeHorizontal,
   ScrollType,
-  Rows
+  Rows,
+  Item,
+  ItemData,
+  Vido,
+  Reason
 } from '../types';
-import DeepState from 'deep-state-observer';
-import { OpUnitType } from 'dayjs';
-import { Api } from '../api/Api';
-import { vido } from '@neuronet.io/vido';
 
-export default function Main(vido: vido<DeepState, Api>, props = {}) {
+import { OpUnitType } from 'dayjs';
+import { Component, ComponentInstance } from '@neuronet.io/vido/vido';
+
+export default function Main(vido: Vido, props = {}) {
   const { api, state, onDestroy, Actions, update, createComponent, html, StyleMap } = vido;
   const componentName = api.name;
 
@@ -50,14 +53,14 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
   );
 
   const componentSubs = [];
-  let ListComponent;
+  let ListComponent: Component;
   componentSubs.push(state.subscribe('config.components.List', value => (ListComponent = value)));
-  let ChartComponent;
+  let ChartComponent: Component;
   componentSubs.push(state.subscribe('config.components.Chart', value => (ChartComponent = value)));
 
-  const List = createComponent(ListComponent);
+  const List: ComponentInstance = createComponent(ListComponent);
   onDestroy(List.destroy);
-  const Chart = createComponent(ChartComponent);
+  const Chart: ComponentInstance = createComponent(ChartComponent);
   onDestroy(Chart.destroy);
 
   onDestroy(() => {
@@ -73,23 +76,15 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
   let rowsHeight = 0;
   let resizerActive = false;
 
-  /**
-   * Update class names
-   * @param {object} classNames
-   */
-  const updateClassNames = classNames => {
-    const config = state.get('config');
+  function updateClassNames() {
     className = api.getClass(componentName);
     if (resizerActive) {
       className += ` ${componentName}__list-column-header-resizer--active`;
     }
     update();
-  };
+  }
   onDestroy(state.subscribe('config.classNames', updateClassNames));
 
-  /**
-   * Height change
-   */
   function heightChange() {
     const config = state.get('config');
     const scrollBarHeight = state.get('config.scroll.horizontal.size');
@@ -102,11 +97,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     state.subscribeAll(['config.height', 'config.headerHeight', 'config.scroll.horizontal.size'], heightChange)
   );
 
-  /**
-   * Resizer active change
-   * @param {boolean} active
-   */
-  function resizerActiveChange(active) {
+  function resizerActiveChange(active: boolean) {
     resizerActive = active;
     className = api.getClass(api.name);
     if (resizerActive) {
@@ -204,9 +195,6 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     })
   );
 
-  /**
-   * Generate visible rows
-   */
   function generateVisibleRowsAndItems() {
     const visibleRows = api.getVisibleRows(state.get('$data.list.rowsWithParentsExpanded'));
     const currentVisibleRows = state.get('$data.list.visibleRows');
@@ -468,13 +456,29 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
     return rightGlobal;
   }
 
+  function updateVisibleItems(time: DataChartTime) {
+    const visibleItems: Item[] = state.get('$data.chart.visibleItems');
+    for (const item of visibleItems) {
+      const left = api.time.getOffsetPxFromDates(item.$data.time.startDate, time.levels[time.level], time, true);
+      const right = api.time.getOffsetPxFromDates(item.$data.time.endDate, time.levels[time.level], time, false);
+      if (item.$data.position.left !== left || item.$data.position.right !== right)
+        state.update(`config.chart.items.${item.id}.$data`, ($data: ItemData) => {
+          $data.position.left = left;
+          $data.position.right = right;
+          $data.width = right - left - (state.get('config.chart.spacing') || 0);
+          return $data;
+        });
+    }
+  }
+
   let timeLoadedEventFired = false;
-  function recalculateTimes(reason) {
+
+  function recalculateTimes(reason: Reason) {
     const chartWidth: number = state.get('$data.chart.dimensions.width');
     if (!chartWidth) return;
     const configTime: ChartTime = state.get('config.chart.time');
     const calendar: ChartCalendar = state.get('config.chart.calendar');
-    const oldTime = { ...state.get('$data.chart.time') };
+    const oldTime: DataChartTime = { ...state.get('$data.chart.time') };
     let time: DataChartTime = api.mergeDeep({}, configTime);
     if ((!time.from || !time.to) && !Object.keys(state.get('config.chart.items')).length) {
       return;
@@ -605,6 +609,8 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
 
     time.leftInner = time.leftGlobal - time.finalFrom;
     time.rightInner = time.rightGlobal - time.finalFrom;
+
+    updateLevels(time, calendar.levels);
     time.leftPx = 0;
     time.rightPx = chartWidth;
     time.width = chartWidth;
@@ -613,8 +619,6 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
       time.leftPx = mainLevelDates[0].leftPx;
       time.rightPx = mainLevelDates[mainLevelDates.length - 1].leftPx;
     }
-
-    updateLevels(time, calendar.levels);
 
     state.update(`$data.chart.time`, time);
     state.update('config.chart.time', configTime => {
@@ -630,6 +634,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
       configTime.allDates = time.allDates;
       return configTime;
     });
+    updateVisibleItems(time);
     update().then(() => {
       if (!timeLoadedEventFired) {
         state.update('$data.loaded.time', true);
@@ -676,7 +681,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
       return { name: 'scroll', oldValue: cache.scrollDataIndex, newValue: dataIndex };
     if (chartWidth !== cache.chartWidth)
       return { name: 'chartWidth', oldValue: cache.chartWidth, newValue: chartWidth };
-    return false;
+    return { name: '' };
   }
 
   onDestroy(
@@ -689,7 +694,7 @@ export default function Main(vido: vido<DeepState, Api>, props = {}) {
       ],
       () => {
         let reason = recalculationIsNeeded();
-        if (reason) recalculateTimes(reason);
+        if (reason.name) recalculateTimes(reason);
       },
       { bulk: true }
     )

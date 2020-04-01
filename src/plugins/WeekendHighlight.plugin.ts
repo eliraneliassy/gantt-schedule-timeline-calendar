@@ -10,7 +10,7 @@
 
 import { Action, vido } from '@neuronet.io/vido/vido';
 import { Api } from '../api/Api';
-import DeepState from 'deep-state-observer';
+import { Vido } from '../types';
 
 export interface Options {
   weekdays?: number[];
@@ -50,7 +50,7 @@ export function Plugin(options: Options = {}) {
     }
   }
 
-  return function initialize(vidoInstance: vido<DeepState, Api>) {
+  return function initialize(vidoInstance: Vido) {
     api = vidoInstance.api;
     className = options.className || api.getClass('chart-timeline-grid-row-cell') + '--weekend';
     const destroy = vidoInstance.state.subscribe(

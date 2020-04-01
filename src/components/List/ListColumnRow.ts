@@ -8,10 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { ColumnData, Row } from '../../types';
-import { vido } from '@neuronet.io/vido/vido';
-import DeepState from 'deep-state-observer';
-import { Api } from '../../api/Api';
+import { ColumnData, Row, Vido } from '../../types';
 
 /**
  * Bind element action
@@ -42,7 +39,7 @@ export interface Props {
   columnId: string;
 }
 
-export default function ListColumnRow(vido: vido<DeepState, Api>, props: Props) {
+export default function ListColumnRow(vido: Vido, props: Props) {
   const {
     api,
     state,

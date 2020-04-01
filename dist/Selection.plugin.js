@@ -100,6 +100,7 @@
           enabled: true,
           isSelecting: false,
           pointerState: 'up',
+          targetType: '',
           initialPosition: { x: 0, y: 0 },
           currentPosition: { x: 0, y: 0 },
           selectionArea: { x: 0, y: 0, width: 0, height: 0 },
@@ -180,7 +181,7 @@
           return current;
       }
       onPointerData() {
-          if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-grid-row-cell') {
+          if (this.poitnerData.isMoving && this.poitnerData.targetType === CELL) {
               this.data.isSelecting = true;
               this.data.selectionArea = this.getSelectionArea();
               const selectingItems = this.getItemsUnderSelectionArea();
@@ -190,7 +191,7 @@
               }
               // TODO save selecting items and cells
           }
-          else if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-items-row-item') {
+          else if (this.poitnerData.isMoving && this.poitnerData.targetType === ITEM) {
               this.data.isSelecting = false;
               this.data.selectionArea = this.getSelectionArea();
               this.data.currentPosition = this.poitnerData.currentPosition;
@@ -208,6 +209,7 @@
           }
           this.data.events = this.poitnerData.events;
           this.data.pointerState = this.poitnerData.pointerState;
+          this.data.targetType = this.poitnerData.targetType;
           this.updateData();
       }
   }

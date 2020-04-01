@@ -1,6 +1,11 @@
 import { lithtml } from '@neuronet.io/vido';
 import { Dayjs, OpUnitType } from 'dayjs/index.d';
 import { Properties as CSSProps } from 'csstype';
+import { vido } from '@neuronet.io/vido/vido';
+import DeepState from 'deep-state-observer';
+import { Api } from './api/Api';
+
+export type Vido = vido<DeepState, Api>;
 
 export interface RowData {
   actualHeight: number;
@@ -56,10 +61,18 @@ export interface ItemDataTime {
   endDate: Dayjs;
 }
 
+export interface ItemDataPosition {
+  left: number;
+  right: number;
+  top: number;
+}
+
 export interface ItemData {
   time: ItemDataTime;
-  actualHeight?: number;
-  outerHeight?: number;
+  actualHeight: number;
+  outerHeight: number;
+  position: ItemDataPosition;
+  width: number;
 }
 
 export interface Item {
@@ -501,4 +514,10 @@ export interface Data {
   chart: DataChart;
   elements: DataElements;
   loaded: DataLoaded;
+}
+
+export interface Reason {
+  name: string;
+  oldValue?: unknown;
+  newValue?: unknown;
 }

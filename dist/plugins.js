@@ -254,7 +254,7 @@ function prepareOptions(options) {
 }
 const pluginPath = 'config.plugin.ItemMovement';
 function gemerateEmptyPluginData(options) {
-    return Object.assign({ moving: [], lastMoved: [], movement: {
+    return Object.assign({ moving: [], lastMoved: [], state: 'up', pointerMoved: false, movement: {
             px: { horizontal: 0, vertical: 0 },
             time: 0
         }, onStart(items) {
@@ -276,7 +276,6 @@ function gemerateEmptyPluginData(options) {
 class ItemMovement {
     constructor(vido) {
         this.onDestroy = [];
-        this.lastPointerState = 'up';
         this.vido = vido;
         this.api = vido.api;
         this.state = vido.state;
@@ -292,32 +291,64 @@ class ItemMovement {
     updateData() {
         this.state.update(pluginPath, this.data);
     }
-    getItemTime(currentTime) {
-        return currentTime;
+    getItemMovingTime(item, type, time) {
+        const dates = time.allDates[time.level];
+        const x = type === 'left'
+            ? item.$data.position.left + time.leftPx + this.data.movement.px.horizontal
+            : item.$data.position.right + time.leftPx + this.data.movement.px.horizontal;
+        const date = this.api.time.findDateAtOffsetPx(x, dates);
+        return date.leftGlobalDate.clone();
     }
     moveItems() {
+        const time = this.state.get('$data.chart.time');
         for (const item of this.data.lastMoved) {
-            const startTime = this.getItemTime(item.$data.time.startDate);
+            const startTime = this.getItemMovingTime(item, 'left', time);
+            const endTime = this.getItemMovingTime(item, 'right', time);
+            this.state.update(`config.chart.items.${item.id}.time`, (itemTime) => {
+                itemTime.start = startTime.valueOf();
+                itemTime.end = endTime.valueOf();
+                return itemTime;
+            });
+            this.state.update(`config.chart.items.${item.id}.$data.time`, (itemDataTime) => {
+                itemDataTime.startDate = startTime;
+                itemDataTime.endDate = endTime;
+                return itemDataTime;
+            });
         }
     }
+    clearSelection() {
+        this.data.moving = [];
+        this.data.lastMoved = [];
+        this.data.movement.px.horizontal = 0;
+        this.data.movement.px.vertical = 0;
+        this.data.movement.time = 0;
+        this.data.state = 'up';
+        this.data.pointerMoved = false;
+    }
     updatePointerState() {
-        if (this.lastPointerState === 'up' && this.selection.pointerState === 'down') {
+        if (this.data.state === 'up' && this.selection.pointerState === 'down') {
             this.data.onStart(this.data.moving);
         }
-        else if ((this.lastPointerState === 'down' || this.lastPointerState === 'move') &&
-            this.selection.pointerState === 'up') {
+        else if ((this.data.state === 'down' || this.data.state === 'move') && this.selection.pointerState === 'up') {
             this.data.moving = [];
             this.data.onEnd(this.data.lastMoved);
+            this.clearSelection();
         }
         else if (this.selection.pointerState === 'move') {
+            if (this.data.movement.px.horizontal || this.data.movement.px.vertical) {
+                this.data.pointerMoved = true;
+            }
             this.data.onMove(this.data.moving);
         }
-        this.lastPointerState = this.selection.pointerState;
+        this.data.state = this.selection.pointerState;
     }
     onSelectionChange(data) {
         if (!this.data.enabled)
             return;
         this.selection = data;
+        if (this.selection.targetType !== ITEM) {
+            return this.clearSelection();
+        }
         if (this.selection.events.move) {
             this.selection.events.move.preventDefault();
             this.selection.events.move.stopPropagation();
@@ -329,9 +360,9 @@ class ItemMovement {
         this.data.moving = [...this.selection.selected[ITEM]];
         if (this.data.moving.length)
             this.data.lastMoved = [...this.data.moving];
-        this.updatePointerState();
         this.data.movement.px.horizontal = this.selection.currentPosition.x - this.selection.initialPosition.x;
         this.data.movement.px.vertical = this.selection.currentPosition.y - this.selection.initialPosition.y;
+        this.updatePointerState();
         this.moveItems();
         this.updateData();
     }
@@ -432,6 +463,7 @@ function generateEmptyData() {
         enabled: true,
         isSelecting: false,
         pointerState: 'up',
+        targetType: '',
         initialPosition: { x: 0, y: 0 },
         currentPosition: { x: 0, y: 0 },
         selectionArea: { x: 0, y: 0, width: 0, height: 0 },
@@ -512,7 +544,7 @@ class SelectionPlugin {
         return current;
     }
     onPointerData() {
-        if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-grid-row-cell') {
+        if (this.poitnerData.isMoving && this.poitnerData.targetType === CELL) {
             this.data.isSelecting = true;
             this.data.selectionArea = this.getSelectionArea();
             const selectingItems = this.getItemsUnderSelectionArea();
@@ -522,7 +554,7 @@ class SelectionPlugin {
             }
             // TODO save selecting items and cells
         }
-        else if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-items-row-item') {
+        else if (this.poitnerData.isMoving && this.poitnerData.targetType === ITEM) {
             this.data.isSelecting = false;
             this.data.selectionArea = this.getSelectionArea();
             this.data.currentPosition = this.poitnerData.currentPosition;
@@ -540,6 +572,7 @@ class SelectionPlugin {
         }
         this.data.events = this.poitnerData.events;
         this.data.pointerState = this.poitnerData.pointerState;
+        this.data.targetType = this.poitnerData.targetType;
         this.updateData();
     }
 }

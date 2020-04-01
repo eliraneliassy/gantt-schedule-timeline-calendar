@@ -9,10 +9,7 @@
  */
 
 import Action from '@neuronet.io/vido/Action';
-import { ChartTimeDate, Period } from '../../../types';
-import { vido } from '@neuronet.io/vido/vido';
-import DeepState from 'deep-state-observer';
-import { Api } from '../../../api/Api';
+import { ChartTimeDate, Period, Vido } from '../../../types';
 
 /**
  * Save element
@@ -40,7 +37,7 @@ export interface Props {
   period: Period;
 }
 
-export default function ChartCalendarDay(vido: vido<DeepState, Api>, props: Props) {
+export default function ChartCalendarDay(vido: Vido, props: Props) {
   const { api, state, onDestroy, Actions, update, onChange, html, StyleMap, Detach } = vido;
 
   const componentName = 'chart-calendar-date';

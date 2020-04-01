@@ -5799,22 +5799,14 @@ function Main(vido, props = {}) {
     const styleMap = new StyleMap({});
     let rowsHeight = 0;
     let resizerActive = false;
-    /**
-     * Update class names
-     * @param {object} classNames
-     */
-    const updateClassNames = classNames => {
-        const config = state.get('config');
+    function updateClassNames() {
         className = api.getClass(componentName);
         if (resizerActive) {
             className += ` ${componentName}__list-column-header-resizer--active`;
         }
         update();
-    };
+    }
     onDestroy(state.subscribe('config.classNames', updateClassNames));
-    /**
-     * Height change
-     */
     function heightChange() {
         const config = state.get('config');
         const scrollBarHeight = state.get('config.scroll.horizontal.size');
@@ -5824,10 +5816,6 @@ function Main(vido, props = {}) {
         update();
     }
     onDestroy(state.subscribeAll(['config.height', 'config.headerHeight', 'config.scroll.horizontal.size'], heightChange));
-    /**
-     * Resizer active change
-     * @param {boolean} active
-     */
     function resizerActiveChange(active) {
         resizerActive = active;
         className = api.getClass(api.name);
@@ -5908,9 +5896,6 @@ function Main(vido, props = {}) {
         const lastPageHeight = getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded);
         state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight);
     }));
-    /**
-     * Generate visible rows
-     */
     function generateVisibleRowsAndItems() {
         const visibleRows = api.getVisibleRows(state.get('$data.list.rowsWithParentsExpanded'));
         const currentVisibleRows = state.get('$data.list.visibleRows');
@@ -6150,6 +6135,20 @@ function Main(vido, props = {}) {
         }
         return rightGlobal;
     }
+    function updateVisibleItems(time) {
+        const visibleItems = state.get('$data.chart.visibleItems');
+        for (const item of visibleItems) {
+            const left = api.time.getOffsetPxFromDates(item.$data.time.startDate, time.levels[time.level], time, true);
+            const right = api.time.getOffsetPxFromDates(item.$data.time.endDate, time.levels[time.level], time, false);
+            if (item.$data.position.left !== left || item.$data.position.right !== right)
+                state.update(`config.chart.items.${item.id}.$data`, ($data) => {
+                    $data.position.left = left;
+                    $data.position.right = right;
+                    $data.width = right - left - (state.get('config.chart.spacing') || 0);
+                    return $data;
+                });
+        }
+    }
     let timeLoadedEventFired = false;
     function recalculateTimes(reason) {
         const chartWidth = state.get('$data.chart.dimensions.width');
@@ -6267,6 +6266,7 @@ function Main(vido, props = {}) {
         limitGlobalAndSetCenter(time, updateCenter, oldTime);
         time.leftInner = time.leftGlobal - time.finalFrom;
         time.rightInner = time.rightGlobal - time.finalFrom;
+        updateLevels(time, calendar.levels);
         time.leftPx = 0;
         time.rightPx = chartWidth;
         time.width = chartWidth;
@@ -6275,7 +6275,6 @@ function Main(vido, props = {}) {
             time.leftPx = mainLevelDates[0].leftPx;
             time.rightPx = mainLevelDates[mainLevelDates.length - 1].leftPx;
         }
-        updateLevels(time, calendar.levels);
         state.update(`$data.chart.time`, time);
         state.update('config.chart.time', configTime => {
             configTime.zoom = time.zoom;
@@ -6290,6 +6289,7 @@ function Main(vido, props = {}) {
             configTime.allDates = time.allDates;
             return configTime;
         });
+        updateVisibleItems(time);
         update().then(() => {
             if (!timeLoadedEventFired) {
                 state.update('$data.loaded.time', true);
@@ -6338,7 +6338,7 @@ function Main(vido, props = {}) {
             return { name: 'scroll', oldValue: cache.scrollDataIndex, newValue: dataIndex };
         if (chartWidth !== cache.chartWidth)
             return { name: 'chartWidth', oldValue: cache.chartWidth, newValue: chartWidth };
-        return false;
+        return { name: '' };
     }
     onDestroy(state.subscribeAll([
         'config.chart.time',
@@ -6347,7 +6347,7 @@ function Main(vido, props = {}) {
         '$data.chart.dimensions.width'
     ], () => {
         let reason = recalculationIsNeeded();
-        if (reason)
+        if (reason.name)
             recalculateTimes(reason);
     }, { bulk: true }));
     onDestroy(state.subscribe('config.chart.items.*.time', items => {
@@ -6507,7 +6507,7 @@ function ScrollBar(vido, props) {
         for (let i = 0; i < len; i++) {
             const row = rows[i];
             rowsOffsets.push(top);
-            top += row.outerHeight;
+            top += row.$data.outerHeight;
         }
         const verticalHeight = state.get('config.scroll.vertical.area');
         for (const offsetTop of rowsOffsets) {
@@ -7730,6 +7730,7 @@ function Chart(vido, props = {}) {
  * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
+/** @type {Component} */
 function ChartCalendar(vido, props) {
     const { api, state, onDestroy, Actions, update, reuseComponents, html, StyleMap } = vido;
     const componentName = 'chart-calendar';
@@ -7744,7 +7745,7 @@ function ChartCalendar(vido, props) {
         update();
     }));
     let headerHeight;
-    const styleMap = new StyleMap({ height: '', '--headerHeight': '', 'margin-left': '' });
+    const styleMap = new StyleMap({ height: '', ['--headerHeight']: '', 'margin-left': '' });
     onDestroy(state.subscribe('config.headerHeight', value => {
         headerHeight = value;
         styleMap.style['height'] = headerHeight + 'px';
@@ -8541,10 +8542,8 @@ function ChartTimelineItemsRowItem(vido, props) {
             shouldDetach = true;
             return;
         }
-        itemLeftPx = api.time.getOffsetPxFromDates(api.time.date(props.item.time.start), time.levels[time.level], time, true);
-        const itemRightPx = api.time.getOffsetPxFromDates(api.time.date(props.item.time.end), time.levels[time.level], time, false);
-        itemWidthPx = itemRightPx - itemLeftPx;
-        itemWidthPx -= state.get('config.chart.spacing') || 0;
+        itemLeftPx = props.item.$data.position.left;
+        itemWidthPx = props.item.$data.width;
         if (itemWidthPx <= 0) {
             shouldDetach = true;
             return;
@@ -10367,7 +10366,13 @@ function getDataApi(state) {
                     item.$data = {
                         actualHeight: 0,
                         outerHeight: 0,
-                        time: null
+                        time: null,
+                        position: {
+                            left: 0,
+                            right: 0,
+                            top: 0
+                        },
+                        width: 0
                     };
                 if (!item.$data.time)
                     item.$data.time = {

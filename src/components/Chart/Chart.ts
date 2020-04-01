@@ -9,11 +9,9 @@
  */
 
 import ResizeObserver from 'resize-observer-polyfill';
-import { vido } from '@neuronet.io/vido/vido';
-import DeepState from 'deep-state-observer';
-import { Api } from '../../api/Api';
+import { Vido } from '../../types';
 
-export default function Chart(vido: vido<DeepState, Api>, props = {}) {
+export default function Chart(vido: Vido, props = {}) {
   const { api, state, onDestroy, Actions, update, html, createComponent } = vido;
   const componentName = 'chart';
 

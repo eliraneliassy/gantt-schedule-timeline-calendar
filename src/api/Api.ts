@@ -174,7 +174,13 @@ export function getDataApi(state) {
           item.$data = {
             actualHeight: 0,
             outerHeight: 0,
-            time: null
+            time: null,
+            position: {
+              left: 0,
+              right: 0,
+              top: 0
+            },
+            width: 0
           };
         if (!item.$data.time)
           item.$data.time = {

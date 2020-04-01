@@ -8,10 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Row, Item } from '../../../types';
-import { vido } from '@neuronet.io/vido/vido';
-import DeepState from 'deep-state-observer';
-import { Api } from '../../../api/Api';
+import { Row, Item, Vido } from '../../../types';
 
 /**
  * Bind element action
@@ -42,7 +39,7 @@ export interface Props {
   item: Item;
 }
 
-export default function ChartTimelineItemsRowItem(vido: vido<DeepState, Api>, props: Props) {
+export default function ChartTimelineItemsRowItem(vido: Vido, props: Props) {
   const { api, state, onDestroy, Detach, Actions, update, html, svg, onChange, unsafeHTML, StyleMap } = vido;
 
   let wrapper;
@@ -70,20 +67,8 @@ export default function ChartTimelineItemsRowItem(vido: vido<DeepState, Api>, pr
       shouldDetach = true;
       return;
     }
-    itemLeftPx = api.time.getOffsetPxFromDates(
-      api.time.date(props.item.time.start),
-      time.levels[time.level],
-      time,
-      true
-    );
-    const itemRightPx = api.time.getOffsetPxFromDates(
-      api.time.date(props.item.time.end),
-      time.levels[time.level],
-      time,
-      false
-    );
-    itemWidthPx = itemRightPx - itemLeftPx;
-    itemWidthPx -= state.get('config.chart.spacing') || 0;
+    itemLeftPx = props.item.$data.position.left;
+    itemWidthPx = props.item.$data.width;
     if (itemWidthPx <= 0) {
       shouldDetach = true;
       return;

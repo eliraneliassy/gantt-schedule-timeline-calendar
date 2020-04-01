@@ -8,15 +8,13 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { vido } from '@neuronet.io/vido/vido';
-import DeepState from 'deep-state-observer';
-import { Api } from '../../api/Api';
+import { Vido } from '../../types';
 
 export interface Props {
   columnId: string;
 }
 
-export default function ListColumnHeaderResizer(vido: vido<DeepState, Api>, props: Props) {
+export default function ListColumnHeaderResizer(vido: Vido, props: Props) {
   const { api, state, onDestroy, update, html, Actions, PointerAction, cache, StyleMap } = vido;
 
   const componentName = 'list-column-header-resizer';

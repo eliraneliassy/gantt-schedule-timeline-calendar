@@ -8,11 +8,18 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { PluginData as TimelinePointerPluginData, ITEM, CELL, Point, PointerState } from '../TimelinePointer.plugin';
+import {
+  PluginData as TimelinePointerPluginData,
+  ITEM,
+  ITEM_TYPE,
+  CELL,
+  CELL_TYPE,
+  Point,
+  PointerState
+} from '../TimelinePointer.plugin';
 
 import { Wrap } from './Wrapper';
-import { Item, Cell, Items } from '../../types';
-import { vido } from '@neuronet.io/vido/vido';
+import { Item, Cell, Items, Vido } from '../../types';
 import DeepState from 'deep-state-observer';
 import { Api } from '../../api/Api';
 
@@ -93,6 +100,7 @@ export interface PluginData {
   selected: Selection;
   selecting: Selection;
   events: PointerEvents;
+  targetType: ITEM_TYPE | CELL_TYPE | '';
 }
 
 function generateEmptyData(): PluginData {
@@ -100,6 +108,7 @@ function generateEmptyData(): PluginData {
     enabled: true,
     isSelecting: false,
     pointerState: 'up',
+    targetType: '',
     initialPosition: { x: 0, y: 0 },
     currentPosition: { x: 0, y: 0 },
     selectionArea: { x: 0, y: 0, width: 0, height: 0 },
@@ -122,13 +131,13 @@ function generateEmptyData(): PluginData {
 class SelectionPlugin {
   private data: PluginData;
   private poitnerData: TimelinePointerPluginData;
-  private vido: vido<DeepState, Api>;
+  private vido: Vido;
   private state: DeepState;
   private api: Api;
   private options: Options;
   private unsub = [];
 
-  constructor(vido: vido<DeepState, Api>, options: Options) {
+  constructor(vido: Vido, options: Options) {
     this.vido = vido;
     this.state = vido.state;
     this.api = vido.api;
@@ -196,7 +205,7 @@ class SelectionPlugin {
   }
 
   private onPointerData() {
-    if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-grid-row-cell') {
+    if (this.poitnerData.isMoving && this.poitnerData.targetType === CELL) {
       this.data.isSelecting = true;
       this.data.selectionArea = this.getSelectionArea();
       const selectingItems = this.getItemsUnderSelectionArea();
@@ -205,7 +214,7 @@ class SelectionPlugin {
         this.data.selected[ITEM].length = 0;
       }
       // TODO save selecting items and cells
-    } else if (this.poitnerData.isMoving && this.poitnerData.targetType === 'chart-timeline-items-row-item') {
+    } else if (this.poitnerData.isMoving && this.poitnerData.targetType === ITEM) {
       this.data.isSelecting = false;
       this.data.selectionArea = this.getSelectionArea();
       this.data.currentPosition = this.poitnerData.currentPosition;
@@ -222,6 +231,7 @@ class SelectionPlugin {
     }
     this.data.events = this.poitnerData.events;
     this.data.pointerState = this.poitnerData.pointerState;
+    this.data.targetType = this.poitnerData.targetType;
     this.updateData();
   }
 }
@@ -229,7 +239,7 @@ class SelectionPlugin {
 export function Plugin(options: Options = {}) {
   options = prepareOptions(options);
 
-  return function initialize(vidoInstance: vido<DeepState, Api>) {
+  return function initialize(vidoInstance: Vido) {
     const selectionPlugin = new SelectionPlugin(vidoInstance, options);
     vidoInstance.state.update(pluginPath, generateEmptyData());
     vidoInstance.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {

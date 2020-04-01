@@ -8,16 +8,12 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Row } from '../../types';
-import { vido } from '@neuronet.io/vido/vido';
-import DeepState from 'deep-state-observer';
-import { Api } from '../../api/Api';
-
+import { Row, Vido } from '../../types';
 export interface Props {
   row: Row;
 }
 
-export default function ListColumnRowExpanderToggle(vido: vido<DeepState, Api>, props: Props) {
+export default function ListColumnRowExpanderToggle(vido: Vido, props: Props) {
   const { api, state, onDestroy, Actions, update, html, onChange, cache } = vido;
   const componentName = 'list-column-row-expander-toggle';
   const actionProps = { ...props, api, state };

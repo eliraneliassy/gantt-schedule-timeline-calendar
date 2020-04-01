@@ -8,10 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Row } from '../../../types';
-import { vido } from '@neuronet.io/vido/vido';
-import DeepState from 'deep-state-observer';
-import { Api } from '../../../api/Api';
+import { Row, Vido } from '../../../types';
 
 /**
  * Bind element action
@@ -43,7 +40,7 @@ export interface Props {
   row: Row;
 }
 
-const ChartTimelineItemsRow = (vido: vido<DeepState, Api>, props: Props) => {
+const ChartTimelineItemsRow = (vido: Vido, props: Props) => {
   const { api, state, onDestroy, Detach, Actions, update, html, onChange, reuseComponents, StyleMap } = vido;
   const actionProps = { ...props, api, state };
   let wrapper;
