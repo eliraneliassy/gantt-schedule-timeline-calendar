@@ -10,13 +10,13 @@
 import 'pepjs';
 import Vido from '@neuronet.io/vido/vido';
 //import Vido from '../../vido/vido';
-import publicApi, { getDataApi } from './api/Api';
+import { publicApi, Api } from './api/Api';
 import Main from './components/Main';
 import { Data } from './types';
 
 function GSTC(options) {
   const state = options.state;
-  const api = getDataApi(state);
+  const api = new Api(state);
   const $data: Data = {
     components: {
       Main

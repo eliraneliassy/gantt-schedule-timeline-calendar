@@ -131,6 +131,7 @@ class ItemMovement {
         ? item.$data.position.left + time.leftPx + this.data.movement.px.horizontal
         : item.$data.position.right + time.leftPx + this.data.movement.px.horizontal;
     const date = this.api.time.findDateAtOffsetPx(x, dates);
+
     return date.leftGlobalDate.clone();
   }
 
