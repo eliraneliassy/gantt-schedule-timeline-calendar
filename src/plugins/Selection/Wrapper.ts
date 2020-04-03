@@ -39,6 +39,7 @@ function ChartTimelineWrapper(input, props) {
 }
 
 export function Wrap(oldWrapper, vidoInstance: Vido) {
+  if (wrapped) return;
   wrapped = oldWrapper;
   vido = vidoInstance;
   api = vido.api;
