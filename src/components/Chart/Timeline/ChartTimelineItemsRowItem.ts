@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Row, Item, Vido } from '../../../types';
+import { Row, Item, Vido, Rows, DataChartTime } from '../../../types';
 
 /**
  * Bind element action
@@ -62,13 +62,13 @@ export default function ChartTimelineItemsRowItem(vido: Vido, props: Props) {
     };
   let shouldDetach = false;
 
-  function updateItem(time = state.get('$data.chart.time')) {
+  function updateItem(time: DataChartTime = state.get('$data.chart.time')) {
     if (leave || time.levels.length === 0 || !time.levels[time.level] || time.levels[time.level].length === 0) {
       shouldDetach = true;
       return;
     }
-    itemLeftPx = props.item.$data.position.left;
-    itemWidthPx = props.item.$data.width;
+    itemLeftPx = props.item.$data.position.actualLeft;
+    itemWidthPx = props.item.$data.actualWidth;
     if (itemWidthPx <= 0) {
       shouldDetach = true;
       return;
@@ -80,7 +80,7 @@ export default function ChartTimelineItemsRowItem(vido: Vido, props: Props) {
     } else {
       leftCutStyleMap.style.display = 'none';
     }
-    if (props.item.time.end > time.rightGlobal) {
+    if (props.item.$data.position.right > time.width) {
       rightCutStyleMap.style.display = 'block';
       classNameCurrent += ' ' + className + '--right-cut';
     } else {
@@ -111,7 +111,7 @@ export default function ChartTimelineItemsRowItem(vido: Vido, props: Props) {
       styleMap.style.top = oldTop;
       styleMap.style.height = oldHeight;
     }
-    const rows = state.get('config.list.rows');
+    const rows: Rows = state.get('config.list.rows');
     for (const parentId of props.row.$data.parents) {
       const parent = rows[parentId];
       const childrenStyle = parent?.style?.items?.item?.children;

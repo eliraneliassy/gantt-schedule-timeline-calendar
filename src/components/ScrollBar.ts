@@ -86,21 +86,17 @@ export default function ScrollBar(vido: Vido, props: Props) {
     if (!date) return;
     const horizontal: ScrollTypeHorizontal = state.get('config.scroll.horizontal');
     if (horizontal.data && horizontal.data.leftGlobal === date.leftGlobal) return;
-    state.update(
-      'config.scroll.horizontal',
-      (scrollHorizontal: ScrollTypeHorizontal) => {
-        scrollHorizontal.data = date;
-        const time = state.get('$data.chart.time');
-        scrollHorizontal.posPx = api.time.calculateScrollPosPxFromTime(
-          scrollHorizontal.data.leftGlobal,
-          time,
-          scrollHorizontal
-        );
-        scrollHorizontal.dataIndex = dataIndex;
-        return scrollHorizontal;
-      },
-      { queue: true }
-    );
+    state.update('config.scroll.horizontal', (scrollHorizontal: ScrollTypeHorizontal) => {
+      scrollHorizontal.data = date;
+      const time = state.get('$data.chart.time');
+      scrollHorizontal.posPx = api.time.calculateScrollPosPxFromTime(
+        scrollHorizontal.data.leftGlobal,
+        time,
+        scrollHorizontal
+      );
+      scrollHorizontal.dataIndex = dataIndex;
+      return scrollHorizontal;
+    });
   }
 
   function setScrollTop(dataIndex: number | undefined) {
@@ -124,31 +120,27 @@ export default function ScrollBar(vido: Vido, props: Props) {
   if (props.type === 'horizontal') {
     let lastDataIndex = 0;
     onDestroy(
-      state.subscribe(
-        '$data.chart.time',
-        () => {
-          const time = state.get('$data.chart.time');
-          if (!time.leftGlobalDate) return;
-          const horizontal = state.get('config.scroll.horizontal');
-          if (horizontal.area !== time.scrollWidth) {
-            state.update('config.scroll.horizontal.area', time.scrollWidth);
+      state.subscribe('$data.chart.time', () => {
+        const time = state.get('$data.chart.time');
+        if (!time.leftGlobalDate) return;
+        const horizontal = state.get('config.scroll.horizontal');
+        if (horizontal.area !== time.scrollWidth) {
+          state.update('config.scroll.horizontal.area', time.scrollWidth);
+        }
+        if (time.allDates && time.allDates[time.level]) {
+          const dates = time.allDates[time.level];
+          const date = dates.find(date => date.leftGlobal === time.leftGlobal);
+          let dataIndex = dates.indexOf(date);
+          const lastPageCount = state.get('config.scroll.horizontal.lastPageCount');
+          if (dataIndex > dates.length - lastPageCount) {
+            dataIndex = dates.length - lastPageCount;
           }
-          if (time.allDates && time.allDates[time.level]) {
-            const dates = time.allDates[time.level];
-            const date = dates.find(date => date.leftGlobal === time.leftGlobal);
-            let dataIndex = dates.indexOf(date);
-            const lastPageCount = state.get('config.scroll.horizontal.lastPageCount');
-            if (dataIndex > dates.length - lastPageCount) {
-              dataIndex = dates.length - lastPageCount;
-            }
-            if (dataIndex !== lastDataIndex) {
-              setScrollLeft(dataIndex);
-            }
-            lastDataIndex = dataIndex;
+          if (dataIndex !== lastDataIndex) {
+            setScrollLeft(dataIndex);
           }
-        },
-        { queue: true }
-      )
+          lastDataIndex = dataIndex;
+        }
+      })
     );
   }
 

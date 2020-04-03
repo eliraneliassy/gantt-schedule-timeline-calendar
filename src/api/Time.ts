@@ -18,18 +18,15 @@ import {
   Period,
   ChartCalendarLevel
 } from '../types';
-import advancedFormat from 'dayjs/plugin/advancedFormat';
-import weekOfYear from 'dayjs/plugin/weekOfYear';
-
-dayjs.extend(advancedFormat);
-dayjs.extend(weekOfYear);
 
 export default class TimeApi {
   private locale: Locale;
   private utcMode = false;
   private state: any;
+  public dayjs: typeof dayjs;
 
   constructor(state) {
+    this.dayjs = dayjs;
     this.state = state;
     this.locale = state.get('config.locale');
     this.utcMode = state.get('config.utcMode');
@@ -106,29 +103,42 @@ export default class TimeApi {
     return time.leftGlobal + (time.rightGlobal - time.leftGlobal) / 2;
   }
 
-  public getOffsetPxFromDates(
-    date: Dayjs,
-    levelDates: DataChartTimeLevelDate[],
-    time: DataChartTime,
-    fromLeft = true
-  ): number {
+  public getGlobalOffsetPxFromDates(date: Dayjs, time: DataChartTime = this.state.get('$data.chart.time')): number {
     const milliseconds = date.valueOf();
-    let firstMatching;
+    const dates = time.allDates[time.level];
+    if (!dates) return -1;
+    let firstMatching: ChartTimeDate;
     // find first date that is after milliseconds
-    for (let i = 0, len = levelDates.length; i < len; i++) {
-      const currentDate = levelDates[i];
-      if (currentDate.rightGlobal >= milliseconds) {
-        firstMatching = levelDates[i];
+    for (let i = 0, len = dates.length; i < len; i++) {
+      const currentDate = dates[i];
+      if (milliseconds >= currentDate.leftGlobal && milliseconds <= currentDate.rightGlobal) {
+        firstMatching = dates[i];
         break;
       }
     }
     if (firstMatching) {
-      return fromLeft ? firstMatching.currentView.leftPx : firstMatching.currentView.rightPx;
+      return firstMatching.leftPx + (milliseconds - firstMatching.leftGlobal) / time.timePerPixel;
     } else {
       // date is out of the current scope (view)
       if (date.valueOf() < time.leftGlobal) return 0;
       return time.width;
     }
+  }
+
+  public getViewOffsetPxFromDates(
+    date: Dayjs,
+    limitToView = true,
+    time: DataChartTime = this.state.get('$data.chart.time')
+  ) {
+    const result = this.getGlobalOffsetPxFromDates(date, time) - time.leftPx;
+    if (limitToView) this.limitOffsetPxToView(result);
+    return result;
+  }
+
+  public limitOffsetPxToView(x: number, time: DataChartTime = this.state.get('$data.chart.time')): number {
+    if (x < 0) return 0;
+    if (x > time.width) return time.width;
+    return x;
   }
 
   public findDateAtOffsetPx(offsetPx: number, allPeriodDates: ChartTimeDate[]): ChartTimeDate | undefined {
@@ -137,6 +147,61 @@ export default class TimeApi {
 
   public findDateAtTime(milliseconds: number, allPeriodDates: ChartTimeDate[]): ChartTimeDate | undefined {
     return allPeriodDates.find(date => date.rightGlobal >= milliseconds);
+  }
+
+  public getTimeFromViewOffsetPx(offsetPx: number, time: DataChartTime): number {
+    const finalOffset = offsetPx + time.leftPx;
+    let dates: DataChartTimeLevelDate[] = time.allDates[time.level];
+    if (finalOffset < 0) {
+      // we need to generate some dates before and update leftPx to negative values
+      let date: ChartTimeDate;
+      let leftDate = time.leftGlobalDate.subtract(1, time.period);
+      let left = 0;
+      // I think that 1000 is enough to find any date and doesn't get stuck at infinite loop
+      for (let i = 0; i < 1000; i++) {
+        date = this.generatePeriodDates({
+          leftDate,
+          rightDate: leftDate.add(1, time.period),
+          period: time.period,
+          time,
+          level: this.state.get(`config.chart.calendar.levels.${time.level}`),
+          levelIndex: time.level
+        })[0];
+        left -= date.width;
+        if (left <= finalOffset) {
+          return date.leftGlobal + Math.round((Math.abs(finalOffset) - Math.abs(date.leftPx)) * time.timePerPixel);
+        }
+        leftDate = leftDate.subtract(1, time.period).startOf(time.period);
+      }
+    } else if (finalOffset > time.totalViewDurationPx) {
+      // we need to generate some dates after and update leftPx
+      let date: ChartTimeDate;
+      let leftDate = time.rightGlobalDate;
+      let left = time.rightPx;
+      // I think that 1000 is enough to find any date and doesn't get stuck at infinite loop
+      for (let i = 0; i < 1000; i++) {
+        date = this.generatePeriodDates({
+          leftDate,
+          rightDate: leftDate.add(1, time.period),
+          period: time.period,
+          time,
+          level: this.state.get(`config.chart.calendar.levels.${time.level}`),
+          levelIndex: time.level
+        })[0];
+        left += date.width;
+        if (left >= finalOffset) {
+          return date.leftGlobal + Math.round((Math.abs(finalOffset) - Math.abs(date.leftPx)) * time.timePerPixel);
+        }
+        leftDate = leftDate.add(1, time.period).startOf(time.period);
+      }
+    }
+    for (let i = 0, len = dates.length; i < len; i++) {
+      let date = dates[i];
+      if (date.leftPx >= finalOffset) {
+        return date.leftGlobal + Math.round((finalOffset - date.leftPx) * time.timePerPixel);
+      }
+    }
+    return -1;
   }
 
   public calculateScrollPosPxFromTime(
@@ -169,7 +234,7 @@ export default class TimeApi {
     level: ChartCalendarLevel;
     levelIndex: number;
     time: DataChartTime;
-  }) {
+  }): DataChartTimeLevelDate[] {
     if (!time.timePerPixel) return [];
     let leftPx = 0;
     const diff = Math.ceil(rightDate.diff(leftDate, period, true));

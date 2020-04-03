@@ -6141,20 +6141,38 @@
 	        }
 	        return rightGlobal;
 	    }
-	    function updateVisibleItems(time) {
+	    function updateVisibleItems(time = state.get('$data.chart.time')) {
 	        const visibleItems = state.get('$data.chart.visibleItems');
+	        if (!time.levels || !time.levels[time.level])
+	            return;
+	        let multi = state.multi();
 	        for (const item of visibleItems) {
-	            const left = api.time.getOffsetPxFromDates(item.$data.time.startDate, time.levels[time.level], time, true);
-	            const right = api.time.getOffsetPxFromDates(item.$data.time.endDate, time.levels[time.level], time, false);
-	            if (item.$data.position.left !== left || item.$data.position.right !== right)
-	                state.update(`config.chart.items.${item.id}.$data`, ($data) => {
+	            const left = api.time.getViewOffsetPxFromDates(item.$data.time.startDate, false, time);
+	            const right = api.time.getViewOffsetPxFromDates(item.$data.time.endDate, false, time);
+	            if (item.$data.position.left !== left || item.$data.position.right !== right) {
+	                multi = multi.update(`config.chart.items.${item.id}.$data`, ($data) => {
 	                    $data.position.left = left;
+	                    $data.position.actualLeft = api.time.limitOffsetPxToView(left, time);
 	                    $data.position.right = right;
+	                    $data.position.actualRight = api.time.limitOffsetPxToView(right, time);
 	                    $data.width = right - left - (state.get('config.chart.spacing') || 0);
+	                    $data.actualWidth =
+	                        $data.position.actualRight - $data.position.actualLeft - (state.get('config.chart.spacing') || 0);
 	                    return $data;
 	                });
+	            }
 	        }
+	        multi.done();
+	        update();
 	    }
+	    onDestroy(state.subscribeAll([
+	        'config.scroll.vertical',
+	        'config.chart.items.*.time',
+	        'config.chart.items.*.$data.position',
+	        'config.chart.items.*.$data.time'
+	    ], () => {
+	        updateVisibleItems();
+	    }));
 	    let timeLoadedEventFired = false;
 	    function recalculateTimes(reason) {
 	        const chartWidth = state.get('$data.chart.dimensions.width');
@@ -6281,8 +6299,10 @@
 	            time.leftPx = mainLevelDates[0].leftPx;
 	            time.rightPx = mainLevelDates[mainLevelDates.length - 1].leftPx;
 	        }
-	        state.update(`$data.chart.time`, time);
-	        state.update('config.chart.time', configTime => {
+	        state
+	            .multi()
+	            .update(`$data.chart.time`, time)
+	            .update('config.chart.time', configTime => {
 	            configTime.zoom = time.zoom;
 	            configTime.period = time.format.period;
 	            configTime.leftGlobal = time.leftGlobal;
@@ -6294,7 +6314,8 @@
 	            configTime.finalTo = time.finalTo;
 	            configTime.allDates = time.allDates;
 	            return configTime;
-	        });
+	        })
+	            .done();
 	        updateVisibleItems(time);
 	        update().then(() => {
 	            if (!timeLoadedEventFired) {
@@ -6549,7 +6570,7 @@
 	            scrollHorizontal.posPx = api.time.calculateScrollPosPxFromTime(scrollHorizontal.data.leftGlobal, time, scrollHorizontal);
 	            scrollHorizontal.dataIndex = dataIndex;
 	            return scrollHorizontal;
-	        }, { queue: true });
+	        });
 	    }
 	    function setScrollTop(dataIndex) {
 	        if (dataIndex === undefined) {
@@ -6592,7 +6613,7 @@
 	                }
 	                lastDataIndex = dataIndex;
 	            }
-	        }, { queue: true }));
+	        }));
 	    }
 	    const cache = {
 	        maxPosPx: 0,
@@ -8399,7 +8420,7 @@
 	        });
 	    }
 	}
-	const ChartTimelineItemsRow = (vido, props) => {
+	function ChartTimelineItemsRow(vido, props) {
 	    const { api, state, onDestroy, Detach, Actions, update, html, onChange, reuseComponents, StyleMap } = vido;
 	    const actionProps = Object.assign(Object.assign({}, props), { api, state });
 	    let wrapper;
@@ -8493,7 +8514,7 @@
         </div>
       `, { props, vido, templateProps });
 	    };
-	};
+	}
 
 	/**
 	 * ChartTimelineItemsRowItem component
@@ -8548,8 +8569,8 @@
 	            shouldDetach = true;
 	            return;
 	        }
-	        itemLeftPx = props.item.$data.position.left;
-	        itemWidthPx = props.item.$data.width;
+	        itemLeftPx = props.item.$data.position.actualLeft;
+	        itemWidthPx = props.item.$data.actualWidth;
 	        if (itemWidthPx <= 0) {
 	            shouldDetach = true;
 	            return;
@@ -8562,7 +8583,7 @@
 	        else {
 	            leftCutStyleMap.style.display = 'none';
 	        }
-	        if (props.item.time.end > time.rightGlobal) {
+	        if (props.item.$data.position.right > time.width) {
 	            rightCutStyleMap.style.display = 'block';
 	            classNameCurrent += ' ' + className + '--right-cut';
 	        }
@@ -9118,14 +9139,6 @@
 	!function(t,i){module.exports=i();}(commonjsGlobal,function(){return function(t,i,e){var s=(new Date).getTimezoneOffset(),n=i.prototype;e.utc=function(t,e){return new i({date:t,utc:!0,format:e})},n.utc=function(){return e(this.toDate(),{locale:this.$L,utc:!0})},n.local=function(){return e(this.toDate(),{locale:this.$L,utc:!1})};var u=n.parse;n.parse=function(t){t.utc&&(this.$u=!0),this.$utils().u(t.$offset)||(this.$offset=t.$offset),u.call(this,t);};var o=n.init;n.init=function(){if(this.$u){var t=this.$d;this.$y=t.getUTCFullYear(),this.$M=t.getUTCMonth(),this.$D=t.getUTCDate(),this.$W=t.getUTCDay(),this.$H=t.getUTCHours(),this.$m=t.getUTCMinutes(),this.$s=t.getUTCSeconds(),this.$ms=t.getUTCMilliseconds();}else o.call(this);};var f=n.utcOffset;n.utcOffset=function(t){var i=this.$utils().u;if(i(t))return this.$u?0:i(this.$offset)?f.call(this):this.$offset;var e,n=Math.abs(t)<=16?60*t:t;return 0!==t?(e=this.local().add(n+s,"minute")).$offset=n:e=this.utc(),e};var r=n.format;n.format=function(t){var i=t||(this.$u?"YYYY-MM-DDTHH:mm:ss[Z]":"");return r.call(this,i)},n.valueOf=function(){var t=this.$utils().u(this.$offset)?0:this.$offset+s;return this.$d.valueOf()-6e4*t},n.isUTC=function(){return !!this.$u},n.toISOString=function(){return this.toDate().toISOString()},n.toString=function(){return this.toDate().toUTCString()};}});
 	});
 
-	var advancedFormat = createCommonjsModule(function (module, exports) {
-	!function(e,t){module.exports=t();}(commonjsGlobal,function(){return function(e,t,r){var n=t.prototype,o=n.format;r.en.ordinal=function(e){var t=["th","st","nd","rd"],r=e%100;return "["+e+(t[(r-20)%10]||t[r]||t[0])+"]"},n.format=function(e){var t=this,r=this.$locale(),n=this.$utils(),a=(e||"YYYY-MM-DDTHH:mm:ssZ").replace(/\[([^\]]+)]|Q|wo|ww|w|gggg|Do|X|x|k{1,2}|S/g,function(e){switch(e){case"Q":return Math.ceil((t.$M+1)/3);case"Do":return r.ordinal(t.$D);case"gggg":return t.weekYear();case"wo":return r.ordinal(t.week(),"W");case"w":case"ww":return n.s(t.week(),"w"===e?1:2,"0");case"k":case"kk":return n.s(String(0===t.$H?24:t.$H),"k"===e?1:2,"0");case"X":return Math.floor(t.$d.getTime()/1e3);case"x":return t.$d.getTime();default:return e}});return o.bind(this)(a)};}});
-	});
-
-	var weekOfYear = createCommonjsModule(function (module, exports) {
-	!function(e,t){module.exports=t();}(commonjsGlobal,function(){var e="week",t="year";return function(i,n){var r=n.prototype;r.week=function(i){if(void 0===i&&(i=null),null!==i)return this.add(7*(i-this.week()),"day");var n=this.$locale().yearStart||1;if(11===this.month()&&this.date()>25){var r=this.startOf(t).add(1,t).date(n),f=this.endOf(e);if(r.isBefore(f))return 1}var s=this.startOf(t).date(n).startOf(e).subtract(1,"millisecond"),a=this.diff(s,e,!0);return a<0?this.startOf("week").week():Math.ceil(a)},r.weeks=function(e){return void 0===e&&(e=null),this.week(e)};}});
-	});
-
 	/**
 	 * Gantt-Schedule-Timeline-Calendar
 	 *
@@ -9134,11 +9147,10 @@
 	 * @package   gantt-schedule-timeline-calendar
 	 * @license   AGPL-3.0
 	 */
-	dayjs_min.extend(advancedFormat);
-	dayjs_min.extend(weekOfYear);
 	class TimeApi {
 	    constructor(state) {
 	        this.utcMode = false;
+	        this.dayjs = dayjs_min;
 	        this.state = state;
 	        this.locale = state.get('config.locale');
 	        this.utcMode = state.get('config.utcMode');
@@ -9208,19 +9220,22 @@
 	    getCenter(time) {
 	        return time.leftGlobal + (time.rightGlobal - time.leftGlobal) / 2;
 	    }
-	    getOffsetPxFromDates(date, levelDates, time, fromLeft = true) {
+	    getGlobalOffsetPxFromDates(date, time = this.state.get('$data.chart.time')) {
 	        const milliseconds = date.valueOf();
+	        const dates = time.allDates[time.level];
+	        if (!dates)
+	            return -1;
 	        let firstMatching;
 	        // find first date that is after milliseconds
-	        for (let i = 0, len = levelDates.length; i < len; i++) {
-	            const currentDate = levelDates[i];
-	            if (currentDate.rightGlobal >= milliseconds) {
-	                firstMatching = levelDates[i];
+	        for (let i = 0, len = dates.length; i < len; i++) {
+	            const currentDate = dates[i];
+	            if (milliseconds >= currentDate.leftGlobal && milliseconds <= currentDate.rightGlobal) {
+	                firstMatching = dates[i];
 	                break;
 	            }
 	        }
 	        if (firstMatching) {
-	            return fromLeft ? firstMatching.currentView.leftPx : firstMatching.currentView.rightPx;
+	            return firstMatching.leftPx + (milliseconds - firstMatching.leftGlobal) / time.timePerPixel;
 	        }
 	        else {
 	            // date is out of the current scope (view)
@@ -9229,11 +9244,79 @@
 	            return time.width;
 	        }
 	    }
+	    getViewOffsetPxFromDates(date, limitToView = true, time = this.state.get('$data.chart.time')) {
+	        const result = this.getGlobalOffsetPxFromDates(date, time) - time.leftPx;
+	        if (limitToView)
+	            this.limitOffsetPxToView(result);
+	        return result;
+	    }
+	    limitOffsetPxToView(x, time = this.state.get('$data.chart.time')) {
+	        if (x < 0)
+	            return 0;
+	        if (x > time.width)
+	            return time.width;
+	        return x;
+	    }
 	    findDateAtOffsetPx(offsetPx, allPeriodDates) {
 	        return allPeriodDates.find(date => date.leftPx >= offsetPx);
 	    }
 	    findDateAtTime(milliseconds, allPeriodDates) {
 	        return allPeriodDates.find(date => date.rightGlobal >= milliseconds);
+	    }
+	    getTimeFromViewOffsetPx(offsetPx, time) {
+	        const finalOffset = offsetPx + time.leftPx;
+	        let dates = time.allDates[time.level];
+	        if (finalOffset < 0) {
+	            // we need to generate some dates before and update leftPx to negative values
+	            let date;
+	            let leftDate = time.leftGlobalDate.subtract(1, time.period);
+	            let left = 0;
+	            // I think that 1000 is enough to find any date and doesn't get stuck at infinite loop
+	            for (let i = 0; i < 1000; i++) {
+	                date = this.generatePeriodDates({
+	                    leftDate,
+	                    rightDate: leftDate.add(1, time.period),
+	                    period: time.period,
+	                    time,
+	                    level: this.state.get(`config.chart.calendar.levels.${time.level}`),
+	                    levelIndex: time.level
+	                })[0];
+	                left -= date.width;
+	                if (left <= finalOffset) {
+	                    return date.leftGlobal + Math.round((Math.abs(finalOffset) - Math.abs(date.leftPx)) * time.timePerPixel);
+	                }
+	                leftDate = leftDate.subtract(1, time.period).startOf(time.period);
+	            }
+	        }
+	        else if (finalOffset > time.totalViewDurationPx) {
+	            // we need to generate some dates after and update leftPx
+	            let date;
+	            let leftDate = time.rightGlobalDate;
+	            let left = time.rightPx;
+	            // I think that 1000 is enough to find any date and doesn't get stuck at infinite loop
+	            for (let i = 0; i < 1000; i++) {
+	                date = this.generatePeriodDates({
+	                    leftDate,
+	                    rightDate: leftDate.add(1, time.period),
+	                    period: time.period,
+	                    time,
+	                    level: this.state.get(`config.chart.calendar.levels.${time.level}`),
+	                    levelIndex: time.level
+	                })[0];
+	                left += date.width;
+	                if (left >= finalOffset) {
+	                    return date.leftGlobal + Math.round((Math.abs(finalOffset) - Math.abs(date.leftPx)) * time.timePerPixel);
+	                }
+	                leftDate = leftDate.add(1, time.period).startOf(time.period);
+	            }
+	        }
+	        for (let i = 0, len = dates.length; i < len; i++) {
+	            let date = dates[i];
+	            if (date.leftPx >= finalOffset) {
+	                return date.leftGlobal + Math.round((finalOffset - date.leftPx) * time.timePerPixel);
+	            }
+	        }
+	        return -1;
 	    }
 	    calculateScrollPosPxFromTime(milliseconds, time, scroll) {
 	        if (!scroll)
@@ -10158,7 +10241,17 @@
 	        }
 	        return { newValue, oldValue };
 	    }
-	    wildcardUpdate(updatePath, fn, options = defaultUpdateOptions) {
+	    wildcardNotify(groupedListenersPack, waitingPaths) {
+	        let alreadyNotified = [];
+	        for (const groupedListeners of groupedListenersPack) {
+	            alreadyNotified = [...alreadyNotified, ...this.notifyListeners(groupedListeners, alreadyNotified)];
+	        }
+	        for (const path of waitingPaths) {
+	            this.executeWaitingListeners(path);
+	        }
+	        this.jobsRunning--;
+	    }
+	    wildcardUpdate(updatePath, fn, options = defaultUpdateOptions, multi = false) {
 	        options = Object.assign(Object.assign({}, defaultUpdateOptions), options);
 	        const scanned = this.scan.get(updatePath);
 	        const bulk = {};
@@ -10184,35 +10277,44 @@
 	            this.pathSet(this.split(path), newValue, this.data);
 	            waitingPaths.push(path);
 	        }
-	        let alreadyNotified = [];
-	        for (const groupedListeners of groupedListenersPack) {
-	            alreadyNotified = [...alreadyNotified, ...this.notifyListeners(groupedListeners, alreadyNotified)];
+	        if (multi) {
+	            return () => this.wildcardNotify(groupedListenersPack, waitingPaths);
 	        }
-	        for (const path of waitingPaths) {
-	            this.executeWaitingListeners(path);
-	        }
-	        this.jobsRunning--;
+	        this.wildcardNotify(groupedListenersPack, waitingPaths);
 	    }
 	    runUpdateQueue() {
 	        while (this.updateQueue.length) {
 	            const params = this.updateQueue.shift();
-	            this.update(params.updatePath, params.fn, params.options);
+	            this.update(params.updatePath, params.fn, params.options, params.multi);
 	        }
 	    }
-	    update(updatePath, fn, options = defaultUpdateOptions) {
+	    updateNotify(updatePath, newValue, options) {
+	        const alreadyNotified = this.notifySubscribedListeners(updatePath, newValue, options);
+	        if (this.canBeNested(newValue)) {
+	            this.notifyNestedListeners(updatePath, newValue, options, "update", alreadyNotified);
+	        }
+	        this.executeWaitingListeners(updatePath);
+	        this.jobsRunning--;
+	    }
+	    updateNotifyOnly(updatePath, newValue, options) {
+	        this.notifyOnly(updatePath, newValue, options);
+	        this.executeWaitingListeners(updatePath);
+	        this.jobsRunning--;
+	    }
+	    update(updatePath, fn, options = defaultUpdateOptions, multi = false) {
 	        const jobsRunning = this.jobsRunning;
 	        if ((this.options.queue || options.queue) && jobsRunning) {
 	            if (jobsRunning > this.options.maxSimultaneousJobs) {
 	                throw new Error("Maximal simultaneous jobs limit reached.");
 	            }
-	            this.updateQueue.push({ updatePath, fn, options });
+	            this.updateQueue.push({ updatePath, fn, options, multi });
 	            return Promise.resolve().then(() => {
 	                this.runUpdateQueue();
 	            });
 	        }
 	        this.jobsRunning++;
 	        if (this.isWildcard(updatePath)) {
-	            return this.wildcardUpdate(updatePath, fn, options);
+	            return this.wildcardUpdate(updatePath, fn, options, multi);
 	        }
 	        const split = this.split(updatePath);
 	        const { oldValue, newValue } = this.getUpdateValues(this.pathGet(split, this.data), split, fn);
@@ -10230,21 +10332,39 @@
 	        options = Object.assign(Object.assign({}, defaultUpdateOptions), options);
 	        if (options.only === null) {
 	            this.jobsRunning--;
+	            if (multi)
+	                return () => { };
 	            return newValue;
 	        }
 	        if (options.only.length) {
-	            this.notifyOnly(updatePath, newValue, options);
-	            this.executeWaitingListeners(updatePath);
-	            this.jobsRunning--;
+	            if (multi) {
+	                return () => this.updateNotifyOnly(updatePath, newValue, options);
+	            }
+	            this.updateNotifyOnly(updatePath, newValue, options);
 	            return newValue;
 	        }
-	        const alreadyNotified = this.notifySubscribedListeners(updatePath, newValue, options);
-	        if (this.canBeNested(newValue)) {
-	            this.notifyNestedListeners(updatePath, newValue, options, "update", alreadyNotified);
+	        if (multi) {
+	            return () => this.updateNotify(updatePath, newValue, options);
 	        }
-	        this.executeWaitingListeners(updatePath);
-	        this.jobsRunning--;
+	        this.updateNotify(updatePath, newValue, options);
 	        return newValue;
+	    }
+	    multi() {
+	        const self = this;
+	        const notifiers = [];
+	        const multiObject = {
+	            update(updatePath, fn, options = defaultUpdateOptions) {
+	                notifiers.push(self.update(updatePath, fn, options, true));
+	                return this;
+	            },
+	            done() {
+	                for (let i = 0, len = notifiers.length; i < len; i++) {
+	                    notifiers[i]();
+	                }
+	                notifiers.length = 0;
+	            }
+	        };
+	        return multiObject;
 	    }
 	    get(userPath = undefined) {
 	        if (typeof userPath === "undefined" || userPath === "") {
@@ -10327,8 +10447,8 @@
 	    constructor(state) {
 	        this.name = lib;
 	        this.debug = false;
-	        this.unsubscribes = [];
 	        this.iconsCache = {};
+	        this.unsubscribes = [];
 	        this.mergeDeep = mergeDeep;
 	        this.allActions = [];
 	        this.state = state;
@@ -10384,10 +10504,13 @@
 	                    time: null,
 	                    position: {
 	                        left: 0,
+	                        actualLeft: 0,
 	                        right: 0,
+	                        actualRight: 0,
 	                        top: 0
 	                    },
-	                    width: 0
+	                    width: 0,
+	                    actualWidth: 0
 	                };
 	            if (!item.$data.time)
 	                item.$data.time = {

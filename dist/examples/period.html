@@ -96,6 +96,7 @@
             end: startDayjs
               .clone()
               .add(Math.floor(Math.random() * 20) + 4, 'days')
+              .endOf('day')
               .valueOf()
           },
           progress: 50,
@@ -103,6 +104,12 @@
           lines: i > 0 && i % 2 === 0 ? [(i + 1).toString()] : [],
           style: { background: pallete[Math.floor(Math.random() * pallete.length)] }
         };
+        if (Math.round(Math.random()))
+          items[id].time.start = GSTC.api
+            .date(items[id].time.start)
+            .add(Math.round(Math.random() * 23), 'hour')
+            .valueOf();
+        items[id].label = GSTC.api.date(items[id].time.start).format('YYYY-MM-DD HH:mm');
       }
 
       const columns = {

@@ -456,20 +456,43 @@ export default function Main(vido: Vido, props = {}) {
     return rightGlobal;
   }
 
-  function updateVisibleItems(time: DataChartTime) {
+  function updateVisibleItems(time: DataChartTime = state.get('$data.chart.time')) {
     const visibleItems: Item[] = state.get('$data.chart.visibleItems');
+    if (!time.levels || !time.levels[time.level]) return;
+    let multi = state.multi();
     for (const item of visibleItems) {
-      const left = api.time.getOffsetPxFromDates(item.$data.time.startDate, time.levels[time.level], time, true);
-      const right = api.time.getOffsetPxFromDates(item.$data.time.endDate, time.levels[time.level], time, false);
-      if (item.$data.position.left !== left || item.$data.position.right !== right)
-        state.update(`config.chart.items.${item.id}.$data`, ($data: ItemData) => {
+      const left = api.time.getViewOffsetPxFromDates(item.$data.time.startDate, false, time);
+      const right = api.time.getViewOffsetPxFromDates(item.$data.time.endDate, false, time);
+      if (item.$data.position.left !== left || item.$data.position.right !== right) {
+        multi = multi.update(`config.chart.items.${item.id}.$data`, ($data: ItemData) => {
           $data.position.left = left;
+          $data.position.actualLeft = api.time.limitOffsetPxToView(left, time);
           $data.position.right = right;
+          $data.position.actualRight = api.time.limitOffsetPxToView(right, time);
           $data.width = right - left - (state.get('config.chart.spacing') || 0);
+          $data.actualWidth =
+            $data.position.actualRight - $data.position.actualLeft - (state.get('config.chart.spacing') || 0);
           return $data;
         });
+      }
     }
+    multi.done();
+    update();
   }
+
+  onDestroy(
+    state.subscribeAll(
+      [
+        'config.scroll.vertical',
+        'config.chart.items.*.time',
+        'config.chart.items.*.$data.position',
+        'config.chart.items.*.$data.time'
+      ],
+      () => {
+        updateVisibleItems();
+      }
+    )
+  );
 
   let timeLoadedEventFired = false;
 
@@ -620,20 +643,24 @@ export default function Main(vido: Vido, props = {}) {
       time.rightPx = mainLevelDates[mainLevelDates.length - 1].leftPx;
     }
 
-    state.update(`$data.chart.time`, time);
-    state.update('config.chart.time', configTime => {
-      configTime.zoom = time.zoom;
-      configTime.period = time.format.period;
-      configTime.leftGlobal = time.leftGlobal;
-      configTime.centerGlobal = time.centerGlobal;
-      configTime.rightGlobal = time.rightGlobal;
-      configTime.from = time.from;
-      configTime.to = time.to;
-      configTime.finalFrom = time.finalFrom;
-      configTime.finalTo = time.finalTo;
-      configTime.allDates = time.allDates;
-      return configTime;
-    });
+    state
+      .multi()
+      .update(`$data.chart.time`, time)
+      .update('config.chart.time', configTime => {
+        configTime.zoom = time.zoom;
+        configTime.period = time.format.period;
+        configTime.leftGlobal = time.leftGlobal;
+        configTime.centerGlobal = time.centerGlobal;
+        configTime.rightGlobal = time.rightGlobal;
+        configTime.from = time.from;
+        configTime.to = time.to;
+        configTime.finalFrom = time.finalFrom;
+        configTime.finalTo = time.finalTo;
+        configTime.allDates = time.allDates;
+        return configTime;
+      })
+      .done();
+
     updateVisibleItems(time);
     update().then(() => {
       if (!timeLoadedEventFired) {

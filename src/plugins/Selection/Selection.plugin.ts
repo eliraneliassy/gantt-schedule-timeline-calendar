@@ -204,28 +204,51 @@ class SelectionPlugin {
     return current;
   }
 
+  private getSelected(item: Item): Item[] {
+    let selected: Item[];
+    if (this.data.selected[ITEM].find(selectedItem => selectedItem.id === item.id)) {
+      selected = this.data.selected[ITEM];
+    } else {
+      if (this.poitnerData.events.down.ctrlKey) {
+        selected = [...new Set([...this.data.selected[ITEM], ...this.collectLinkedItems(item, [item])]).values()];
+      } else {
+        selected = this.collectLinkedItems(item, [item]);
+      }
+    }
+    return selected;
+  }
+
+  private selectCells() {
+    this.data.isSelecting = true;
+    this.data.selectionArea = this.getSelectionArea();
+    const selectingItems = this.getItemsUnderSelectionArea();
+    if (selectingItems.length === 0) {
+      this.state.update(`config.chart.items.*.selected`, false);
+      this.data.selected[ITEM].length = 0;
+    }
+    // TODO save selecting items and cells
+  }
+
+  private selectItems() {
+    this.data.isSelecting = false;
+    this.data.selectionArea = this.getSelectionArea();
+    this.data.currentPosition = this.poitnerData.currentPosition;
+    this.data.initialPosition = this.poitnerData.initialPosition;
+    const item: Item = this.poitnerData.targetData;
+    this.data.selected[ITEM] = this.getSelected(item);
+    let multi = this.state.multi();
+    multi = multi.update(`config.chart.items.*.selected`, false);
+    for (const item of this.data.selected[ITEM]) {
+      multi = multi.update(`config.chart.items.${item.id}.selected`, true);
+    }
+    multi.done();
+  }
+
   private onPointerData() {
     if (this.poitnerData.isMoving && this.poitnerData.targetType === CELL) {
-      this.data.isSelecting = true;
-      this.data.selectionArea = this.getSelectionArea();
-      const selectingItems = this.getItemsUnderSelectionArea();
-      if (selectingItems.length === 0) {
-        this.state.update(`config.chart.items.*.selected`, false);
-        this.data.selected[ITEM].length = 0;
-      }
-      // TODO save selecting items and cells
+      this.selectCells();
     } else if (this.poitnerData.isMoving && this.poitnerData.targetType === ITEM) {
-      this.data.isSelecting = false;
-      this.data.selectionArea = this.getSelectionArea();
-      this.data.currentPosition = this.poitnerData.currentPosition;
-      this.data.initialPosition = this.poitnerData.initialPosition;
-      const item: Item = this.poitnerData.targetData;
-      const selected: Item[] = this.collectLinkedItems(item, [item]);
-      this.data.selected[ITEM] = selected;
-      this.state.update(`config.chart.items.*.selected`, false);
-      for (const item of selected) {
-        this.state.update(`config.chart.items.${item.id}.selected`, true);
-      }
+      this.selectItems();
     } else if (!this.poitnerData.isMoving) {
       this.data.isSelecting = false;
     }

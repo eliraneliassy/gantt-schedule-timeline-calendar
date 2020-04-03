@@ -254,18 +254,12 @@ function prepareOptions(options) {
 }
 const pluginPath = 'config.plugin.ItemMovement';
 function gemerateEmptyPluginData(options) {
-    return Object.assign({ moving: [], lastMoved: [], state: 'up', pointerMoved: false, movement: {
+    return Object.assign({ moving: [], lastMoved: [], state: 'up', pointerMoved: false, lastPosition: { x: 0, y: 0 }, movement: {
             px: { horizontal: 0, vertical: 0 },
             time: 0
-        }, onStart(items) {
-            console.log('start moving', items);
-        },
-        onMove(items) {
-            console.log('move', items);
-        },
-        onEnd(items) {
-            console.log('end move', items);
-        },
+        }, onStart() { },
+        onMove() { },
+        onEnd() { },
         snapStart({ startTime, time }) {
             return startTime.startOf(time.period);
         },
@@ -291,29 +285,41 @@ class ItemMovement {
     updateData() {
         this.state.update(pluginPath, this.data);
     }
-    getItemMovingTime(item, type, time) {
-        const dates = time.allDates[time.level];
-        const x = type === 'left'
-            ? item.$data.position.left + time.leftPx + this.data.movement.px.horizontal
-            : item.$data.position.right + time.leftPx + this.data.movement.px.horizontal;
-        const date = this.api.time.findDateAtOffsetPx(x, dates);
-        return date.leftGlobalDate.clone();
+    getItemMovingTime(item, time) {
+        const horizontal = this.data.movement.px.horizontal;
+        const x = item.$data.position.left + horizontal;
+        const leftGlobal = Math.round(this.api.time.getTimeFromViewOffsetPx(x, time));
+        return {
+            time: this.api.time.date(leftGlobal),
+            position: x
+        };
     }
     moveItems() {
         const time = this.state.get('$data.chart.time');
         for (const item of this.data.lastMoved) {
-            const startTime = this.getItemMovingTime(item, 'left', time);
-            const endTime = this.getItemMovingTime(item, 'right', time);
-            this.state.update(`config.chart.items.${item.id}.time`, (itemTime) => {
-                itemTime.start = startTime.valueOf();
-                itemTime.end = endTime.valueOf();
+            const start = this.getItemMovingTime(item, time);
+            let newItemTime;
+            this.state
+                .multi()
+                .update(`config.chart.items.${item.id}.time`, (itemTime) => {
+                const newStartTime = start.time.valueOf();
+                const diff = newStartTime - itemTime.start;
+                itemTime.start = newStartTime;
+                itemTime.end += diff;
+                newItemTime = Object.assign({}, itemTime);
                 return itemTime;
-            });
-            this.state.update(`config.chart.items.${item.id}.$data.time`, (itemDataTime) => {
-                itemDataTime.startDate = startTime;
-                itemDataTime.endDate = endTime;
-                return itemDataTime;
-            });
+            })
+                .update(`config.chart.items.${item.id}.$data`, (itemData) => {
+                itemData.time.startDate = start.time;
+                itemData.time.endDate = this.api.time.date(newItemTime.end);
+                itemData.position.left = start.position;
+                itemData.position.actualLeft = this.api.time.limitOffsetPxToView(start.position);
+                itemData.position.right = itemData.position.left + itemData.width;
+                itemData.position.actualRight = this.api.time.limitOffsetPxToView(itemData.position.right);
+                itemData.actualWidth = itemData.position.actualRight - itemData.position.actualLeft;
+                return itemData;
+            })
+                .done();
         }
     }
     clearSelection() {
@@ -342,6 +348,9 @@ class ItemMovement {
         }
         this.data.state = this.selection.pointerState;
     }
+    onStart() {
+        this.data.lastPosition = Object.assign({}, this.selection.currentPosition);
+    }
     onSelectionChange(data) {
         if (!this.data.enabled)
             return;
@@ -357,11 +366,16 @@ class ItemMovement {
             this.selection.events.down.preventDefault();
             this.selection.events.down.stopPropagation();
         }
+        if (this.data.state === 'up' && this.selection.pointerState === 'down') {
+            this.onStart();
+        }
         this.data.moving = [...this.selection.selected[ITEM]];
         if (this.data.moving.length)
             this.data.lastMoved = [...this.data.moving];
-        this.data.movement.px.horizontal = this.selection.currentPosition.x - this.selection.initialPosition.x;
-        this.data.movement.px.vertical = this.selection.currentPosition.y - this.selection.initialPosition.y;
+        this.data.movement.px.horizontal = this.selection.currentPosition.x - this.data.lastPosition.x;
+        this.data.movement.px.vertical = this.selection.currentPosition.y - this.data.lastPosition.y;
+        this.data.lastPosition.x = this.selection.currentPosition.x;
+        this.data.lastPosition.y = this.selection.currentPosition.y;
         this.updatePointerState();
         this.moveItems();
         this.updateData();
@@ -543,29 +557,51 @@ class SelectionPlugin {
         }
         return current;
     }
+    getSelected(item) {
+        let selected;
+        if (this.data.selected[ITEM].find(selectedItem => selectedItem.id === item.id)) {
+            selected = this.data.selected[ITEM];
+        }
+        else {
+            if (this.poitnerData.events.down.ctrlKey) {
+                selected = [...new Set([...this.data.selected[ITEM], ...this.collectLinkedItems(item, [item])]).values()];
+            }
+            else {
+                selected = this.collectLinkedItems(item, [item]);
+            }
+        }
+        return selected;
+    }
+    selectCells() {
+        this.data.isSelecting = true;
+        this.data.selectionArea = this.getSelectionArea();
+        const selectingItems = this.getItemsUnderSelectionArea();
+        if (selectingItems.length === 0) {
+            this.state.update(`config.chart.items.*.selected`, false);
+            this.data.selected[ITEM].length = 0;
+        }
+        // TODO save selecting items and cells
+    }
+    selectItems() {
+        this.data.isSelecting = false;
+        this.data.selectionArea = this.getSelectionArea();
+        this.data.currentPosition = this.poitnerData.currentPosition;
+        this.data.initialPosition = this.poitnerData.initialPosition;
+        const item = this.poitnerData.targetData;
+        this.data.selected[ITEM] = this.getSelected(item);
+        let multi = this.state.multi();
+        multi = multi.update(`config.chart.items.*.selected`, false);
+        for (const item of this.data.selected[ITEM]) {
+            multi = multi.update(`config.chart.items.${item.id}.selected`, true);
+        }
+        multi.done();
+    }
     onPointerData() {
         if (this.poitnerData.isMoving && this.poitnerData.targetType === CELL) {
-            this.data.isSelecting = true;
-            this.data.selectionArea = this.getSelectionArea();
-            const selectingItems = this.getItemsUnderSelectionArea();
-            if (selectingItems.length === 0) {
-                this.state.update(`config.chart.items.*.selected`, false);
-                this.data.selected[ITEM].length = 0;
-            }
-            // TODO save selecting items and cells
+            this.selectCells();
         }
         else if (this.poitnerData.isMoving && this.poitnerData.targetType === ITEM) {
-            this.data.isSelecting = false;
-            this.data.selectionArea = this.getSelectionArea();
-            this.data.currentPosition = this.poitnerData.currentPosition;
-            this.data.initialPosition = this.poitnerData.initialPosition;
-            const item = this.poitnerData.targetData;
-            const selected = this.collectLinkedItems(item, [item]);
-            this.data.selected[ITEM] = selected;
-            this.state.update(`config.chart.items.*.selected`, false);
-            for (const item of selected) {
-                this.state.update(`config.chart.items.${item.id}.selected`, true);
-            }
+            this.selectItems();
         }
         else if (!this.poitnerData.isMoving) {
             this.data.isSelecting = false;

@@ -40,7 +40,7 @@ export interface Props {
   row: Row;
 }
 
-const ChartTimelineItemsRow = (vido: Vido, props: Props) => {
+export default function ChartTimelineItemsRow(vido: Vido, props: Props) {
   const { api, state, onDestroy, Detach, Actions, update, html, onChange, reuseComponents, StyleMap } = vido;
   const actionProps = { ...props, api, state };
   let wrapper;
@@ -151,6 +151,4 @@ const ChartTimelineItemsRow = (vido: Vido, props: Props) => {
       { props, vido, templateProps }
     );
   };
-};
-
-export default ChartTimelineItemsRow;
+}

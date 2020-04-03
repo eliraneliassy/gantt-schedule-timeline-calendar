@@ -63,7 +63,9 @@ export interface ItemDataTime {
 
 export interface ItemDataPosition {
   left: number;
+  actualLeft: number;
   right: number;
+  actualRight: number;
   top: number;
 }
 
@@ -73,6 +75,7 @@ export interface ItemData {
   outerHeight: number;
   position: ItemDataPosition;
   width: number;
+  actualWidth: number;
 }
 
 export interface Item {

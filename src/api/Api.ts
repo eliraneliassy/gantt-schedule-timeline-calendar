@@ -10,6 +10,7 @@
 import defaultConfigFn from '../default-config';
 import TimeApi from './Time';
 import State from 'deep-state-observer';
+import DeepState from 'deep-state-observer';
 import dayjs from 'dayjs';
 import {
   Config,
@@ -24,7 +25,6 @@ import {
   Vido
 } from '../types';
 import { mergeDeep } from '@neuronet.io/vido/helpers';
-import DeepState from 'deep-state-observer';
 const lib = 'gantt-schedule-timeline-calendar';
 
 function mergeActions(userConfig, defaultConfig) {
@@ -78,13 +78,13 @@ export interface WheelResult {
 }
 
 export class Api {
-  name = lib;
-  debug = false;
-  state: DeepState;
-  unsubscribes = [];
-  vido: Vido;
-  iconsCache = {};
-  time: TimeApi;
+  public name = lib;
+  public debug = false;
+  public state: DeepState;
+  public time: TimeApi;
+  public vido: Vido;
+  private iconsCache = {};
+  private unsubscribes = [];
 
   constructor(state: DeepState) {
     this.state = state;
@@ -150,10 +150,13 @@ export class Api {
           time: null,
           position: {
             left: 0,
+            actualLeft: 0,
             right: 0,
+            actualRight: 0,
             top: 0
           },
-          width: 0
+          width: 0,
+          actualWidth: 0
         };
       if (!item.$data.time)
         item.$data.time = {

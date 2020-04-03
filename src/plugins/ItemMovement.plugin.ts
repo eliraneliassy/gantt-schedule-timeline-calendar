@@ -9,8 +9,8 @@
  */
 
 import { PluginData as SelectionPluginData } from './Selection/Selection.plugin';
-import { Item, DataChartTime, Scroll, DataChartDimensions, ItemTime, ItemDataTime, Vido } from '../types';
-import { ITEM } from './TimelinePointer.plugin';
+import { Item, DataChartTime, Scroll, DataChartDimensions, ItemTime, ItemDataTime, Vido, ItemData } from '../types';
+import { ITEM, Point } from './TimelinePointer.plugin';
 import { Dayjs } from 'dayjs';
 import { Api } from '../api/Api';
 import DeepState from 'deep-state-observer';
@@ -55,8 +55,14 @@ export interface PluginData extends Options {
   moving: Item[];
   lastMoved: Item[];
   movement: Movement;
+  lastPosition: Point;
   state: 'up' | 'down' | 'move';
   pointerMoved: boolean;
+}
+
+export interface MovingTime {
+  time: Dayjs;
+  position: number;
 }
 
 function prepareOptions(options: Options): Options {
@@ -75,19 +81,14 @@ function gemerateEmptyPluginData(options: Options): PluginData {
     lastMoved: [],
     state: 'up',
     pointerMoved: false,
+    lastPosition: { x: 0, y: 0 },
     movement: {
       px: { horizontal: 0, vertical: 0 },
       time: 0
     },
-    onStart(items) {
-      console.log('start moving', items);
-    },
-    onMove(items) {
-      console.log('move', items);
-    },
-    onEnd(items) {
-      console.log('end move', items);
-    },
+    onStart() {},
+    onMove() {},
+    onEnd() {},
     snapStart({ startTime, time }) {
       return startTime.startOf(time.period);
     },
@@ -124,32 +125,42 @@ class ItemMovement {
     this.state.update(pluginPath, this.data);
   }
 
-  getItemMovingTime(item: Item, type: 'left' | 'right', time: DataChartTime): Dayjs {
-    const dates = time.allDates[time.level];
-    const x =
-      type === 'left'
-        ? item.$data.position.left + time.leftPx + this.data.movement.px.horizontal
-        : item.$data.position.right + time.leftPx + this.data.movement.px.horizontal;
-    const date = this.api.time.findDateAtOffsetPx(x, dates);
-
-    return date.leftGlobalDate.clone();
+  getItemMovingTime(item: Item, time: DataChartTime): MovingTime {
+    const horizontal = this.data.movement.px.horizontal;
+    const x = item.$data.position.left + horizontal;
+    const leftGlobal = Math.round(this.api.time.getTimeFromViewOffsetPx(x, time));
+    return {
+      time: this.api.time.date(leftGlobal),
+      position: x
+    };
   }
 
   moveItems() {
     const time: DataChartTime = this.state.get('$data.chart.time');
     for (const item of this.data.lastMoved) {
-      const startTime = this.getItemMovingTime(item, 'left', time);
-      const endTime = this.getItemMovingTime(item, 'right', time);
-      this.state.update(`config.chart.items.${item.id}.time`, (itemTime: ItemTime) => {
-        itemTime.start = startTime.valueOf();
-        itemTime.end = endTime.valueOf();
-        return itemTime;
-      });
-      this.state.update(`config.chart.items.${item.id}.$data.time`, (itemDataTime: ItemDataTime) => {
-        itemDataTime.startDate = startTime;
-        itemDataTime.endDate = endTime;
-        return itemDataTime;
-      });
+      const start = this.getItemMovingTime(item, time);
+      let newItemTime: ItemTime;
+      this.state
+        .multi()
+        .update(`config.chart.items.${item.id}.time`, (itemTime: ItemTime) => {
+          const newStartTime = start.time.valueOf();
+          const diff = newStartTime - itemTime.start;
+          itemTime.start = newStartTime;
+          itemTime.end += diff;
+          newItemTime = { ...itemTime };
+          return itemTime;
+        })
+        .update(`config.chart.items.${item.id}.$data`, (itemData: ItemData) => {
+          itemData.time.startDate = start.time;
+          itemData.time.endDate = this.api.time.date(newItemTime.end);
+          itemData.position.left = start.position;
+          itemData.position.actualLeft = this.api.time.limitOffsetPxToView(start.position);
+          itemData.position.right = itemData.position.left + itemData.width;
+          itemData.position.actualRight = this.api.time.limitOffsetPxToView(itemData.position.right);
+          itemData.actualWidth = itemData.position.actualRight - itemData.position.actualLeft;
+          return itemData;
+        })
+        .done();
     }
   }
 
@@ -179,6 +190,10 @@ class ItemMovement {
     this.data.state = this.selection.pointerState;
   }
 
+  onStart() {
+    this.data.lastPosition = { ...this.selection.currentPosition };
+  }
+
   onSelectionChange(data: SelectionPluginData) {
     if (!this.data.enabled) return;
     this.selection = data;
@@ -193,11 +208,18 @@ class ItemMovement {
       this.selection.events.down.preventDefault();
       this.selection.events.down.stopPropagation();
     }
+
+    if (this.data.state === 'up' && this.selection.pointerState === 'down') {
+      this.onStart();
+    }
+
     this.data.moving = [...this.selection.selected[ITEM]];
     if (this.data.moving.length) this.data.lastMoved = [...this.data.moving];
 
-    this.data.movement.px.horizontal = this.selection.currentPosition.x - this.selection.initialPosition.x;
-    this.data.movement.px.vertical = this.selection.currentPosition.y - this.selection.initialPosition.y;
+    this.data.movement.px.horizontal = this.selection.currentPosition.x - this.data.lastPosition.x;
+    this.data.movement.px.vertical = this.selection.currentPosition.y - this.data.lastPosition.y;
+    this.data.lastPosition.x = this.selection.currentPosition.x;
+    this.data.lastPosition.y = this.selection.currentPosition.y;
 
     this.updatePointerState();
 
