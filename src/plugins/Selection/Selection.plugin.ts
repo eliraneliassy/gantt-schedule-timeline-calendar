@@ -25,15 +25,10 @@ import { Api } from '../../api/Api';
 
 export interface Options {
   enabled?: boolean;
-  grid?: boolean;
+  cells?: boolean;
   items?: boolean;
   rows?: boolean;
-  horizontal?: boolean;
-  vertical?: boolean;
-  selecting?: (data, type: string) => void;
-  deselecting?: (data, type: string) => void;
-  selected?: (data, type) => void;
-  deselected?: (data, type) => void;
+  showOverlay?: boolean;
   canSelect?: (type, state, all) => any[];
   canDeselect?: (type, state, all) => any[];
 }
@@ -50,15 +45,10 @@ export interface SelectState {
 function prepareOptions(options: Options) {
   const defaultOptions: Options = {
     enabled: true,
-    grid: false,
+    cells: true,
     items: true,
     rows: false,
-    horizontal: true,
-    vertical: true,
-    selecting() {},
-    deselecting() {},
-    selected() {},
-    deselected() {},
+    showOverlay: true,
     canSelect(type, currently, all) {
       return currently;
     },
@@ -90,9 +80,10 @@ export interface PointerEvents {
   up: PointerEvent | null;
 }
 
-export interface PluginData {
+export interface PluginData extends Options {
   enabled: boolean;
   isSelecting: boolean;
+  showOverlay: boolean;
   pointerState: PointerState;
   initialPosition: Point;
   currentPosition: Point;
@@ -103,9 +94,10 @@ export interface PluginData {
   targetType: ITEM_TYPE | CELL_TYPE | '';
 }
 
-function generateEmptyData(): PluginData {
+function generateEmptyData(options: Options): PluginData {
   return {
     enabled: true,
+    showOverlay: true,
     isSelecting: false,
     pointerState: 'up',
     targetType: '',
@@ -124,7 +116,8 @@ function generateEmptyData(): PluginData {
       down: null,
       move: null,
       up: null
-    }
+    },
+    ...options
   };
 }
 
@@ -142,7 +135,7 @@ class SelectionPlugin {
     this.state = vido.state;
     this.api = vido.api;
     this.options = options;
-    this.data = generateEmptyData();
+    this.data = generateEmptyData(options);
     this.unsub.push(
       this.state.subscribe('config.plugin.TimelinePointer', timelinePointerData => {
         this.poitnerData = timelinePointerData;
@@ -245,9 +238,9 @@ class SelectionPlugin {
   }
 
   private onPointerData() {
-    if (this.poitnerData.isMoving && this.poitnerData.targetType === CELL) {
+    if (this.poitnerData.isMoving && this.poitnerData.targetType === CELL && this.data.cells) {
       this.selectCells();
-    } else if (this.poitnerData.isMoving && this.poitnerData.targetType === ITEM) {
+    } else if (this.poitnerData.isMoving && this.poitnerData.targetType === ITEM && this.data.items) {
       this.selectItems();
     } else if (!this.poitnerData.isMoving) {
       this.data.isSelecting = false;
@@ -264,7 +257,7 @@ export function Plugin(options: Options = {}) {
 
   return function initialize(vidoInstance: Vido) {
     const selectionPlugin = new SelectionPlugin(vidoInstance, options);
-    vidoInstance.state.update(pluginPath, generateEmptyData());
+    vidoInstance.state.update(pluginPath, generateEmptyData(options));
     vidoInstance.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
       return Wrap(oldWrapper, vidoInstance);
     });

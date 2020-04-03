@@ -21,7 +21,7 @@ let className, styleMap;
 // this function will be called at each rerender
 function ChartTimelineWrapper(input, props) {
   const oldContent = wrapped(input, props);
-  if (pluginData.isSelecting) {
+  if (pluginData.isSelecting && pluginData.showOverlay) {
     styleMap.style.display = 'block';
     styleMap.style.left = pluginData.selectionArea.x + 'px';
     styleMap.style.top = pluginData.selectionArea.y + 'px';

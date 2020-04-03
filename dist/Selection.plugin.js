@@ -31,7 +31,7 @@
   // this function will be called at each rerender
   function ChartTimelineWrapper(input, props) {
       const oldContent = wrapped(input, props);
-      if (pluginData.isSelecting) {
+      if (pluginData.isSelecting && pluginData.showOverlay) {
           styleMap.style.display = 'block';
           styleMap.style.left = pluginData.selectionArea.x + 'px';
           styleMap.style.top = pluginData.selectionArea.y + 'px';
@@ -77,15 +77,10 @@
   function prepareOptions(options) {
       const defaultOptions = {
           enabled: true,
-          grid: false,
+          cells: true,
           items: true,
           rows: false,
-          horizontal: true,
-          vertical: true,
-          selecting() { },
-          deselecting() { },
-          selected() { },
-          deselected() { },
+          showOverlay: true,
           canSelect(type, currently, all) {
               return currently;
           },
@@ -97,29 +92,18 @@
       return options;
   }
   const pluginPath = 'config.plugin.Selection';
-  function generateEmptyData() {
-      return {
-          enabled: true,
-          isSelecting: false,
-          pointerState: 'up',
-          targetType: '',
-          initialPosition: { x: 0, y: 0 },
-          currentPosition: { x: 0, y: 0 },
-          selectionArea: { x: 0, y: 0, width: 0, height: 0 },
-          selecting: {
+  function generateEmptyData(options) {
+      return Object.assign({ enabled: true, showOverlay: true, isSelecting: false, pointerState: 'up', targetType: '', initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, selectionArea: { x: 0, y: 0, width: 0, height: 0 }, selecting: {
               [ITEM]: [],
               [CELL]: []
-          },
-          selected: {
+          }, selected: {
               [ITEM]: [],
               [CELL]: []
-          },
-          events: {
+          }, events: {
               down: null,
               move: null,
               up: null
-          }
-      };
+          } }, options);
   }
   class SelectionPlugin {
       constructor(vido, options) {
@@ -128,7 +112,7 @@
           this.state = vido.state;
           this.api = vido.api;
           this.options = options;
-          this.data = generateEmptyData();
+          this.data = generateEmptyData(options);
           this.unsub.push(this.state.subscribe('config.plugin.TimelinePointer', timelinePointerData => {
               this.poitnerData = timelinePointerData;
               this.onPointerData();
@@ -222,10 +206,10 @@
           multi.done();
       }
       onPointerData() {
-          if (this.poitnerData.isMoving && this.poitnerData.targetType === CELL) {
+          if (this.poitnerData.isMoving && this.poitnerData.targetType === CELL && this.data.cells) {
               this.selectCells();
           }
-          else if (this.poitnerData.isMoving && this.poitnerData.targetType === ITEM) {
+          else if (this.poitnerData.isMoving && this.poitnerData.targetType === ITEM && this.data.items) {
               this.selectItems();
           }
           else if (!this.poitnerData.isMoving) {
@@ -241,7 +225,7 @@
       options = prepareOptions(options);
       return function initialize(vidoInstance) {
           const selectionPlugin = new SelectionPlugin(vidoInstance, options);
-          vidoInstance.state.update(pluginPath, generateEmptyData());
+          vidoInstance.state.update(pluginPath, generateEmptyData(options));
           vidoInstance.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
               return Wrap(oldWrapper, vidoInstance);
           });

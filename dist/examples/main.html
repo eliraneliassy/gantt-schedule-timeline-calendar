@@ -161,7 +161,12 @@
 
       let selectionApi;
       const config = {
-        plugins: [WeekendHighlight.Plugin(), TimelinePointer.Plugin(), Selection.Plugin(), ItemMovement.Plugin()],
+        plugins: [
+          WeekendHighlight.Plugin(),
+          TimelinePointer.Plugin(),
+          Selection.Plugin({ showOverlay: false, grid: false }),
+          ItemMovement.Plugin()
+        ],
         height: 523,
         list: {
           rows,
