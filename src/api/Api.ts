@@ -153,7 +153,7 @@ export class Api {
             actualLeft: 0,
             right: 0,
             actualRight: 0,
-            top: 0
+            top: item.top || 0
           },
           width: 0,
           actualWidth: 0
@@ -203,11 +203,11 @@ export class Api {
   }
 
   itemsOnTheSameLevel(item1: Item, item2: Item) {
-    const item1Bottom = item1.top + item1.$data.outerHeight;
-    const item2Bottom = item2.top + item2.$data.outerHeight;
-    if (item2.top <= item1.top && item2Bottom > item1.top) return true;
-    if (item2.top >= item1.top && item2.top < item1Bottom) return true;
-    if (item2.top >= item1.top && item2Bottom < item1Bottom) return true;
+    const item1Bottom = item1.$data.position.top + item1.$data.outerHeight;
+    const item2Bottom = item2.$data.position.top + item2.$data.outerHeight;
+    if (item2.$data.position.top <= item1.$data.position.top && item2Bottom > item1.$data.position.top) return true;
+    if (item2.$data.position.top >= item1.$data.position.top && item2.$data.position.top < item1Bottom) return true;
+    if (item2.$data.position.top >= item1.$data.position.top && item2Bottom < item1Bottom) return true;
     return false;
   }
 
@@ -233,10 +233,10 @@ export class Api {
     if (items.length === 0) return;
     let index = 0;
     for (let item of items) {
+      item.$data.position.top = item.top;
       if (index && this.itemOverlapsWithOthers(item, items)) {
-        item.top = 0;
         while (this.itemOverlapsWithOthers(item, items)) {
-          item.top += 1;
+          item.$data.position.top += 1;
         }
       }
       index++;
@@ -249,7 +249,7 @@ export class Api {
       let actualHeight = 0;
       this.fixOverlappedItems(row.$data.items);
       for (const item of row.$data.items) {
-        actualHeight = Math.max(actualHeight, item.top + item.$data.outerHeight);
+        actualHeight = Math.max(actualHeight, item.$data.position.top + item.$data.outerHeight);
       }
       if (actualHeight < row.height) actualHeight = row.height;
       row.$data.actualHeight = actualHeight;

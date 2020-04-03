@@ -111,7 +111,8 @@ export default class TimeApi {
     // find first date that is after milliseconds
     for (let i = 0, len = dates.length; i < len; i++) {
       const currentDate = dates[i];
-      if (milliseconds >= currentDate.leftGlobal && milliseconds <= currentDate.rightGlobal) {
+      // we cannot find date between leftGlobal and rightGlobal because hide weekends may remove those
+      if (milliseconds <= currentDate.rightGlobal) {
         firstMatching = dates[i];
         break;
       }

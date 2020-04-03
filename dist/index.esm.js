@@ -5870,7 +5870,7 @@ function Main(vido, props = {}) {
         });
         update();
     }
-    onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;', 'config.list.rows.*.height'], prepareExpanded, { bulk: true }));
+    onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;', 'config.list.rows.*.height', 'config.chart.items.*.time'], prepareExpanded, { bulk: true }));
     function getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded) {
         if (rowsWithParentsExpanded.length === 0)
             return 0;
@@ -6135,11 +6135,10 @@ function Main(vido, props = {}) {
         }
         return rightGlobal;
     }
-    function updateVisibleItems(time = state.get('$data.chart.time')) {
+    function updateVisibleItems(time = state.get('$data.chart.time'), multi = state.multi()) {
         const visibleItems = state.get('$data.chart.visibleItems');
         if (!time.levels || !time.levels[time.level])
             return;
-        let multi = state.multi();
         for (const item of visibleItems) {
             const left = api.time.getViewOffsetPxFromDates(item.$data.time.startDate, false, time);
             const right = api.time.getViewOffsetPxFromDates(item.$data.time.endDate, false, time);
@@ -6293,7 +6292,7 @@ function Main(vido, props = {}) {
             time.leftPx = mainLevelDates[0].leftPx;
             time.rightPx = mainLevelDates[mainLevelDates.length - 1].leftPx;
         }
-        state
+        let multi = state
             .multi()
             .update(`$data.chart.time`, time)
             .update('config.chart.time', configTime => {
@@ -6308,9 +6307,8 @@ function Main(vido, props = {}) {
             configTime.finalTo = time.finalTo;
             configTime.allDates = time.allDates;
             return configTime;
-        })
-            .done();
-        updateVisibleItems(time);
+        });
+        updateVisibleItems(time, multi);
         update().then(() => {
             if (!timeLoadedEventFired) {
                 state.update('$data.loaded.time', true);
@@ -8601,7 +8599,7 @@ function ChartTimelineItemsRowItem(vido, props) {
             // update style only when visible to prevent browser's recalculate style
             styleMap.style.width = itemWidthPx + 'px';
             styleMap.style.left = itemLeftPx + 'px';
-            styleMap.style.top = props.item.gap.top + props.item.top + 'px';
+            styleMap.style.top = props.item.gap.top + props.item.$data.position.top + 'px';
             styleMap.style.height = props.item.$data.actualHeight + 'px';
         }
         else {
@@ -9223,7 +9221,8 @@ class TimeApi {
         // find first date that is after milliseconds
         for (let i = 0, len = dates.length; i < len; i++) {
             const currentDate = dates[i];
-            if (milliseconds >= currentDate.leftGlobal && milliseconds <= currentDate.rightGlobal) {
+            // we cannot find date between leftGlobal and rightGlobal because hide weekends may remove those
+            if (milliseconds <= currentDate.rightGlobal) {
                 firstMatching = dates[i];
                 break;
             }
@@ -10501,7 +10500,7 @@ class Api {
                         actualLeft: 0,
                         right: 0,
                         actualRight: 0,
-                        top: 0
+                        top: item.top || 0
                     },
                     width: 0,
                     actualWidth: 0
@@ -10556,13 +10555,13 @@ class Api {
         return rows;
     }
     itemsOnTheSameLevel(item1, item2) {
-        const item1Bottom = item1.top + item1.$data.outerHeight;
-        const item2Bottom = item2.top + item2.$data.outerHeight;
-        if (item2.top <= item1.top && item2Bottom > item1.top)
+        const item1Bottom = item1.$data.position.top + item1.$data.outerHeight;
+        const item2Bottom = item2.$data.position.top + item2.$data.outerHeight;
+        if (item2.$data.position.top <= item1.$data.position.top && item2Bottom > item1.$data.position.top)
             return true;
-        if (item2.top >= item1.top && item2.top < item1Bottom)
+        if (item2.$data.position.top >= item1.$data.position.top && item2.$data.position.top < item1Bottom)
             return true;
-        if (item2.top >= item1.top && item2Bottom < item1Bottom)
+        if (item2.$data.position.top >= item1.$data.position.top && item2Bottom < item1Bottom)
             return true;
         return false;
     }
@@ -10592,10 +10591,10 @@ class Api {
             return;
         let index = 0;
         for (let item of items) {
+            item.$data.position.top = item.top;
             if (index && this.itemOverlapsWithOthers(item, items)) {
-                item.top = 0;
                 while (this.itemOverlapsWithOthers(item, items)) {
-                    item.top += 1;
+                    item.$data.position.top += 1;
                 }
             }
             index++;
@@ -10607,7 +10606,7 @@ class Api {
             let actualHeight = 0;
             this.fixOverlappedItems(row.$data.items);
             for (const item of row.$data.items) {
-                actualHeight = Math.max(actualHeight, item.top + item.$data.outerHeight);
+                actualHeight = Math.max(actualHeight, item.$data.position.top + item.$data.outerHeight);
             }
             if (actualHeight < row.height)
                 actualHeight = row.height;

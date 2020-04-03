@@ -583,10 +583,10 @@ class SelectionPlugin {
         multi.done();
     }
     onPointerData() {
-        if (this.poitnerData.isMoving && this.poitnerData.targetType === CELL && this.data.cells) {
+        if (this.poitnerData.isMoving && this.poitnerData.targetType === CELL) {
             this.selectCells();
         }
-        else if (this.poitnerData.isMoving && this.poitnerData.targetType === ITEM && this.data.items) {
+        else if (this.poitnerData.isMoving && this.poitnerData.targetType === ITEM) {
             this.selectItems();
         }
         else if (!this.poitnerData.isMoving) {

@@ -103,7 +103,7 @@ export default function ChartTimelineItemsRowItem(vido: Vido, props: Props) {
       // update style only when visible to prevent browser's recalculate style
       styleMap.style.width = itemWidthPx + 'px';
       styleMap.style.left = itemLeftPx + 'px';
-      styleMap.style.top = props.item.gap.top + props.item.top + 'px';
+      styleMap.style.top = props.item.gap.top + props.item.$data.position.top + 'px';
       styleMap.style.height = props.item.$data.actualHeight + 'px';
     } else {
       styleMap.style.width = oldWidth;

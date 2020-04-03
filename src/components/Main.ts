@@ -161,7 +161,7 @@ export default function Main(vido: Vido, props = {}) {
   }
   onDestroy(
     state.subscribeAll(
-      ['config.list.rows.*.expanded', '$data.treeMap;', 'config.list.rows.*.height'],
+      ['config.list.rows.*.expanded', '$data.treeMap;', 'config.list.rows.*.height', 'config.chart.items.*.time'],
       prepareExpanded,
       { bulk: true }
     )
@@ -456,10 +456,10 @@ export default function Main(vido: Vido, props = {}) {
     return rightGlobal;
   }
 
-  function updateVisibleItems(time: DataChartTime = state.get('$data.chart.time')) {
+  function updateVisibleItems(time: DataChartTime = state.get('$data.chart.time'), multi = state.multi()) {
     const visibleItems: Item[] = state.get('$data.chart.visibleItems');
     if (!time.levels || !time.levels[time.level]) return;
-    let multi = state.multi();
+    let noMulti = false;
     for (const item of visibleItems) {
       const left = api.time.getViewOffsetPxFromDates(item.$data.time.startDate, false, time);
       const right = api.time.getViewOffsetPxFromDates(item.$data.time.endDate, false, time);
@@ -643,7 +643,7 @@ export default function Main(vido: Vido, props = {}) {
       time.rightPx = mainLevelDates[mainLevelDates.length - 1].leftPx;
     }
 
-    state
+    let multi = state
       .multi()
       .update(`$data.chart.time`, time)
       .update('config.chart.time', configTime => {
@@ -658,10 +658,9 @@ export default function Main(vido: Vido, props = {}) {
         configTime.finalTo = time.finalTo;
         configTime.allDates = time.allDates;
         return configTime;
-      })
-      .done();
+      });
+    updateVisibleItems(time, multi);
 
-    updateVisibleItems(time);
     update().then(() => {
       if (!timeLoadedEventFired) {
         state.update('$data.loaded.time', true);

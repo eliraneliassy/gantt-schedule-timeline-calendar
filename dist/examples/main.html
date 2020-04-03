@@ -104,6 +104,22 @@
           lines: i > 0 && i % 2 === 0 ? [(i + 1).toString()] : [],
           style: { background: pallete[Math.floor(Math.random() * pallete.length)] }
         };
+        items[id + '-2'] = {
+          id: id + '-2',
+          label: 'item id ' + id + '-2',
+          time: {
+            start: startDayjs
+              .add(Math.floor(Math.random() * 3), 'day')
+              .startOf('day')
+              .valueOf(),
+            end: startDayjs
+              .add(Math.floor(Math.random() * 10) + 4, 'day')
+              .endOf('day')
+              .valueOf()
+          },
+          rowId,
+          style: { background: pallete[Math.floor(Math.random() * pallete.length)] }
+        };
         if (Math.round(Math.random()))
           items[id].time.start = GSTC.api
             .date(items[id].time.start)
@@ -161,12 +177,7 @@
 
       let selectionApi;
       const config = {
-        plugins: [
-          WeekendHighlight.Plugin(),
-          TimelinePointer.Plugin(),
-          Selection.Plugin({ showOverlay: false, grid: false }),
-          ItemMovement.Plugin()
-        ],
+        plugins: [WeekendHighlight.Plugin(), TimelinePointer.Plugin(), Selection.Plugin(), ItemMovement.Plugin()],
         height: 523,
         list: {
           rows,
