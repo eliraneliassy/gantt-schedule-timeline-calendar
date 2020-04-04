@@ -1,9 +1,8 @@
-import { lithtml } from '@neuronet.io/vido';
+import { vido, lithtml } from '@neuronet.io/vido/vido.d';
 import { Dayjs, OpUnitType } from 'dayjs/index.d';
 import { Properties as CSSProps } from 'csstype';
-import { vido } from '@neuronet.io/vido/vido';
-import DeepState from 'deep-state-observer';
-import { Api } from './api/Api';
+import DeepState from 'deep-state-observer/index.d';
+import { Api } from './api/Api.d';
 
 export type Vido = vido<DeepState, Api>;
 

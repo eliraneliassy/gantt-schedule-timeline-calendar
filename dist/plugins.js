@@ -620,7 +620,7 @@ class ItemResizing {
         return this.wrapper;
     }
 }
-function Plugin$2(options) {
+function Plugin$2(options = {}) {
     return function initialize(vidoInstance) {
         const itemResizing = new ItemResizing(vidoInstance, options);
         vidoInstance.state.update('config.wrappers.ChartTimelineItemsRowItem', (oldWrapper) => {
