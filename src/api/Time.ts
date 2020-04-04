@@ -16,10 +16,10 @@ import {
   ChartTimeDate,
   ScrollTypeHorizontal,
   Period,
-  ChartCalendarLevel
+  ChartCalendarLevel,
 } from '../types';
 
-export default class TimeApi {
+export class TimeApi {
   private locale: Locale;
   private utcMode = false;
   private state: any;
@@ -46,14 +46,10 @@ export default class TimeApi {
     if (time.additionalSpaces && time.additionalSpaces[time.period]) {
       const add = time.additionalSpaces[time.period];
       if (add.before) {
-        time.finalFrom = this.date(time.from)
-          .subtract(add.before, add.period)
-          .valueOf();
+        time.finalFrom = this.date(time.from).subtract(add.before, add.period).valueOf();
       }
       if (add.after) {
-        time.finalTo = this.date(time.to)
-          .add(add.after, add.period)
-          .valueOf();
+        time.finalTo = this.date(time.to).add(add.after, add.period).valueOf();
       }
     }
     return time;
@@ -80,14 +76,10 @@ export default class TimeApi {
           }
         }
         if (time.from === 0) {
-          time.from = this.date(from)
-            .startOf(period)
-            .valueOf();
+          time.from = this.date(from).startOf(period).valueOf();
         }
         if (time.to === 0) {
-          time.to = this.date(to)
-            .endOf(period)
-            .valueOf();
+          time.to = this.date(to).endOf(period).valueOf();
         }
         time.fromDate = this.date(time.from);
         time.toDate = this.date(time.to);
@@ -107,6 +99,26 @@ export default class TimeApi {
     const milliseconds = date.valueOf();
     const dates = time.allDates[time.level];
     if (!dates) return -1;
+    if (milliseconds < time.finalFrom) {
+      const level: ChartCalendarLevel = this.state.get(`config.chart.calendar.levels.${time.level}`);
+      const leftDate: Dayjs = date.startOf(time.period);
+      const beforeDates = this.generatePeriodDates({
+        leftDate,
+        rightDate: time.finalFromDate,
+        period: time.period,
+        level,
+        levelIndex: time.level,
+        time,
+      });
+      let px = 0;
+      for (let i = 0, len = beforeDates.length; i < len; i++) {
+        px += beforeDates[i].width;
+      }
+      const diff = (milliseconds - leftDate.valueOf()) / time.timePerPixel;
+      return -(px - diff);
+    }
+    if (milliseconds > time.totalViewDurationMs) {
+    }
     let firstMatching: ChartTimeDate;
     // find first date that is after milliseconds
     for (let i = 0, len = dates.length; i < len; i++) {
@@ -143,11 +155,11 @@ export default class TimeApi {
   }
 
   public findDateAtOffsetPx(offsetPx: number, allPeriodDates: ChartTimeDate[]): ChartTimeDate | undefined {
-    return allPeriodDates.find(date => date.leftPx >= offsetPx);
+    return allPeriodDates.find((date) => date.leftPx >= offsetPx);
   }
 
   public findDateAtTime(milliseconds: number, allPeriodDates: ChartTimeDate[]): ChartTimeDate | undefined {
-    return allPeriodDates.find(date => date.rightGlobal >= milliseconds);
+    return allPeriodDates.find((date) => date.rightGlobal >= milliseconds);
   }
 
   public getTimeFromViewOffsetPx(offsetPx: number, time: DataChartTime): number {
@@ -166,7 +178,7 @@ export default class TimeApi {
           period: time.period,
           time,
           level: this.state.get(`config.chart.calendar.levels.${time.level}`),
-          levelIndex: time.level
+          levelIndex: time.level,
         })[0];
         left -= date.width;
         if (left <= finalOffset) {
@@ -187,7 +199,7 @@ export default class TimeApi {
           period: time.period,
           time,
           level: this.state.get(`config.chart.calendar.levels.${time.level}`),
-          levelIndex: time.level
+          levelIndex: time.level,
         })[0];
         left += date.width;
         if (left >= finalOffset) {
@@ -218,7 +230,7 @@ export default class TimeApi {
   }
 
   public getCurrentFormatForLevel(level: ChartCalendarLevel, time: DataChartTime) {
-    return level.formats.find(format => +time.zoom <= +format.zoomTo);
+    return level.formats.find((format) => +time.zoom <= +format.zoomTo);
   }
 
   public generatePeriodDates({
@@ -227,7 +239,7 @@ export default class TimeApi {
     period,
     level,
     levelIndex,
-    time
+    time,
   }: {
     leftDate: Dayjs;
     rightDate: Dayjs;
@@ -255,7 +267,7 @@ export default class TimeApi {
         formatted: null,
         current: leftDate.valueOf() === currentDate.valueOf(),
         previous: leftDate.add(1, period).valueOf() === currentDate.valueOf(),
-        next: leftDate.subtract(1, period).valueOf() === currentDate.valueOf()
+        next: leftDate.subtract(1, period).valueOf() === currentDate.valueOf(),
       };
       const diffMs = date.rightGlobal - date.leftGlobal;
       date.width = diffMs / time.timePerPixel;
@@ -298,7 +310,7 @@ export default class TimeApi {
         period,
         level,
         levelIndex,
-        time
+        time,
       });
       dates = beforeDates;
     }
@@ -315,7 +327,7 @@ export default class TimeApi {
         period,
         level,
         levelIndex,
-        time
+        time,
       });
       dates = [...dates, ...afterDates];
     }

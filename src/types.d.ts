@@ -67,6 +67,7 @@ export interface ItemDataPosition {
   right: number;
   actualRight: number;
   top: number;
+  actualTop: number;
 }
 
 export interface ItemData {
@@ -76,6 +77,7 @@ export interface ItemData {
   position: ItemDataPosition;
   width: number;
   actualWidth: number;
+  detached: boolean;
 }
 
 export interface Item {
@@ -113,15 +115,23 @@ export interface RowWithCells {
 }
 
 export type VoidFunction = () => void;
+
 export type PluginInitialization = (vido: unknown) => void | VoidFunction;
+
 export type Plugin = <T>(options: T) => PluginInitialization;
+
 export type htmlResult = lithtml.TemplateResult | lithtml.SVGTemplateResult | undefined;
+
 export type RenderFunction = (templateProps: unknown) => htmlResult;
+
 export type Component = (vido: unknown, props: unknown) => RenderFunction;
+
 export interface Components {
   [name: string]: Component;
 }
-export type Wrapper = (input: htmlResult) => htmlResult;
+
+export type Wrapper = (input: htmlResult, props?: any) => htmlResult;
+
 export interface Wrappers {
   [name: string]: Wrapper;
 }
@@ -129,6 +139,7 @@ export interface Wrappers {
 export interface Slot {
   [key: string]: htmlResult[];
 }
+
 export interface Slots {
   [name: string]: Slot;
 }
@@ -138,12 +149,16 @@ export interface ColumnResizer {
   inRealTime?: boolean;
   dots?: number;
 }
+
 export type ColumnDataFunctionString = (row: Row) => string;
+
 export type ColumnDataFunctionTemplate = (row: Row) => htmlResult;
+
 export interface ColumnDataHeader {
   html?: htmlResult;
   content?: string;
 }
+
 export interface ColumnData {
   id: string;
   data: string | ColumnDataFunctionString | ColumnDataFunctionTemplate;
@@ -152,19 +167,23 @@ export interface ColumnData {
   header: ColumnDataHeader;
   expander: boolean;
 }
+
 export interface ColumnsData {
   [id: string]: ColumnData;
 }
+
 export interface Columns {
   percent?: number;
   resizer?: ColumnResizer;
   minWidth?: number;
   data?: ColumnsData;
 }
+
 export interface ExpanderIcon {
   width?: number;
   height?: number;
 }
+
 export interface ExpanderIcons {
   child?: string;
   open?: string;
@@ -301,7 +320,9 @@ export interface DataChartTimeLevelDate {
   leftPercent?: number;
   rightPercent?: number;
 }
+
 export type DataChartTimeLevel = DataChartTimeLevelDate[];
+
 export interface DataChartTime {
   period: Period;
   leftGlobal: number;
@@ -338,6 +359,7 @@ export interface DataChartTime {
   allDates?: ChartTimeDates[];
   forceUpdate?: boolean;
 }
+
 export interface ChartCalendarFormatArguments {
   timeStart: Dayjs;
   timeEnd: Dayjs;
@@ -345,7 +367,9 @@ export interface ChartCalendarFormatArguments {
   props: any;
   vido: any;
 }
+
 export type PeriodString = 'year' | 'month' | 'week' | 'day' | 'hour';
+
 export type Period = PeriodString | OpUnitType;
 
 export interface ChartCalendarFormat {
@@ -355,11 +379,13 @@ export interface ChartCalendarFormat {
   className?: string;
   format: (arguments: ChartCalendarFormatArguments) => string | htmlResult;
 }
+
 export interface ChartCalendarAdditionalSpace {
   before: number;
   after: number;
   period: Period;
 }
+
 export interface ChartCalendarAdditionalSpaces {
   hour?: ChartCalendarAdditionalSpace;
   day?: ChartCalendarAdditionalSpace;
@@ -367,30 +393,37 @@ export interface ChartCalendarAdditionalSpaces {
   month?: ChartCalendarAdditionalSpace;
   year?: ChartCalendarAdditionalSpace;
 }
+
 export interface ChartCalendarLevel {
   formats?: ChartCalendarFormat[];
   main?: boolean;
   doNotUseCache?: boolean;
 }
+
 export interface ChartCalendar {
   levels?: ChartCalendarLevel[];
   expand?: boolean;
 }
+
 export interface ChartGridCell {
   onCreate: ((cell) => unknown)[];
 }
+
 export interface ChartGrid {
   cell?: ChartGridCell;
 }
+
 export interface ItemGap {
   top?: number;
   bottom?: number;
 }
+
 export interface DefaultItem {
   gap?: ItemGap;
   height?: number;
   top?: number;
 }
+
 export interface Chart {
   time?: ChartTime;
   calendar?: ChartCalendar;
@@ -408,7 +441,9 @@ export interface ActionFunctionResult {
   update?: (element: HTMLElement, data: unknown) => void;
   destroy?: (element: HTMLElement, data: unknown) => void;
 }
+
 export type Action = (element: HTMLElement, data: unknown) => ActionFunctionResult | void;
+
 export interface Actions {
   [name: string]: Action[];
 }
@@ -428,6 +463,7 @@ export interface LocaleRelativeTime {
   y?: string;
   yy?: string;
 }
+
 export interface LocaleFormats {
   LT?: string;
   LTS?: string;
@@ -437,6 +473,7 @@ export interface LocaleFormats {
   LLLL?: string;
   [key: string]: string;
 }
+
 export interface Locale {
   name?: string;
   weekdays?: string[];
@@ -508,7 +545,6 @@ export interface DataLoaded {
 }
 
 export interface Data {
-  components: Components;
   treeMap: TreeMap;
   flatTreeMap: string[];
   flatTreeMapById: Rows;

@@ -15,13 +15,13 @@ import {
   CELL,
   CELL_TYPE,
   Point,
-  PointerState
-} from '../TimelinePointer.plugin';
+  PointerState,
+} from './TimelinePointer.plugin';
 
-import { Wrap } from './Wrapper';
-import { Item, Cell, Items, Vido } from '../../types';
+import { Item, Cell, Items, Vido, htmlResult, Wrapper } from '../types';
 import DeepState from 'deep-state-observer';
-import { Api } from '../../api/Api';
+import { Api } from '../api/Api';
+import { StyleMap, lithtml } from '@neuronet.io/vido/vido';
 
 export interface Options {
   enabled?: boolean;
@@ -54,7 +54,7 @@ function prepareOptions(options: Options) {
     },
     canDeselect(type, currently, all) {
       return [];
-    }
+    },
   };
   options = { ...defaultOptions, ...options } as Options;
   return options;
@@ -106,18 +106,18 @@ function generateEmptyData(options: Options): PluginData {
     selectionArea: { x: 0, y: 0, width: 0, height: 0 },
     selecting: {
       [ITEM]: [],
-      [CELL]: []
+      [CELL]: [],
     },
     selected: {
       [ITEM]: [],
-      [CELL]: []
+      [CELL]: [],
     },
     events: {
       down: null,
       move: null,
-      up: null
+      up: null,
     },
-    ...options
+    ...options,
   };
 }
 
@@ -129,6 +129,10 @@ class SelectionPlugin {
   private api: Api;
   private options: Options;
   private unsub = [];
+  private oldWrapper: Wrapper;
+  private html: typeof lithtml.html;
+  private wrapperClassName: string;
+  private wrapperStyleMap: StyleMap;
 
   constructor(vido: Vido, options: Options) {
     this.vido = vido;
@@ -136,26 +140,31 @@ class SelectionPlugin {
     this.api = vido.api;
     this.options = options;
     this.data = generateEmptyData(options);
+    this.wrapperClassName = this.api.getClass('chart-selection');
+    this.wrapperStyleMap = new vido.StyleMap({ display: 'none' });
+    this.html = vido.html;
+    this.wrapper = this.wrapper.bind(this);
     this.unsub.push(
-      this.state.subscribe('config.plugin.TimelinePointer', timelinePointerData => {
+      this.state.subscribe('config.plugin.TimelinePointer', (timelinePointerData) => {
         this.poitnerData = timelinePointerData;
         this.onPointerData();
       })
     );
     this.updateData();
     this.unsub.push(
-      this.state.subscribe(pluginPath, value => {
+      this.state.subscribe(pluginPath, (value) => {
         this.data = value;
       })
     );
   }
 
   public destroy() {
-    this.unsub.forEach(unsub => unsub());
+    this.unsub.forEach((unsub) => unsub());
   }
 
   private updateData() {
     this.state.update(pluginPath, { ...this.data });
+    this.vido.update(); // draw selection area overlay
   }
 
   private getItemsUnderSelectionArea(): Item[] {
@@ -190,8 +199,12 @@ class SelectionPlugin {
       const items: Items = this.state.get('config.chart.items');
       for (const linkedItemId of item.linkedWith) {
         const linkedItem: Item = items[linkedItemId];
-        current.push(linkedItem);
-        this.collectLinkedItems(linkedItem, current);
+        if (!current.includes(linkedItem)) {
+          current.push(linkedItem);
+          this.collectLinkedItems(linkedItem, current);
+        }
+        if (!linkedItem.linkedWith) linkedItem.linkedWith = [];
+        if (!linkedItem.linkedWith.includes(item.id)) linkedItem.linkedWith.push(item.id);
       }
     }
     return current;
@@ -199,7 +212,7 @@ class SelectionPlugin {
 
   private getSelected(item: Item): Item[] {
     let selected: Item[];
-    if (this.data.selected[ITEM].find(selectedItem => selectedItem.id === item.id)) {
+    if (this.data.selected[ITEM].find((selectedItem) => selectedItem.id === item.id)) {
       selected = this.data.selected[ITEM];
     } else {
       if (this.poitnerData.events.down.ctrlKey) {
@@ -250,6 +263,26 @@ class SelectionPlugin {
     this.data.targetType = this.poitnerData.targetType;
     this.updateData();
   }
+
+  private wrapper(input: htmlResult, props?: any) {
+    const oldContent = this.oldWrapper(input, props);
+    if (this.data.isSelecting && this.data.showOverlay) {
+      this.wrapperStyleMap.style.display = 'block';
+      this.wrapperStyleMap.style.left = this.data.selectionArea.x + 'px';
+      this.wrapperStyleMap.style.top = this.data.selectionArea.y + 'px';
+      this.wrapperStyleMap.style.width = this.data.selectionArea.width + 'px';
+      this.wrapperStyleMap.style.height = this.data.selectionArea.height + 'px';
+    } else {
+      this.wrapperStyleMap.style.display = 'none';
+    }
+    const SelectionRectangle = this.html` <div class=${this.wrapperClassName} style=${this.wrapperStyleMap}></div> `;
+    return this.html` ${oldContent}${SelectionRectangle} `;
+  }
+
+  public getWrapper(oldWrapper: Wrapper): Wrapper {
+    if (!this.oldWrapper) this.oldWrapper = oldWrapper;
+    return this.wrapper;
+  }
 }
 
 export function Plugin(options: Options = {}) {
@@ -258,8 +291,8 @@ export function Plugin(options: Options = {}) {
   return function initialize(vidoInstance: Vido) {
     const selectionPlugin = new SelectionPlugin(vidoInstance, options);
     vidoInstance.state.update(pluginPath, generateEmptyData(options));
-    vidoInstance.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
-      return Wrap(oldWrapper, vidoInstance);
+    vidoInstance.state.update('config.wrappers.ChartTimelineItems', (oldWrapper: Wrapper) => {
+      return selectionPlugin.getWrapper(oldWrapper);
     });
     return function destroy() {
       selectionPlugin.destroy();

@@ -18,25 +18,22 @@ function GSTC(options) {
   const state = options.state;
   const api = new Api(state);
   const $data: Data = {
-    components: {
-      Main
-    },
     treeMap: { id: '', $data: { children: [], parents: [], items: [] } },
     flatTreeMap: [],
     flatTreeMapById: {},
     list: {
       visibleRows: [],
-      width: 0
+      width: 0,
     },
     dimensions: {
       width: 0,
-      height: 0
+      height: 0,
     },
     chart: {
       dimensions: {
         width: 0,
         innerWidth: 0,
-        height: 0
+        height: 0,
       },
       visibleItems: [],
       time: {
@@ -46,7 +43,7 @@ function GSTC(options) {
           zoomTo: 0,
           format() {
             return '';
-          }
+          },
         },
         level: 0,
         levels: [],
@@ -71,21 +68,21 @@ function GSTC(options) {
         finalFrom: null,
         finalTo: null,
         finalFromDate: null,
-        finalToDate: null
-      }
+        finalToDate: null,
+      },
     },
     elements: {},
-    loaded: {}
+    loaded: {},
   };
   if (typeof options.debug === 'boolean' && options.debug) {
     // @ts-ignore
     window.state = state;
   }
 
-  state.update('', oldValue => {
+  state.update('', (oldValue) => {
     return {
       config: oldValue.config,
-      $data
+      $data,
     };
   });
   // @ts-ignore

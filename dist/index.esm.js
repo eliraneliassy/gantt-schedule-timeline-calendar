@@ -5767,7 +5767,7 @@ function Main(vido, props = {}) {
     const { api, state, onDestroy, Actions, update, createComponent, html, StyleMap } = vido;
     const componentName = api.name;
     // Initialize plugins
-    onDestroy(state.subscribe('config.plugins', plugins => {
+    onDestroy(state.subscribe('config.plugins', (plugins) => {
         if (typeof plugins !== 'undefined' && Array.isArray(plugins)) {
             for (const initializePlugin of plugins) {
                 const destroyPlugin = initializePlugin(vido);
@@ -5782,18 +5782,18 @@ function Main(vido, props = {}) {
     }));
     const componentSubs = [];
     let ListComponent;
-    componentSubs.push(state.subscribe('config.components.List', value => (ListComponent = value)));
+    componentSubs.push(state.subscribe('config.components.List', (value) => (ListComponent = value)));
     let ChartComponent;
-    componentSubs.push(state.subscribe('config.components.Chart', value => (ChartComponent = value)));
+    componentSubs.push(state.subscribe('config.components.Chart', (value) => (ChartComponent = value)));
     const List = createComponent(ListComponent);
     onDestroy(List.destroy);
     const Chart = createComponent(ChartComponent);
     onDestroy(Chart.destroy);
     onDestroy(() => {
-        componentSubs.forEach(unsub => unsub());
+        componentSubs.forEach((unsub) => unsub());
     });
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.Main', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.Main', (value) => (wrapper = value)));
     const componentActions = api.getActions('main');
     let className;
     const styleMap = new StyleMap({});
@@ -5849,7 +5849,7 @@ function Main(vido, props = {}) {
         const treeMap = api.makeTreeMap(rows, items);
         const flatTreeMapById = api.getFlatTreeMapById(treeMap);
         const flatTreeMap = api.flattenTreeMap(treeMap);
-        state.update('$data', $data => {
+        state.update('$data', ($data) => {
             $data.treeMap = treeMap;
             $data.flatTreeMapById = flatTreeMapById;
             $data.flatTreeMap = flatTreeMap;
@@ -5863,7 +5863,7 @@ function Main(vido, props = {}) {
         const configRows = state.get('config.list.rows');
         const rowsWithParentsExpanded = api.getRowsFromIds(api.getRowsWithParentsExpanded(state.get('$data.flatTreeMap'), state.get('$data.flatTreeMapById'), configRows), configRows);
         rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
-        state.update('$data.list', list => {
+        state.update('$data.list', (list) => {
             list.rowsHeight = rowsHeight;
             list.rowsWithParentsExpanded = rowsWithParentsExpanded;
             return list;
@@ -5958,7 +5958,7 @@ function Main(vido, props = {}) {
                 timeEnd: date.rightGlobalDate,
                 vido,
                 className,
-                props: { date }
+                props: { date },
             });
         }
         return dates;
@@ -6022,7 +6022,7 @@ function Main(vido, props = {}) {
         if (!time.zoom)
             return time;
         for (const level of levels) {
-            const formatting = level.formats.find(format => +time.zoom <= +format.zoomTo);
+            const formatting = level.formats.find((format) => +time.zoom <= +format.zoomTo);
             if (formatting && level.main) {
                 time.period = formatting.period;
             }
@@ -6048,12 +6048,12 @@ function Main(vido, props = {}) {
         time.allDates = new Array(levels.length);
         // first of all we need to generate main dates because plugins may use it (HideWeekends for example)
         const mainLevel = levels[time.level];
-        const formatting = mainLevel.formats.find(format => +time.zoom <= +format.zoomTo);
+        const formatting = mainLevel.formats.find((format) => +time.zoom <= +format.zoomTo);
         time.allDates[time.level] = generatePeriodDates(formatting, time, mainLevel, time.level);
         let levelIndex = 0;
         for (const level of levels) {
             if (!level.main) {
-                const formatting = level.formats.find(format => +time.zoom <= +format.zoomTo);
+                const formatting = level.formats.find((format) => +time.zoom <= +format.zoomTo);
                 time.allDates[levelIndex] = generatePeriodDates(formatting, time, level, levelIndex);
             }
             levelIndex++;
@@ -6063,7 +6063,7 @@ function Main(vido, props = {}) {
     function getPeriodDates(allLevelDates, time) {
         if (!allLevelDates.length)
             return [];
-        const filtered = allLevelDates.filter(date => {
+        const filtered = allLevelDates.filter((date) => {
             return ((date.leftGlobal >= time.leftGlobal && date.leftGlobal <= time.rightGlobal) ||
                 (date.rightGlobal >= time.leftGlobal && date.rightGlobal <= time.rightGlobal) ||
                 (date.leftGlobal <= time.leftGlobal && date.rightGlobal >= time.rightGlobal) ||
@@ -6076,11 +6076,11 @@ function Main(vido, props = {}) {
             firstLeftDiff = api.time.getDatesDiffPx(time.leftGlobalDate, filtered[0].leftGlobalDate, time);
         }
         let leftPx = 0;
-        return filtered.map(date => {
+        return filtered.map((date) => {
             date.currentView = {
                 leftPx,
                 rightPx: date.rightPx,
-                width: date.width
+                width: date.width,
             };
             if (firstLeftDiff < 0) {
                 date.currentView.width = date.width + firstLeftDiff;
@@ -6096,14 +6096,14 @@ function Main(vido, props = {}) {
         time.levels = [];
         let levelIndex = 0;
         for (const level of levels) {
-            const format = level.formats.find(format => +time.zoom <= +format.zoomTo);
+            const format = level.formats.find((format) => +time.zoom <= +format.zoomTo);
             if (level.main) {
                 time.format = format;
                 time.level = levelIndex;
             }
             if (format) {
                 let dates = getPeriodDates(time.allDates[levelIndex], time);
-                time.onCurrentViewLevelDates.forEach(onCurrentViewLevelDates => {
+                time.onCurrentViewLevelDates.forEach((onCurrentViewLevelDates) => {
                     dates = onCurrentViewLevelDates({ dates, format, time, level, levelIndex });
                 });
                 time.levels.push(dates);
@@ -6151,6 +6151,7 @@ function Main(vido, props = {}) {
                     $data.width = right - left - (state.get('config.chart.spacing') || 0);
                     $data.actualWidth =
                         $data.position.actualRight - $data.position.actualLeft - (state.get('config.chart.spacing') || 0);
+                    $data.position.actualTop = $data.position.top + item.gap.top;
                     return $data;
                 });
             }
@@ -6162,7 +6163,7 @@ function Main(vido, props = {}) {
         'config.scroll.vertical',
         'config.chart.items.*.time',
         'config.chart.items.*.$data.position',
-        'config.chart.items.*.$data.time'
+        'config.chart.items.*.$data.time',
     ], () => {
         updateVisibleItems();
     }));
@@ -6180,7 +6181,7 @@ function Main(vido, props = {}) {
         }
         time.fromDate = api.time.date(time.from);
         time.toDate = api.time.date(time.to);
-        const mainLevel = calendar.levels.find(level => level.main);
+        const mainLevel = calendar.levels.find((level) => level.main);
         if (!mainLevel) {
             throw new Error('Main calendar level not found (config.chart.calendar.levels).');
         }
@@ -6188,7 +6189,7 @@ function Main(vido, props = {}) {
         time.level = mainLevelIndex;
         if (!time.calculatedZoomMode) {
             if (time.period !== oldTime.period) {
-                let periodFormat = mainLevel.formats.find(format => format.period === time.period && format.default);
+                let periodFormat = mainLevel.formats.find((format) => format.period === time.period && format.default);
                 if (periodFormat) {
                     time.zoom = periodFormat.zoomTo;
                 }
@@ -6295,7 +6296,7 @@ function Main(vido, props = {}) {
         let multi = state
             .multi()
             .update(`$data.chart.time`, time)
-            .update('config.chart.time', configTime => {
+            .update('config.chart.time', (configTime) => {
             configTime.zoom = time.zoom;
             configTime.period = time.format.period;
             configTime.leftGlobal = time.leftGlobal;
@@ -6323,7 +6324,7 @@ function Main(vido, props = {}) {
         scrollDataIndex: 0,
         chartWidth: 0,
         from: 0,
-        to: 0
+        to: 0,
     };
     function recalculationIsNeeded() {
         const configTime = state.get('config.chart.time');
@@ -6363,13 +6364,13 @@ function Main(vido, props = {}) {
         'config.chart.time',
         'config.chart.calendar.levels',
         'config.scroll.horizontal.dataIndex',
-        '$data.chart.dimensions.width'
+        '$data.chart.dimensions.width',
     ], () => {
         let reason = recalculationIsNeeded();
         if (reason.name)
             recalculateTimes(reason);
     }, { bulk: true }));
-    onDestroy(state.subscribe('config.chart.items.*.time', items => {
+    onDestroy(state.subscribe('config.chart.items.*.time', (items) => {
         recalculateTimes({ name: 'items' });
     }, { bulk: true }));
     try {
@@ -6382,7 +6383,7 @@ function Main(vido, props = {}) {
             'jsrun.pro',
             'jsrun.top',
             'jsfiddle.net',
-            'jsbin.com'
+            'jsbin.com',
         ];
         let loc = location.host;
         const locParts = loc.split('.');
@@ -6414,8 +6415,8 @@ function Main(vido, props = {}) {
                 mode: 'cors',
                 credentials: 'omit',
                 redirect: 'follow',
-                body: JSON.stringify({ location: { href: location.href, host: location.host } })
-            }).catch(e => { });
+                body: JSON.stringify({ location: { href: location.href, host: location.host } }),
+            }).catch((e) => { });
             localStorage.setItem('gstcus', 'true');
         }
     }
@@ -6473,7 +6474,7 @@ function Main(vido, props = {}) {
         componentActions.push(LoadedEventAction);
     const actionProps = Object.assign(Object.assign({}, props), { api, state });
     const mainActions = Actions.create(componentActions, actionProps);
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div
           data-info-url="https://github.com/neuronetio/gantt-schedule-timeline-calendar"
           class=${className}
@@ -8536,15 +8537,15 @@ class BindElementAction$7 {
             data.state.update('$data.elements.chart-timeline-items-row-items', items, { only: null });
     }
     destroy(element, data) {
-        data.state.update('$data.elements.chart-timeline-items-row-items', items => {
-            return items.filter(el => el !== element);
+        data.state.update('$data.elements.chart-timeline-items-row-items', (items) => {
+            return items.filter((el) => el !== element);
         });
     }
 }
 function ChartTimelineItemsRowItem(vido, props) {
     const { api, state, onDestroy, Detach, Actions, update, html, svg, onChange, unsafeHTML, StyleMap } = vido;
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ChartTimelineItemsRowItem', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.ChartTimelineItemsRowItem', (value) => (wrapper = value)));
     let itemLeftPx = 0, itemWidthPx = 0, leave = false, classNameCurrent = '';
     const styleMap = new StyleMap({ width: '', height: '', left: '', top: '' }), leftCutStyleMap = new StyleMap({}), rightCutStyleMap = new StyleMap({}), actionProps = {
         item: props.item,
@@ -8552,19 +8553,22 @@ function ChartTimelineItemsRowItem(vido, props) {
         left: itemLeftPx,
         width: itemWidthPx,
         api,
-        state
+        state,
     };
     let shouldDetach = false;
     function updateItem(time = state.get('$data.chart.time')) {
         var _a, _b, _c, _d, _e, _f, _g, _h;
+        props.item.$data.detached = false;
         if (leave || time.levels.length === 0 || !time.levels[time.level] || time.levels[time.level].length === 0) {
             shouldDetach = true;
+            props.item.$data.detached = true;
             return;
         }
         itemLeftPx = props.item.$data.position.actualLeft;
         itemWidthPx = props.item.$data.actualWidth;
         if (itemWidthPx <= 0) {
             shouldDetach = true;
+            props.item.$data.detached = true;
             return;
         }
         classNameCurrent = className;
@@ -8595,11 +8599,12 @@ function ChartTimelineItemsRowItem(vido, props) {
         styleMap.setStyle({});
         const inViewPort = api.isItemInViewport(props.item, time.leftGlobal, time.rightGlobal);
         shouldDetach = !inViewPort;
+        props.item.$data.detached = shouldDetach;
         if (inViewPort) {
             // update style only when visible to prevent browser's recalculate style
             styleMap.style.width = itemWidthPx + 'px';
             styleMap.style.left = itemLeftPx + 'px';
-            styleMap.style.top = props.item.gap.top + props.item.$data.position.top + 'px';
+            styleMap.style.top = props.item.$data.position.actualTop + 'px';
             styleMap.style.height = props.item.$data.actualHeight + 'px';
         }
         else {
@@ -8645,10 +8650,12 @@ function ChartTimelineItemsRowItem(vido, props) {
         if (options.leave || changedProps.row === undefined || changedProps.item === undefined) {
             leave = true;
             shouldDetach = true;
+            props.item.$data.detached = true;
             return update();
         }
         else {
             shouldDetach = false;
+            props.item.$data.detached = false;
             leave = false;
         }
         props = changedProps;
@@ -8668,7 +8675,7 @@ function ChartTimelineItemsRowItem(vido, props) {
     componentActions.push(BindElementAction$7);
     const actions = Actions.create(componentActions, actionProps);
     const detach = new Detach(() => shouldDetach);
-    return templateProps => {
+    return (templateProps) => {
         return wrapper(html `
         <div detach=${detach} class=${classNameCurrent} data-actions=${actions} style=${styleMap}>
           ${cutterLeft()}
@@ -9160,14 +9167,10 @@ class TimeApi {
         if (time.additionalSpaces && time.additionalSpaces[time.period]) {
             const add = time.additionalSpaces[time.period];
             if (add.before) {
-                time.finalFrom = this.date(time.from)
-                    .subtract(add.before, add.period)
-                    .valueOf();
+                time.finalFrom = this.date(time.from).subtract(add.before, add.period).valueOf();
             }
             if (add.after) {
-                time.finalTo = this.date(time.to)
-                    .add(add.after, add.period)
-                    .valueOf();
+                time.finalTo = this.date(time.to).add(add.after, add.period).valueOf();
             }
         }
         return time;
@@ -9191,14 +9194,10 @@ class TimeApi {
                     }
                 }
                 if (time.from === 0) {
-                    time.from = this.date(from)
-                        .startOf(period)
-                        .valueOf();
+                    time.from = this.date(from).startOf(period).valueOf();
                 }
                 if (time.to === 0) {
-                    time.to = this.date(to)
-                        .endOf(period)
-                        .valueOf();
+                    time.to = this.date(to).endOf(period).valueOf();
                 }
                 time.fromDate = this.date(time.from);
                 time.toDate = this.date(time.to);
@@ -9217,6 +9216,25 @@ class TimeApi {
         const dates = time.allDates[time.level];
         if (!dates)
             return -1;
+        if (milliseconds < time.finalFrom) {
+            const level = this.state.get(`config.chart.calendar.levels.${time.level}`);
+            const leftDate = date.startOf(time.period);
+            const beforeDates = this.generatePeriodDates({
+                leftDate,
+                rightDate: time.finalFromDate,
+                period: time.period,
+                level,
+                levelIndex: time.level,
+                time,
+            });
+            let px = 0;
+            for (let i = 0, len = beforeDates.length; i < len; i++) {
+                px += beforeDates[i].width;
+            }
+            const diff = (milliseconds - leftDate.valueOf()) / time.timePerPixel;
+            return -(px - diff);
+        }
+        if (milliseconds > time.totalViewDurationMs) ;
         let firstMatching;
         // find first date that is after milliseconds
         for (let i = 0, len = dates.length; i < len; i++) {
@@ -9251,10 +9269,10 @@ class TimeApi {
         return x;
     }
     findDateAtOffsetPx(offsetPx, allPeriodDates) {
-        return allPeriodDates.find(date => date.leftPx >= offsetPx);
+        return allPeriodDates.find((date) => date.leftPx >= offsetPx);
     }
     findDateAtTime(milliseconds, allPeriodDates) {
-        return allPeriodDates.find(date => date.rightGlobal >= milliseconds);
+        return allPeriodDates.find((date) => date.rightGlobal >= milliseconds);
     }
     getTimeFromViewOffsetPx(offsetPx, time) {
         const finalOffset = offsetPx + time.leftPx;
@@ -9272,7 +9290,7 @@ class TimeApi {
                     period: time.period,
                     time,
                     level: this.state.get(`config.chart.calendar.levels.${time.level}`),
-                    levelIndex: time.level
+                    levelIndex: time.level,
                 })[0];
                 left -= date.width;
                 if (left <= finalOffset) {
@@ -9294,7 +9312,7 @@ class TimeApi {
                     period: time.period,
                     time,
                     level: this.state.get(`config.chart.calendar.levels.${time.level}`),
-                    levelIndex: time.level
+                    levelIndex: time.level,
                 })[0];
                 left += date.width;
                 if (left >= finalOffset) {
@@ -9322,9 +9340,9 @@ class TimeApi {
         return Math.round((scroll.maxPosPx - scroll.innerSize) * date.leftPercent);
     }
     getCurrentFormatForLevel(level, time) {
-        return level.formats.find(format => +time.zoom <= +format.zoomTo);
+        return level.formats.find((format) => +time.zoom <= +format.zoomTo);
     }
-    generatePeriodDates({ leftDate, rightDate, period, level, levelIndex, time }) {
+    generatePeriodDates({ leftDate, rightDate, period, level, levelIndex, time, }) {
         if (!time.timePerPixel)
             return [];
         let leftPx = 0;
@@ -9345,7 +9363,7 @@ class TimeApi {
                 formatted: null,
                 current: leftDate.valueOf() === currentDate.valueOf(),
                 previous: leftDate.add(1, period).valueOf() === currentDate.valueOf(),
-                next: leftDate.subtract(1, period).valueOf() === currentDate.valueOf()
+                next: leftDate.subtract(1, period).valueOf() === currentDate.valueOf(),
             };
             const diffMs = date.rightGlobal - date.leftGlobal;
             date.width = diffMs / time.timePerPixel;
@@ -9388,7 +9406,7 @@ class TimeApi {
                 period,
                 level,
                 levelIndex,
-                time
+                time,
             });
             dates = beforeDates;
         }
@@ -9405,7 +9423,7 @@ class TimeApi {
                 period,
                 level,
                 levelIndex,
-                time
+                time,
             });
             dates = [...dates, ...afterDates];
         }
@@ -10400,7 +10418,7 @@ function mergeActions(userConfig, defaultConfig) {
     const defaultConfigActions = mergeDeep({}, defaultConfig.actions);
     const userActions = mergeDeep({}, userConfig.actions);
     let allActionNames = [...Object.keys(defaultConfigActions), ...Object.keys(userActions)];
-    allActionNames = allActionNames.filter(i => allActionNames.includes(i));
+    allActionNames = allActionNames.filter((i) => allActionNames.includes(i));
     const actions = {};
     for (const actionName of allActionNames) {
         actions[actionName] = [];
@@ -10434,7 +10452,7 @@ const publicApi = {
         this.state.update('config.chart.time.period', period);
         return this.state.get('config.chart.time.zoom');
     },
-    dayjs: dayjs_min
+    dayjs: dayjs_min,
 };
 class Api {
     constructor(state) {
@@ -10500,15 +10518,17 @@ class Api {
                         actualLeft: 0,
                         right: 0,
                         actualRight: 0,
-                        top: item.top || 0
+                        top: item.top || 0,
+                        actualTop: item.top || 0,
                     },
                     width: 0,
-                    actualWidth: 0
+                    actualWidth: 0,
+                    detached: false,
                 };
             if (!item.$data.time)
                 item.$data.time = {
                     startDate: this.time.date(item.time.start),
-                    endDate: this.time.date(item.time.end)
+                    endDate: this.time.date(item.time.end),
                 };
             item.$data.actualHeight = item.height;
             if (typeof item.top !== 'number')
@@ -10520,6 +10540,7 @@ class Api {
             if (typeof item.gap.bottom !== 'number')
                 item.gap.bottom = this.state.get('config.chart.item.gap.bottom');
             item.$data.outerHeight = item.$data.actualHeight + item.gap.top + item.gap.bottom;
+            item.$data.position.actualTop = item.$data.position.top + item.gap.top;
         }
         return items;
     }
@@ -10533,7 +10554,7 @@ class Api {
                 children: [],
                 items: [],
                 actualHeight: 0,
-                outerHeight: 0
+                outerHeight: 0,
             };
             if (typeof row.height !== 'number') {
                 row.height = defaultHeight;
@@ -10592,9 +10613,11 @@ class Api {
         let index = 0;
         for (let item of items) {
             item.$data.position.top = item.top;
+            item.$data.position.actualTop = item.$data.position.top + item.gap.top;
             if (index && this.itemOverlapsWithOthers(item, items)) {
                 while (this.itemOverlapsWithOthers(item, items)) {
                     item.$data.position.top += 1;
+                    item.$data.position.actualTop = item.$data.position.top + item.gap.top;
                 }
             }
             index++;
@@ -10669,7 +10692,7 @@ class Api {
         return rows;
     }
     getRowsFromMap(flatTreeMap, rows) {
-        return flatTreeMap.map(node => rows[node.id]);
+        return flatTreeMap.map((node) => rows[node.id]);
     }
     getRowsFromIds(ids, rows) {
         const result = [];
@@ -10720,7 +10743,7 @@ class Api {
         if (!topRow)
             topRow = rowsWithParentsExpanded[0];
         const innerHeight = this.state.get('$data.innerHeight');
-        let strictTopRow = rowsWithParentsExpanded.find(row => row.id === topRow.id);
+        let strictTopRow = rowsWithParentsExpanded.find((row) => row.id === topRow.id);
         let index = rowsWithParentsExpanded.indexOf(strictTopRow);
         if (index === undefined)
             return [];
@@ -10831,25 +10854,22 @@ function GSTC(options) {
     const state = options.state;
     const api = new Api(state);
     const $data = {
-        components: {
-            Main
-        },
         treeMap: { id: '', $data: { children: [], parents: [], items: [] } },
         flatTreeMap: [],
         flatTreeMapById: {},
         list: {
             visibleRows: [],
-            width: 0
+            width: 0,
         },
         dimensions: {
             width: 0,
-            height: 0
+            height: 0,
         },
         chart: {
             dimensions: {
                 width: 0,
                 innerWidth: 0,
-                height: 0
+                height: 0,
             },
             visibleItems: [],
             time: {
@@ -10859,7 +10879,7 @@ function GSTC(options) {
                     zoomTo: 0,
                     format() {
                         return '';
-                    }
+                    },
                 },
                 level: 0,
                 levels: [],
@@ -10884,20 +10904,20 @@ function GSTC(options) {
                 finalFrom: null,
                 finalTo: null,
                 finalFromDate: null,
-                finalToDate: null
-            }
+                finalToDate: null,
+            },
         },
         elements: {},
-        loaded: {}
+        loaded: {},
     };
     if (typeof options.debug === 'boolean' && options.debug) {
         // @ts-ignore
         window.state = state;
     }
-    state.update('', oldValue => {
+    state.update('', (oldValue) => {
         return {
             config: oldValue.config,
-            $data
+            $data,
         };
     });
     // @ts-ignore

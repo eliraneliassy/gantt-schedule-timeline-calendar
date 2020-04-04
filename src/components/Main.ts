@@ -26,7 +26,7 @@ import {
   Item,
   ItemData,
   Vido,
-  Reason
+  Reason,
 } from '../types';
 
 import { OpUnitType } from 'dayjs';
@@ -38,7 +38,7 @@ export default function Main(vido: Vido, props = {}) {
 
   // Initialize plugins
   onDestroy(
-    state.subscribe('config.plugins', plugins => {
+    state.subscribe('config.plugins', (plugins) => {
       if (typeof plugins !== 'undefined' && Array.isArray(plugins)) {
         for (const initializePlugin of plugins) {
           const destroyPlugin = initializePlugin(vido);
@@ -54,9 +54,9 @@ export default function Main(vido: Vido, props = {}) {
 
   const componentSubs = [];
   let ListComponent: Component;
-  componentSubs.push(state.subscribe('config.components.List', value => (ListComponent = value)));
+  componentSubs.push(state.subscribe('config.components.List', (value) => (ListComponent = value)));
   let ChartComponent: Component;
-  componentSubs.push(state.subscribe('config.components.Chart', value => (ChartComponent = value)));
+  componentSubs.push(state.subscribe('config.components.Chart', (value) => (ChartComponent = value)));
 
   const List: ComponentInstance = createComponent(ListComponent);
   onDestroy(List.destroy);
@@ -64,11 +64,11 @@ export default function Main(vido: Vido, props = {}) {
   onDestroy(Chart.destroy);
 
   onDestroy(() => {
-    componentSubs.forEach(unsub => unsub());
+    componentSubs.forEach((unsub) => unsub());
   });
 
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.Main', value => (wrapper = value)));
+  onDestroy(state.subscribe('config.wrappers.Main', (value) => (wrapper = value)));
 
   const componentActions = api.getActions('main');
   let className;
@@ -131,7 +131,7 @@ export default function Main(vido: Vido, props = {}) {
     const treeMap = api.makeTreeMap(rows, items);
     const flatTreeMapById = api.getFlatTreeMapById(treeMap);
     const flatTreeMap = api.flattenTreeMap(treeMap);
-    state.update('$data', $data => {
+    state.update('$data', ($data) => {
       $data.treeMap = treeMap;
       $data.flatTreeMapById = flatTreeMapById;
       $data.flatTreeMap = flatTreeMap;
@@ -152,7 +152,7 @@ export default function Main(vido: Vido, props = {}) {
       configRows
     );
     rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
-    state.update('$data.list', list => {
+    state.update('$data.list', (list) => {
       list.rowsHeight = rowsHeight;
       list.rowsWithParentsExpanded = rowsWithParentsExpanded;
       return list;
@@ -268,7 +268,7 @@ export default function Main(vido: Vido, props = {}) {
         timeEnd: date.rightGlobalDate,
         vido,
         className,
-        props: { date }
+        props: { date },
       });
     }
     return dates;
@@ -331,7 +331,7 @@ export default function Main(vido: Vido, props = {}) {
   function guessPeriod(time: DataChartTime, levels: ChartCalendarLevel[]) {
     if (!time.zoom) return time;
     for (const level of levels) {
-      const formatting = level.formats.find(format => +time.zoom <= +format.zoomTo);
+      const formatting = level.formats.find((format) => +time.zoom <= +format.zoomTo);
       if (formatting && level.main) {
         time.period = formatting.period;
       }
@@ -359,13 +359,13 @@ export default function Main(vido: Vido, props = {}) {
 
     // first of all we need to generate main dates because plugins may use it (HideWeekends for example)
     const mainLevel = levels[time.level];
-    const formatting = mainLevel.formats.find(format => +time.zoom <= +format.zoomTo);
+    const formatting = mainLevel.formats.find((format) => +time.zoom <= +format.zoomTo);
     time.allDates[time.level] = generatePeriodDates(formatting, time, mainLevel, time.level);
 
     let levelIndex = 0;
     for (const level of levels) {
       if (!level.main) {
-        const formatting = level.formats.find(format => +time.zoom <= +format.zoomTo);
+        const formatting = level.formats.find((format) => +time.zoom <= +format.zoomTo);
         time.allDates[levelIndex] = generatePeriodDates(formatting, time, level, levelIndex);
       }
       levelIndex++;
@@ -375,7 +375,7 @@ export default function Main(vido: Vido, props = {}) {
 
   function getPeriodDates(allLevelDates: ChartTimeDates, time: DataChartTime): ChartTimeDate[] {
     if (!allLevelDates.length) return [];
-    const filtered = allLevelDates.filter(date => {
+    const filtered = allLevelDates.filter((date) => {
       return (
         (date.leftGlobal >= time.leftGlobal && date.leftGlobal <= time.rightGlobal) ||
         (date.rightGlobal >= time.leftGlobal && date.rightGlobal <= time.rightGlobal) ||
@@ -390,11 +390,11 @@ export default function Main(vido: Vido, props = {}) {
     }
 
     let leftPx = 0;
-    return filtered.map(date => {
+    return filtered.map((date) => {
       date.currentView = {
         leftPx,
         rightPx: date.rightPx,
-        width: date.width
+        width: date.width,
       };
       if (firstLeftDiff < 0) {
         date.currentView.width = date.width + firstLeftDiff;
@@ -411,14 +411,14 @@ export default function Main(vido: Vido, props = {}) {
     time.levels = [];
     let levelIndex = 0;
     for (const level of levels) {
-      const format = level.formats.find(format => +time.zoom <= +format.zoomTo);
+      const format = level.formats.find((format) => +time.zoom <= +format.zoomTo);
       if (level.main) {
         time.format = format;
         time.level = levelIndex;
       }
       if (format) {
         let dates = getPeriodDates(time.allDates[levelIndex], time);
-        time.onCurrentViewLevelDates.forEach(onCurrentViewLevelDates => {
+        time.onCurrentViewLevelDates.forEach((onCurrentViewLevelDates) => {
           dates = onCurrentViewLevelDates({ dates, format, time, level, levelIndex });
         });
         time.levels.push(dates);
@@ -459,7 +459,6 @@ export default function Main(vido: Vido, props = {}) {
   function updateVisibleItems(time: DataChartTime = state.get('$data.chart.time'), multi = state.multi()) {
     const visibleItems: Item[] = state.get('$data.chart.visibleItems');
     if (!time.levels || !time.levels[time.level]) return;
-    let noMulti = false;
     for (const item of visibleItems) {
       const left = api.time.getViewOffsetPxFromDates(item.$data.time.startDate, false, time);
       const right = api.time.getViewOffsetPxFromDates(item.$data.time.endDate, false, time);
@@ -472,6 +471,7 @@ export default function Main(vido: Vido, props = {}) {
           $data.width = right - left - (state.get('config.chart.spacing') || 0);
           $data.actualWidth =
             $data.position.actualRight - $data.position.actualLeft - (state.get('config.chart.spacing') || 0);
+          $data.position.actualTop = $data.position.top + item.gap.top;
           return $data;
         });
       }
@@ -486,7 +486,7 @@ export default function Main(vido: Vido, props = {}) {
         'config.scroll.vertical',
         'config.chart.items.*.time',
         'config.chart.items.*.$data.position',
-        'config.chart.items.*.$data.time'
+        'config.chart.items.*.$data.time',
       ],
       () => {
         updateVisibleItems();
@@ -509,7 +509,7 @@ export default function Main(vido: Vido, props = {}) {
     time.fromDate = api.time.date(time.from);
     time.toDate = api.time.date(time.to);
 
-    const mainLevel = calendar.levels.find(level => level.main);
+    const mainLevel = calendar.levels.find((level) => level.main);
     if (!mainLevel) {
       throw new Error('Main calendar level not found (config.chart.calendar.levels).');
     }
@@ -518,7 +518,7 @@ export default function Main(vido: Vido, props = {}) {
 
     if (!time.calculatedZoomMode) {
       if (time.period !== oldTime.period) {
-        let periodFormat = mainLevel.formats.find(format => format.period === time.period && format.default);
+        let periodFormat = mainLevel.formats.find((format) => format.period === time.period && format.default);
         if (periodFormat) {
           time.zoom = periodFormat.zoomTo;
         }
@@ -542,7 +542,7 @@ export default function Main(vido: Vido, props = {}) {
         from: configTime.from,
         fromDate: api.time.date(configTime.from),
         to: configTime.to,
-        toDate: api.time.date(configTime.to)
+        toDate: api.time.date(configTime.to),
       };
     }
 
@@ -646,7 +646,7 @@ export default function Main(vido: Vido, props = {}) {
     let multi = state
       .multi()
       .update(`$data.chart.time`, time)
-      .update('config.chart.time', configTime => {
+      .update('config.chart.time', (configTime) => {
         configTime.zoom = time.zoom;
         configTime.period = time.format.period;
         configTime.leftGlobal = time.leftGlobal;
@@ -676,7 +676,7 @@ export default function Main(vido: Vido, props = {}) {
     scrollDataIndex: 0,
     chartWidth: 0,
     from: 0,
-    to: 0
+    to: 0,
   };
   function recalculationIsNeeded() {
     const configTime = state.get('config.chart.time');
@@ -716,7 +716,7 @@ export default function Main(vido: Vido, props = {}) {
         'config.chart.time',
         'config.chart.calendar.levels',
         'config.scroll.horizontal.dataIndex',
-        '$data.chart.dimensions.width'
+        '$data.chart.dimensions.width',
       ],
       () => {
         let reason = recalculationIsNeeded();
@@ -729,7 +729,7 @@ export default function Main(vido: Vido, props = {}) {
   onDestroy(
     state.subscribe(
       'config.chart.items.*.time',
-      items => {
+      (items) => {
         recalculateTimes({ name: 'items' });
       },
       { bulk: true }
@@ -746,7 +746,7 @@ export default function Main(vido: Vido, props = {}) {
       'jsrun.pro',
       'jsrun.top',
       'jsfiddle.net',
-      'jsbin.com'
+      'jsbin.com',
     ];
     let loc = location.host;
     const locParts = loc.split('.');
@@ -776,8 +776,8 @@ export default function Main(vido: Vido, props = {}) {
         mode: 'cors',
         credentials: 'omit',
         redirect: 'follow',
-        body: JSON.stringify({ location: { href: location.href, host: location.host } })
-      }).catch(e => {});
+        body: JSON.stringify({ location: { href: location.href, host: location.host } }),
+      }).catch((e) => {});
       localStorage.setItem('gstcus', 'true');
     }
   } catch (e) {}
@@ -841,7 +841,7 @@ export default function Main(vido: Vido, props = {}) {
   const actionProps = { ...props, api, state };
   const mainActions = Actions.create(componentActions, actionProps);
 
-  return templateProps =>
+  return (templateProps) =>
     wrapper(
       html`
         <div

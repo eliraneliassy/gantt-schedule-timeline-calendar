@@ -8,30 +8,20 @@
  */
 
 import defaultConfigFn from '../default-config';
-import TimeApi from './Time';
+import { TimeApi } from './Time';
 import State from 'deep-state-observer';
 import DeepState from 'deep-state-observer';
 import dayjs from 'dayjs';
-import {
-  Config,
-  Period,
-  Scroll,
-  DataChartTimeLevel,
-  DataChartTime,
-  ScrollType,
-  ScrollTypeHorizontal,
-  Row,
-  Item,
-  Vido
-} from '../types';
+import { Config, Period, DataChartTime, ScrollTypeHorizontal, Row, Item, Vido } from '../types';
 import { mergeDeep } from '@neuronet.io/vido/helpers';
+
 const lib = 'gantt-schedule-timeline-calendar';
 
 function mergeActions(userConfig, defaultConfig) {
   const defaultConfigActions = mergeDeep({}, defaultConfig.actions);
   const userActions = mergeDeep({}, userConfig.actions);
   let allActionNames = [...Object.keys(defaultConfigActions), ...Object.keys(userActions)];
-  allActionNames = allActionNames.filter(i => allActionNames.includes(i));
+  allActionNames = allActionNames.filter((i) => allActionNames.includes(i));
   const actions = {};
   for (const actionName of allActionNames) {
     actions[actionName] = [];
@@ -67,7 +57,7 @@ export const publicApi = {
     this.state.update('config.chart.time.period', period);
     return this.state.get('config.chart.time.zoom');
   },
-  dayjs
+  dayjs,
 };
 
 export interface WheelResult {
@@ -153,15 +143,17 @@ export class Api {
             actualLeft: 0,
             right: 0,
             actualRight: 0,
-            top: item.top || 0
+            top: item.top || 0,
+            actualTop: item.top || 0,
           },
           width: 0,
-          actualWidth: 0
+          actualWidth: 0,
+          detached: false,
         };
       if (!item.$data.time)
         item.$data.time = {
           startDate: this.time.date(item.time.start),
-          endDate: this.time.date(item.time.end)
+          endDate: this.time.date(item.time.end),
         };
       item.$data.actualHeight = item.height;
       if (typeof item.top !== 'number') item.top = 0;
@@ -169,6 +161,7 @@ export class Api {
       if (typeof item.gap.top !== 'number') item.gap.top = this.state.get('config.chart.item.gap.top');
       if (typeof item.gap.bottom !== 'number') item.gap.bottom = this.state.get('config.chart.item.gap.bottom');
       item.$data.outerHeight = item.$data.actualHeight + item.gap.top + item.gap.bottom;
+      item.$data.position.actualTop = item.$data.position.top + item.gap.top;
     }
     return items;
   }
@@ -183,7 +176,7 @@ export class Api {
         children: [],
         items: [],
         actualHeight: 0,
-        outerHeight: 0
+        outerHeight: 0,
       };
       if (typeof row.height !== 'number') {
         row.height = defaultHeight;
@@ -234,9 +227,11 @@ export class Api {
     let index = 0;
     for (let item of items) {
       item.$data.position.top = item.top;
+      item.$data.position.actualTop = item.$data.position.top + item.gap.top;
       if (index && this.itemOverlapsWithOthers(item, items)) {
         while (this.itemOverlapsWithOthers(item, items)) {
           item.$data.position.top += 1;
+          item.$data.position.actualTop = item.$data.position.top + item.gap.top;
         }
       }
       index++;
@@ -317,7 +312,7 @@ export class Api {
   }
 
   getRowsFromMap(flatTreeMap, rows) {
-    return flatTreeMap.map(node => rows[node.id]);
+    return flatTreeMap.map((node) => rows[node.id]);
   }
 
   getRowsFromIds(ids, rows) {
@@ -371,7 +366,7 @@ export class Api {
     let topRow = this.state.get('config.scroll.vertical.data');
     if (!topRow) topRow = rowsWithParentsExpanded[0];
     const innerHeight = this.state.get('$data.innerHeight');
-    let strictTopRow = rowsWithParentsExpanded.find(row => row.id === topRow.id);
+    let strictTopRow = rowsWithParentsExpanded.find((row) => row.id === topRow.id);
     let index = rowsWithParentsExpanded.indexOf(strictTopRow);
     if (index === undefined) return [];
     let currentRowsOffset = 0;

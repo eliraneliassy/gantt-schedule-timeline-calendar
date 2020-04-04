@@ -17,55 +17,6 @@
   const ITEM = 'chart-timeline-items-row-item';
 
   /**
-   * Selection ChartTimeline Wrapper
-   *
-   * @copyright Rafal Pospiech <https://neuronet.io>
-   * @author    Rafal Pospiech <neuronet.io@gmail.com>
-   * @package   gantt-schedule-timeline-calendar
-   * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
-   * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
-   */
-  let wrapped, vido, api, state, html;
-  let pluginData;
-  let className, styleMap;
-  // this function will be called at each rerender
-  function ChartTimelineWrapper(input, props) {
-      const oldContent = wrapped(input, props);
-      if (pluginData.isSelecting && pluginData.showOverlay) {
-          styleMap.style.display = 'block';
-          styleMap.style.left = pluginData.selectionArea.x + 'px';
-          styleMap.style.top = pluginData.selectionArea.y + 'px';
-          styleMap.style.width = pluginData.selectionArea.width + 'px';
-          styleMap.style.height = pluginData.selectionArea.height + 'px';
-      }
-      else {
-          styleMap.style.display = 'none';
-      }
-      const SelectionRectangle = html `
-    <div class=${className} style=${styleMap}></div>
-  `;
-      return html `
-    ${oldContent}${SelectionRectangle}
-  `;
-  }
-  function Wrap(oldWrapper, vidoInstance) {
-      if (wrapped)
-          return;
-      wrapped = oldWrapper;
-      vido = vidoInstance;
-      api = vido.api;
-      state = vido.state;
-      html = vido.html;
-      className = api.getClass('chart-selection');
-      styleMap = new vido.StyleMap({ display: 'none' });
-      vido.onDestroy(state.subscribe('config.plugin.Selection', (PluginData) => {
-          pluginData = PluginData;
-          vido.update(); // rerender to update rectangle
-      }));
-      return ChartTimelineWrapper;
-  }
-
-  /**
    * Selection plugin
    *
    * @copyright Rafal Pospiech <https://neuronet.io>
@@ -86,7 +37,7 @@
           },
           canDeselect(type, currently, all) {
               return [];
-          }
+          },
       };
       options = Object.assign(Object.assign({}, defaultOptions), options);
       return options;
@@ -95,14 +46,14 @@
   function generateEmptyData(options) {
       return Object.assign({ enabled: true, showOverlay: true, isSelecting: false, pointerState: 'up', targetType: '', initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, selectionArea: { x: 0, y: 0, width: 0, height: 0 }, selecting: {
               [ITEM]: [],
-              [CELL]: []
+              [CELL]: [],
           }, selected: {
               [ITEM]: [],
-              [CELL]: []
+              [CELL]: [],
           }, events: {
               down: null,
               move: null,
-              up: null
+              up: null,
           } }, options);
   }
   class SelectionPlugin {
@@ -113,20 +64,25 @@
           this.api = vido.api;
           this.options = options;
           this.data = generateEmptyData(options);
-          this.unsub.push(this.state.subscribe('config.plugin.TimelinePointer', timelinePointerData => {
+          this.wrapperClassName = this.api.getClass('chart-selection');
+          this.wrapperStyleMap = new vido.StyleMap({ display: 'none' });
+          this.html = vido.html;
+          this.wrapper = this.wrapper.bind(this);
+          this.unsub.push(this.state.subscribe('config.plugin.TimelinePointer', (timelinePointerData) => {
               this.poitnerData = timelinePointerData;
               this.onPointerData();
           }));
           this.updateData();
-          this.unsub.push(this.state.subscribe(pluginPath, value => {
+          this.unsub.push(this.state.subscribe(pluginPath, (value) => {
               this.data = value;
           }));
       }
       destroy() {
-          this.unsub.forEach(unsub => unsub());
+          this.unsub.forEach((unsub) => unsub());
       }
       updateData() {
           this.state.update(pluginPath, Object.assign({}, this.data));
+          this.vido.update(); // draw selection area overlay
       }
       getItemsUnderSelectionArea() {
           return [];
@@ -160,15 +116,21 @@
               const items = this.state.get('config.chart.items');
               for (const linkedItemId of item.linkedWith) {
                   const linkedItem = items[linkedItemId];
-                  current.push(linkedItem);
-                  this.collectLinkedItems(linkedItem, current);
+                  if (!current.includes(linkedItem)) {
+                      current.push(linkedItem);
+                      this.collectLinkedItems(linkedItem, current);
+                  }
+                  if (!linkedItem.linkedWith)
+                      linkedItem.linkedWith = [];
+                  if (!linkedItem.linkedWith.includes(item.id))
+                      linkedItem.linkedWith.push(item.id);
               }
           }
           return current;
       }
       getSelected(item) {
           let selected;
-          if (this.data.selected[ITEM].find(selectedItem => selectedItem.id === item.id)) {
+          if (this.data.selected[ITEM].find((selectedItem) => selectedItem.id === item.id)) {
               selected = this.data.selected[ITEM];
           }
           else {
@@ -220,14 +182,34 @@
           this.data.targetType = this.poitnerData.targetType;
           this.updateData();
       }
+      wrapper(input, props) {
+          const oldContent = this.oldWrapper(input, props);
+          if (this.data.isSelecting && this.data.showOverlay) {
+              this.wrapperStyleMap.style.display = 'block';
+              this.wrapperStyleMap.style.left = this.data.selectionArea.x + 'px';
+              this.wrapperStyleMap.style.top = this.data.selectionArea.y + 'px';
+              this.wrapperStyleMap.style.width = this.data.selectionArea.width + 'px';
+              this.wrapperStyleMap.style.height = this.data.selectionArea.height + 'px';
+          }
+          else {
+              this.wrapperStyleMap.style.display = 'none';
+          }
+          const SelectionRectangle = this.html ` <div class=${this.wrapperClassName} style=${this.wrapperStyleMap}></div> `;
+          return this.html ` ${oldContent}${SelectionRectangle} `;
+      }
+      getWrapper(oldWrapper) {
+          if (!this.oldWrapper)
+              this.oldWrapper = oldWrapper;
+          return this.wrapper;
+      }
   }
   function Plugin(options = {}) {
       options = prepareOptions(options);
       return function initialize(vidoInstance) {
           const selectionPlugin = new SelectionPlugin(vidoInstance, options);
           vidoInstance.state.update(pluginPath, generateEmptyData(options));
-          vidoInstance.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
-              return Wrap(oldWrapper, vidoInstance);
+          vidoInstance.state.update('config.wrappers.ChartTimelineItems', (oldWrapper) => {
+              return selectionPlugin.getWrapper(oldWrapper);
           });
           return function destroy() {
               selectionPlugin.destroy();

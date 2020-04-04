@@ -256,7 +256,7 @@ const pluginPath = 'config.plugin.ItemMovement';
 function gemerateEmptyPluginData(options) {
     return Object.assign({ moving: [], lastMoved: [], state: 'up', pointerMoved: false, lastPosition: { x: 0, y: 0 }, movement: {
             px: { horizontal: 0, vertical: 0 },
-            time: 0
+            time: 0,
         }, onStart() { },
         onMove() { },
         onEnd() { },
@@ -273,14 +273,14 @@ class ItemMovement {
         this.vido = vido;
         this.api = vido.api;
         this.state = vido.state;
-        this.onDestroy.push(this.state.subscribe(pluginPath, data => (this.data = data)));
+        this.onDestroy.push(this.state.subscribe(pluginPath, (data) => (this.data = data)));
         if (!this.data.className)
             this.data.className = this.api.getClass('chart-timeline-items-row-item--moving');
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.onDestroy.push(this.state.subscribe('config.plugin.Selection', this.onSelectionChange));
     }
     destroy() {
-        this.onDestroy.forEach(unsub => unsub());
+        this.onDestroy.forEach((unsub) => unsub());
     }
     updateData() {
         this.state.update(pluginPath, this.data);
@@ -291,16 +291,16 @@ class ItemMovement {
         const leftGlobal = Math.round(this.api.time.getTimeFromViewOffsetPx(x, time));
         return {
             time: this.api.time.date(leftGlobal),
-            position: x
+            position: x,
         };
     }
     moveItems() {
         const time = this.state.get('$data.chart.time');
+        let multi = this.state.multi();
         for (const item of this.data.lastMoved) {
             const start = this.getItemMovingTime(item, time);
             let newItemTime;
-            this.state
-                .multi()
+            multi = multi
                 .update(`config.chart.items.${item.id}.time`, (itemTime) => {
                 const newStartTime = start.time.valueOf();
                 const diff = newStartTime - itemTime.start;
@@ -318,9 +318,9 @@ class ItemMovement {
                 itemData.position.actualRight = this.api.time.limitOffsetPxToView(itemData.position.right);
                 itemData.actualWidth = itemData.position.actualRight - itemData.position.actualLeft;
                 return itemData;
-            })
-                .done();
+            });
         }
+        multi.done();
     }
     clearSelection() {
         this.data.moving = [];
@@ -394,7 +394,7 @@ var ItemMovement$1 = /*#__PURE__*/Object.freeze({
 });
 
 /**
- * Selection ChartTimeline Wrapper
+ * ItemResizing plugin
  *
  * @copyright Rafal Pospiech <https://neuronet.io>
  * @author    Rafal Pospiech <neuronet.io@gmail.com>
@@ -402,45 +402,237 @@ var ItemMovement$1 = /*#__PURE__*/Object.freeze({
  * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
-let wrapped, vido, api, state, html;
-let pluginData;
-let className, styleMap;
-// this function will be called at each rerender
-function ChartTimelineWrapper(input, props) {
-    const oldContent = wrapped(input, props);
-    if (pluginData.isSelecting && pluginData.showOverlay) {
-        styleMap.style.display = 'block';
-        styleMap.style.left = pluginData.selectionArea.x + 'px';
-        styleMap.style.top = pluginData.selectionArea.y + 'px';
-        styleMap.style.width = pluginData.selectionArea.width + 'px';
-        styleMap.style.height = pluginData.selectionArea.height + 'px';
-    }
-    else {
-        styleMap.style.display = 'none';
-    }
-    const SelectionRectangle = html `
-    <div class=${className} style=${styleMap}></div>
-  `;
-    return html `
-    ${oldContent}${SelectionRectangle}
-  `;
+function generateEmptyData(options = {}) {
+    const result = Object.assign({ enabled: true, handle: {
+            width: 18,
+            horizontalMargin: 1,
+            verticalMargin: 1,
+            outside: false,
+            onlyWhenSelected: true,
+        }, initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, movement: 0, itemsInitial: [], leftIsMoving: false, rightIsMoving: false }, options);
+    if (options.handle)
+        result.handle = Object.assign(Object.assign({}, result.handle), options.handle);
+    return result;
 }
-function Wrap(oldWrapper, vidoInstance) {
-    if (wrapped)
-        return;
-    wrapped = oldWrapper;
-    vido = vidoInstance;
-    api = vido.api;
-    state = vido.state;
-    html = vido.html;
-    className = api.getClass('chart-selection');
-    styleMap = new vido.StyleMap({ display: 'none' });
-    vido.onDestroy(state.subscribe('config.plugin.Selection', (PluginData) => {
-        pluginData = PluginData;
-        vido.update(); // rerender to update rectangle
-    }));
-    return ChartTimelineWrapper;
+class ItemResizing {
+    constructor(vido, options) {
+        this.spacing = 1;
+        this.unsubs = [];
+        this.vido = vido;
+        this.state = vido.state;
+        this.api = vido.api;
+        this.data = generateEmptyData(options);
+        this.html = vido.html;
+        this.wrapper = this.wrapper.bind(this);
+        this.onRightPointerDown = this.onRightPointerDown.bind(this);
+        this.onRightPointerMove = this.onRightPointerMove.bind(this);
+        this.onRightPointerUp = this.onRightPointerUp.bind(this);
+        this.onLeftPointerDown = this.onLeftPointerDown.bind(this);
+        this.onLeftPointerMove = this.onLeftPointerMove.bind(this);
+        this.onLeftPointerUp = this.onLeftPointerUp.bind(this);
+        this.updateData();
+        this.unsubs.push(this.state.subscribe('config.plugin.ItemResizing', (data) => (this.data = data)));
+        document.addEventListener('pointermove', this.onLeftPointerMove);
+        document.addEventListener('pointerup', this.onLeftPointerUp);
+        document.addEventListener('pointermove', this.onRightPointerMove);
+        document.addEventListener('pointerup', this.onRightPointerUp);
+    }
+    destroy() {
+        this.unsubs.forEach((unsub) => unsub());
+        document.removeEventListener('pointermove', this.onLeftPointerMove);
+        document.removeEventListener('pointerup', this.onLeftPointerUp);
+        document.removeEventListener('pointermove', this.onRightPointerMove);
+        document.removeEventListener('pointerup', this.onRightPointerUp);
+    }
+    updateData() {
+        this.state.update('config.plugin.ItemResizing', this.data);
+    }
+    initializeWrapper() {
+        this.leftClassName = this.api.getClass('chart-timeline-items-row-item-resizing-handle');
+        this.leftClassName += ' ' + this.leftClassName + '--left';
+        this.rightClassName = this.api.getClass('chart-timeline-items-row-item-resizing-handle');
+        this.rightClassName += ' ' + this.rightClassName + '--right';
+        this.spacing = this.state.get('config.chart.spacing');
+    }
+    getSelectedItems() {
+        return this.state.get(`config.plugin.Selection.selected.${ITEM}`);
+    }
+    getRightStyleMap(item, visible) {
+        const rightStyleMap = new this.vido.StyleMap({});
+        rightStyleMap.style.display = visible ? 'block' : 'none';
+        rightStyleMap.style.top = item.$data.position.actualTop + this.data.handle.verticalMargin + 'px';
+        if (this.data.handle.outside) {
+            rightStyleMap.style.left = item.$data.position.right + this.data.handle.horizontalMargin - this.spacing + 'px';
+        }
+        else {
+            rightStyleMap.style.left =
+                item.$data.position.right - this.data.handle.width - this.data.handle.horizontalMargin - this.spacing + 'px';
+        }
+        rightStyleMap.style.width = this.data.handle.width + 'px';
+        rightStyleMap.style.height = item.$data.actualHeight - this.data.handle.verticalMargin * 2 + 'px';
+        return rightStyleMap;
+    }
+    getLeftStyleMap(item, visible) {
+        const leftStyleMap = new this.vido.StyleMap({});
+        leftStyleMap.style.display = visible ? 'block' : 'none';
+        leftStyleMap.style.top = item.$data.position.actualTop + this.data.handle.verticalMargin + 'px';
+        if (this.data.handle.outside) {
+            leftStyleMap.style.left =
+                item.$data.position.left - this.data.handle.width - this.data.handle.horizontalMargin + 'px';
+        }
+        else {
+            leftStyleMap.style.left = item.$data.position.left + this.data.handle.horizontalMargin + 'px';
+        }
+        leftStyleMap.style.width = this.data.handle.width + 'px';
+        leftStyleMap.style.height = item.$data.actualHeight - this.data.handle.verticalMargin * 2 + 'px';
+        return leftStyleMap;
+    }
+    onPointerDown(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.data.itemsInitial = this.getSelectedItems().map((item) => {
+            return {
+                id: item.id,
+                left: item.$data.position.left,
+                width: item.$data.width,
+            };
+        });
+        this.data.initialPosition = {
+            x: ev.screenX,
+            y: ev.screenY,
+        };
+        this.data.currentPosition = Object.assign({}, this.data.initialPosition);
+    }
+    onLeftPointerDown(ev) {
+        /*if (!this.data.enabled) return;
+        this.data.leftIsMoving = true;
+        this.onPointerDown(ev);
+        this.updateData();*/
+    }
+    onRightPointerDown(ev) {
+        if (!this.data.enabled)
+            return;
+        this.data.rightIsMoving = true;
+        this.onPointerDown(ev);
+        this.updateData();
+    }
+    onPointerMove(ev) {
+        ev.stopPropagation();
+        ev.preventDefault();
+        this.data.currentPosition.x = ev.screenX;
+        this.data.currentPosition.y = ev.screenY;
+        this.data.movement = this.data.currentPosition.x - this.data.initialPosition.x;
+    }
+    onLeftPointerMove(ev) {
+        if (!this.data.enabled || !this.data.leftIsMoving)
+            return;
+        this.onPointerMove(ev);
+        const selected = this.getSelectedItems();
+        const movement = this.data.movement;
+        const time = this.state.get('$data.chart.time');
+        let multi = this.state.multi();
+        for (let i = 0, len = selected.length; i < len; i++) {
+            const item = selected[i];
+            item.$data.position.left = this.data.itemsInitial[i].left + movement;
+            if (item.$data.position.left > item.$data.position.right)
+                item.$data.position.left = item.$data.position.right;
+            item.$data.position.actualLeft = item.$data.position.left;
+            item.$data.width = item.$data.position.right - item.$data.position.left;
+            item.$data.actualWidth = item.$data.width;
+            const leftGlobal = this.api.time.getTimeFromViewOffsetPx(item.$data.position.left, time);
+            item.time.start = leftGlobal;
+            item.$data.time.startDate = this.api.time.date(leftGlobal);
+            multi = multi.update(`config.chart.items.${item.id}`, item);
+        }
+        multi.done();
+        this.updateData();
+    }
+    onRightPointerMove(ev) {
+        if (!this.data.enabled || !this.data.rightIsMoving)
+            return;
+        this.onPointerMove(ev);
+        const selected = this.getSelectedItems();
+        const movement = this.data.movement;
+        const time = this.state.get('$data.chart.time');
+        let multi = this.state.multi();
+        for (let i = 0, len = selected.length; i < len; i++) {
+            const item = selected[i];
+            item.$data.width = this.data.itemsInitial[i].width + movement;
+            if (item.$data.width < 0)
+                item.$data.width = 0;
+            item.$data.actualWidth = item.$data.width;
+            const right = item.$data.position.left + item.$data.width;
+            item.$data.position.right = right;
+            item.$data.position.actualRight = right;
+            const rightGlobal = this.api.time.getTimeFromViewOffsetPx(right, time);
+            item.time.end = rightGlobal;
+            item.$data.time.endDate = this.api.time.date(rightGlobal);
+            multi = multi.update(`config.chart.items.${item.id}`, item);
+        }
+        multi.done();
+        this.updateData();
+    }
+    onPointerUp(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+    }
+    onLeftPointerUp(ev) {
+        if (!this.data.enabled || !this.data.leftIsMoving)
+            return;
+        this.onPointerUp(ev);
+        this.data.leftIsMoving = false;
+        this.updateData();
+    }
+    onRightPointerUp(ev) {
+        if (!this.data.enabled || !this.data.rightIsMoving)
+            return;
+        this.onPointerUp(ev);
+        this.data.rightIsMoving = false;
+        this.updateData();
+    }
+    wrapper(input, props) {
+        const oldContent = this.oldWrapper(input, props);
+        const item = props.props.item;
+        let visible = !item.$data.detached;
+        if (this.data.handle.onlyWhenSelected) {
+            visible = visible && item.selected;
+        }
+        const rightStyleMap = this.getRightStyleMap(item, visible);
+        const leftStyleMap = this.getLeftStyleMap(item, visible);
+        const onLeftPointerDown = {
+            handleEvent: this.onLeftPointerDown,
+        };
+        const onRightPointerDown = {
+            handleEvent: this.onRightPointerDown,
+        };
+        const leftHandle = this
+            .html `<div class=${this.leftClassName} style=${leftStyleMap} @pointerdown=${onLeftPointerDown}></div>`;
+        const rightHandle = this
+            .html `<div class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}></div>`;
+        return this.html `${oldContent}${rightHandle}`;
+        //return this.html`${leftHandle}${oldContent}${rightHandle}`;
+    }
+    getWrapper(oldWrapper) {
+        if (!this.oldWrapper) {
+            this.oldWrapper = oldWrapper;
+        }
+        this.initializeWrapper();
+        return this.wrapper;
+    }
 }
+function Plugin$2(options) {
+    return function initialize(vidoInstance) {
+        const itemResizing = new ItemResizing(vidoInstance, options);
+        vidoInstance.state.update('config.wrappers.ChartTimelineItemsRowItem', (oldWrapper) => {
+            return itemResizing.getWrapper(oldWrapper);
+        });
+    };
+}
+
+var ItemResizing$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  Plugin: Plugin$2
+});
 
 /**
  * Selection plugin
@@ -463,23 +655,23 @@ function prepareOptions$1(options) {
         },
         canDeselect(type, currently, all) {
             return [];
-        }
+        },
     };
     options = Object.assign(Object.assign({}, defaultOptions), options);
     return options;
 }
 const pluginPath$1 = 'config.plugin.Selection';
-function generateEmptyData(options) {
+function generateEmptyData$1(options) {
     return Object.assign({ enabled: true, showOverlay: true, isSelecting: false, pointerState: 'up', targetType: '', initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, selectionArea: { x: 0, y: 0, width: 0, height: 0 }, selecting: {
             [ITEM]: [],
-            [CELL]: []
+            [CELL]: [],
         }, selected: {
             [ITEM]: [],
-            [CELL]: []
+            [CELL]: [],
         }, events: {
             down: null,
             move: null,
-            up: null
+            up: null,
         } }, options);
 }
 class SelectionPlugin {
@@ -489,21 +681,26 @@ class SelectionPlugin {
         this.state = vido.state;
         this.api = vido.api;
         this.options = options;
-        this.data = generateEmptyData(options);
-        this.unsub.push(this.state.subscribe('config.plugin.TimelinePointer', timelinePointerData => {
+        this.data = generateEmptyData$1(options);
+        this.wrapperClassName = this.api.getClass('chart-selection');
+        this.wrapperStyleMap = new vido.StyleMap({ display: 'none' });
+        this.html = vido.html;
+        this.wrapper = this.wrapper.bind(this);
+        this.unsub.push(this.state.subscribe('config.plugin.TimelinePointer', (timelinePointerData) => {
             this.poitnerData = timelinePointerData;
             this.onPointerData();
         }));
         this.updateData();
-        this.unsub.push(this.state.subscribe(pluginPath$1, value => {
+        this.unsub.push(this.state.subscribe(pluginPath$1, (value) => {
             this.data = value;
         }));
     }
     destroy() {
-        this.unsub.forEach(unsub => unsub());
+        this.unsub.forEach((unsub) => unsub());
     }
     updateData() {
         this.state.update(pluginPath$1, Object.assign({}, this.data));
+        this.vido.update(); // draw selection area overlay
     }
     getItemsUnderSelectionArea() {
         return [];
@@ -537,15 +734,21 @@ class SelectionPlugin {
             const items = this.state.get('config.chart.items');
             for (const linkedItemId of item.linkedWith) {
                 const linkedItem = items[linkedItemId];
-                current.push(linkedItem);
-                this.collectLinkedItems(linkedItem, current);
+                if (!current.includes(linkedItem)) {
+                    current.push(linkedItem);
+                    this.collectLinkedItems(linkedItem, current);
+                }
+                if (!linkedItem.linkedWith)
+                    linkedItem.linkedWith = [];
+                if (!linkedItem.linkedWith.includes(item.id))
+                    linkedItem.linkedWith.push(item.id);
             }
         }
         return current;
     }
     getSelected(item) {
         let selected;
-        if (this.data.selected[ITEM].find(selectedItem => selectedItem.id === item.id)) {
+        if (this.data.selected[ITEM].find((selectedItem) => selectedItem.id === item.id)) {
             selected = this.data.selected[ITEM];
         }
         else {
@@ -597,14 +800,34 @@ class SelectionPlugin {
         this.data.targetType = this.poitnerData.targetType;
         this.updateData();
     }
+    wrapper(input, props) {
+        const oldContent = this.oldWrapper(input, props);
+        if (this.data.isSelecting && this.data.showOverlay) {
+            this.wrapperStyleMap.style.display = 'block';
+            this.wrapperStyleMap.style.left = this.data.selectionArea.x + 'px';
+            this.wrapperStyleMap.style.top = this.data.selectionArea.y + 'px';
+            this.wrapperStyleMap.style.width = this.data.selectionArea.width + 'px';
+            this.wrapperStyleMap.style.height = this.data.selectionArea.height + 'px';
+        }
+        else {
+            this.wrapperStyleMap.style.display = 'none';
+        }
+        const SelectionRectangle = this.html ` <div class=${this.wrapperClassName} style=${this.wrapperStyleMap}></div> `;
+        return this.html ` ${oldContent}${SelectionRectangle} `;
+    }
+    getWrapper(oldWrapper) {
+        if (!this.oldWrapper)
+            this.oldWrapper = oldWrapper;
+        return this.wrapper;
+    }
 }
-function Plugin$2(options = {}) {
+function Plugin$3(options = {}) {
     options = prepareOptions$1(options);
     return function initialize(vidoInstance) {
         const selectionPlugin = new SelectionPlugin(vidoInstance, options);
-        vidoInstance.state.update(pluginPath$1, generateEmptyData(options));
-        vidoInstance.state.update('config.wrappers.ChartTimelineItems', oldWrapper => {
-            return Wrap(oldWrapper, vidoInstance);
+        vidoInstance.state.update(pluginPath$1, generateEmptyData$1(options));
+        vidoInstance.state.update('config.wrappers.ChartTimelineItems', (oldWrapper) => {
+            return selectionPlugin.getWrapper(oldWrapper);
         });
         return function destroy() {
             selectionPlugin.destroy();
@@ -614,7 +837,7 @@ function Plugin$2(options = {}) {
 
 var Selection = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  Plugin: Plugin$2
+  Plugin: Plugin$3
 });
 
 /**
@@ -629,7 +852,7 @@ var Selection = /*#__PURE__*/Object.freeze({
 const defaultOptions = {
     enabled: true
 };
-function Plugin$3(options = defaultOptions) {
+function Plugin$4(options = defaultOptions) {
     let vido, api, state;
     let enabled = options.enabled;
     class ChartAction {
@@ -731,7 +954,7 @@ function Plugin$3(options = defaultOptions) {
 
 var CalendarScroll = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  Plugin: Plugin$3
+  Plugin: Plugin$4
 });
 
 /**
@@ -928,7 +1151,7 @@ const defaultOptions$1 = {
  * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
-function Plugin$4(options = {}) {
+function Plugin$5(options = {}) {
     const weekdays = options.weekdays || [6, 0];
     let className;
     let api;
@@ -974,10 +1197,10 @@ function Plugin$4(options = {}) {
 
 var WeekendHighlight = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  Plugin: Plugin$4
+  Plugin: Plugin$5
 });
 
-var plugins = { TimelinePointer, ItemHold: ItemHold$1, ItemMovement: ItemMovement$1, Selection, CalendarScroll, WeekendHighlight };
+var plugins = { TimelinePointer, ItemHold: ItemHold$1, ItemMovement: ItemMovement$1, ItemResizing: ItemResizing$1, Selection, CalendarScroll, WeekendHighlight };
 
 export default plugins;
 //# sourceMappingURL=plugins.js.map

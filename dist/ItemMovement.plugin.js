@@ -31,7 +31,7 @@
   function gemerateEmptyPluginData(options) {
       return Object.assign({ moving: [], lastMoved: [], state: 'up', pointerMoved: false, lastPosition: { x: 0, y: 0 }, movement: {
               px: { horizontal: 0, vertical: 0 },
-              time: 0
+              time: 0,
           }, onStart() { },
           onMove() { },
           onEnd() { },
@@ -48,14 +48,14 @@
           this.vido = vido;
           this.api = vido.api;
           this.state = vido.state;
-          this.onDestroy.push(this.state.subscribe(pluginPath, data => (this.data = data)));
+          this.onDestroy.push(this.state.subscribe(pluginPath, (data) => (this.data = data)));
           if (!this.data.className)
               this.data.className = this.api.getClass('chart-timeline-items-row-item--moving');
           this.onSelectionChange = this.onSelectionChange.bind(this);
           this.onDestroy.push(this.state.subscribe('config.plugin.Selection', this.onSelectionChange));
       }
       destroy() {
-          this.onDestroy.forEach(unsub => unsub());
+          this.onDestroy.forEach((unsub) => unsub());
       }
       updateData() {
           this.state.update(pluginPath, this.data);
@@ -66,16 +66,16 @@
           const leftGlobal = Math.round(this.api.time.getTimeFromViewOffsetPx(x, time));
           return {
               time: this.api.time.date(leftGlobal),
-              position: x
+              position: x,
           };
       }
       moveItems() {
           const time = this.state.get('$data.chart.time');
+          let multi = this.state.multi();
           for (const item of this.data.lastMoved) {
               const start = this.getItemMovingTime(item, time);
               let newItemTime;
-              this.state
-                  .multi()
+              multi = multi
                   .update(`config.chart.items.${item.id}.time`, (itemTime) => {
                   const newStartTime = start.time.valueOf();
                   const diff = newStartTime - itemTime.start;
@@ -93,9 +93,9 @@
                   itemData.position.actualRight = this.api.time.limitOffsetPxToView(itemData.position.right);
                   itemData.actualWidth = itemData.position.actualRight - itemData.position.actualLeft;
                   return itemData;
-              })
-                  .done();
+              });
           }
+          multi.done();
       }
       clearSelection() {
           this.data.moving = [];

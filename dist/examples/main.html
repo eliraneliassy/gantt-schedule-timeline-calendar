@@ -28,7 +28,7 @@
     <div>
       <input type="range" min="0" max="100" value="100" id="percent" />
       <input type="range" min="12" max="23" value="20" id="zoom" />
-      <div style="display: inline-block;width: 100px; text-align: center;font-weight: bold;" id="period"></div>
+      <div style="display: inline-block; width: 100px; text-align: center; font-weight: bold;" id="period"></div>
       <button id="change-something">Change something</button>
       <button onclick="deleteRow()">Delete row</button>
       <button onclick="deleteItem()">Delete item</button>
@@ -38,10 +38,10 @@
       <button onclick="replaceData()">replace</button>
     </div>
     <div id="app"></div>
-    <script src="../ItemMovement.plugin.js"></script>
     <script src="../TimelinePointer.plugin.js"></script>
     <script src="../Selection.plugin.js"></script>
     <script src="../ItemMovement.plugin.js"></script>
+    <script src="../ItemResizing.plugin.js"></script>
     <script src="../CalendarScroll.plugin.js"></script>
     <script src="../WeekendHighlight.plugin.js"></script>
     <script src="../index.umd.js?12345"></script>
@@ -60,7 +60,7 @@
         '#AE7C5B',
         '#6C7A89',
         '#758586',
-        '#707070'
+        '#707070',
       ];
 
       const rows = {};
@@ -72,14 +72,11 @@
           label: `row id: ${id}`,
           progress: 50,
           parentId: withParent ? (i - 1).toString() : undefined,
-          expanded: false
+          expanded: false,
         };
       }
 
-      const startDate = GSTC.api
-        .date()
-        .subtract(1, 'month')
-        .valueOf();
+      const startDate = GSTC.api.date().subtract(1, 'month').valueOf();
 
       const items = {};
       for (let i = 0; i < iterations; i++) {
@@ -97,12 +94,12 @@
             end: startDayjs
               .add(Math.floor(Math.random() * 10) + 4, 'days')
               .endOf('day')
-              .valueOf()
+              .valueOf(),
           },
           progress: 50,
           rowId,
           lines: i > 0 && i % 2 === 0 ? [(i + 1).toString()] : [],
-          style: { background: pallete[Math.floor(Math.random() * pallete.length)] }
+          style: { background: pallete[Math.floor(Math.random() * pallete.length)] },
         };
         items[id + '-2'] = {
           id: id + '-2',
@@ -115,10 +112,10 @@
             end: startDayjs
               .add(Math.floor(Math.random() * 10) + 4, 'day')
               .endOf('day')
-              .valueOf()
+              .valueOf(),
           },
           rowId,
-          style: { background: pallete[Math.floor(Math.random() * pallete.length)] }
+          style: { background: pallete[Math.floor(Math.random() * pallete.length)] },
         };
         if (Math.round(Math.random()))
           items[id].time.start = GSTC.api
@@ -127,12 +124,15 @@
             .valueOf();
         items[id].label = GSTC.api.date(items[id].time.start).format('YYYY-MM-DD HH:mm');
       }
-      items['1'].linkedWith = ['2'];
+      items['1'].linkedWith = ['3'];
+      items['1'].label = 'linked with 3';
+      items['3'].time.start = items['1'].time.start;
+      items['3'].time.end = items['1'].time.end;
 
       const columns = {
         percent: 100,
         resizer: {
-          inRealTime: true
+          inRealTime: true,
         },
         data: {
           id: {
@@ -140,8 +140,8 @@
             data: 'id',
             width: 50,
             header: {
-              content: 'ID'
-            }
+              content: 'ID',
+            },
           },
           label: {
             id: 'label',
@@ -150,18 +150,18 @@
             isHTML: false,
             width: 230,
             header: {
-              content: 'Label'
-            }
+              content: 'Label',
+            },
           },
           progress: {
             id: 'progress',
             data: 'progress',
             width: 30,
             header: {
-              content: '%'
-            }
-          }
-        }
+              content: '%',
+            },
+          },
+        },
       };
 
       class ResizingItemClass {
@@ -177,28 +177,35 @@
 
       let selectionApi;
       const config = {
-        plugins: [WeekendHighlight.Plugin(), TimelinePointer.Plugin(), Selection.Plugin(), ItemMovement.Plugin()],
+        plugins: [
+          WeekendHighlight.Plugin(),
+          TimelinePointer.Plugin(),
+          Selection.Plugin(),
+          ItemMovement.Plugin(),
+          ItemResizing.Plugin(),
+          CalendarScroll.Plugin(),
+        ],
         height: 523,
         list: {
           rows,
-          columns
+          columns,
         },
         chart: {
-          items
+          items,
         },
         classNames: {},
         actions: {
-          'chart-timeline-items-row-item': [ResizingItemClass]
-        }
+          'chart-timeline-items-row-item': [ResizingItemClass],
+        },
       };
 
       let GSTCState = (window.state = GSTC.api.stateFromConfig(config));
-      GSTCState.subscribe('config.plugin.ItemMovement', itemMovement => {
+      GSTCState.subscribe('config.plugin.ItemMovement', (itemMovement) => {
         if (!itemMovement || !itemMovement.item) return;
         state.update(`config.chart.items.${itemMovement.item.id}.isResizing`, itemMovement.item.resizing);
       });
 
-      GSTCState.subscribe('_internal.chart.time.format.period', period => {
+      GSTCState.subscribe('_internal.chart.time.format.period', (period) => {
         //document.getElementById('period').innerText = period;
       });
 
@@ -208,15 +215,15 @@
       });
       const gstc = GSTC({
         element,
-        state: GSTCState
+        state: GSTCState,
       });
       window.gstc = gstc; // debug
 
       function deleteRow() {
-        const random = r => r[Math.floor(Math.random() * r.length)];
-        GSTCState.update('config.list.rows', rows => {
+        const random = (r) => r[Math.floor(Math.random() * r.length)];
+        GSTCState.update('config.list.rows', (rows) => {
           const rando = random(Object.keys(rows));
-          const child = Object.values(rows).find(row => row.parentId === rando);
+          const child = Object.values(rows).find((row) => row.parentId === rando);
           if (rows[rando] && !child) {
             console.log('deleting', rando, Object.keys(rows), rows[rando]);
             delete rows[rando];
@@ -225,8 +232,8 @@
         });
       }
       function deleteItem() {
-        const random = r => r[Math.floor(Math.random() * r.length)];
-        GSTCState.update('config.chart.items', items => {
+        const random = (r) => r[Math.floor(Math.random() * r.length)];
+        GSTCState.update('config.chart.items', (items) => {
           const rando = random(Object.keys(items));
           if (items[rando]) {
             console.log('deleting', rando, Object.keys(items), items[rando]);
@@ -242,8 +249,8 @@
 
       function randomizeItems() {
         const rows = Object.keys(GSTCState.get('config.list.rows'));
-        GSTCState.update('config.chart.items', items => {
-          Object.values(items).forEach(item => {
+        GSTCState.update('config.chart.items', (items) => {
+          Object.values(items).forEach((item) => {
             item.rowId = rows[Math.floor(Math.random() * rows.length)];
           });
           return items;
@@ -254,13 +261,13 @@
           rows: {
             row_1: {
               id: 'row_1',
-              label: 'new row'
+              label: 'new row',
             },
             row_2: {
               id: 'row_2',
               label: 'new row 2',
-              parentId: 'row_1'
-            }
+              parentId: 'row_1',
+            },
           },
           items: {
             item_1: {
@@ -269,8 +276,8 @@
               rowId: 'row_1',
               time: {
                 start: new Date('2020-01-01').getTime(),
-                end: new Date('2020-01-05').getTime()
-              }
+                end: new Date('2020-01-05').getTime(),
+              },
             },
             item_2: {
               id: 'item_2',
@@ -278,12 +285,12 @@
               rowId: 'row_2',
               time: {
                 start: new Date('2020-01-01').getTime(),
-                end: new Date('2020-01-05').getTime()
-              }
-            }
-          }
+                end: new Date('2020-01-05').getTime(),
+              },
+            },
+          },
         };
-        GSTCState.update('config', config => {
+        GSTCState.update('config', (config) => {
           config.list.rows = data.rows;
           config.chart.items = data.items;
           config.chart.time.from = new Date('2020-01-01').getTime();
@@ -301,19 +308,19 @@
         gstc.app.destroy();
       }
 
-      gstc.state.subscribe('config.chart.time.zoom', zoom => {
+      gstc.state.subscribe('config.chart.time.zoom', (zoom) => {
         document.getElementById('zoom').value = zoom;
       });
 
-      document.getElementById('percent').addEventListener('input', ev => {
+      document.getElementById('percent').addEventListener('input', (ev) => {
         gstc.state.update('config.list.columns.percent', +ev.target.value);
       });
-      document.getElementById('zoom').addEventListener('input', ev => {
+      document.getElementById('zoom').addEventListener('input', (ev) => {
         gstc.state.update('config.chart.time.zoom', +ev.target.value);
         const period = gstc.state.get('config.chart.time');
       });
       document.getElementById('change-something').addEventListener('click', () => {
-        gstc.state.update('config.list.rows', rows => {
+        gstc.state.update('config.list.rows', (rows) => {
           for (const rowId in rows) {
             rows[rowId].label += ' !';
           }
