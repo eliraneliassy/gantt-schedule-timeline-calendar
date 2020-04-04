@@ -76,7 +76,7 @@ class ItemResizing {
   private spacing: number = 1;
   private unsubs: (() => void)[] = [];
 
-  constructor(vido: Vido, options: PluginData) {
+  constructor(vido: Vido, options: Options) {
     this.vido = vido;
     this.state = vido.state;
     this.api = vido.api;
@@ -286,7 +286,7 @@ class ItemResizing {
   }
 }
 
-export function Plugin(options: PluginData) {
+export function Plugin(options: Options = {}) {
   return function initialize(vidoInstance: Vido) {
     const itemResizing = new ItemResizing(vidoInstance, options);
     vidoInstance.state.update('config.wrappers.ChartTimelineItemsRowItem', (oldWrapper) => {
