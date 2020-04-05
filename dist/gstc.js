@@ -10936,4 +10936,4 @@
 	return GSTC;
 
 })));
-//# sourceMappingURL=gstc.umd.js.map
+//# sourceMappingURL=gstc.js.map

@@ -44,7 +44,7 @@ const devFiles = [
     input: 'src/gstc.ts',
     output: {
       sourcemap: true,
-      file: 'dist/gstc.umd.js',
+      file: 'dist/gstc.js',
       format: 'umd',
       name: 'GSTC',
     },
@@ -230,7 +230,7 @@ const prodFiles = Array.prototype.concat(devFiles, [
     input: 'src/gstc.ts',
     output: {
       sourcemap: false,
-      file: 'dist/gstc.umd.min.js',
+      file: 'dist/gstc.min.js',
       format: 'umd',
       name: 'GSTC',
     },
