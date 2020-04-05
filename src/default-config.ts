@@ -7,28 +7,28 @@
  * @license   AGPL-3.0
  */
 
-import Main from './components/Main';
-import ScrollBar from './components/ScrollBar';
-import List from './components/List/List';
-import ListColumn from './components/List/ListColumn';
-import ListColumnHeader from './components/List/ListColumnHeader';
-import ListColumnHeaderResizer from './components/List/ListColumnHeaderResizer';
-import ListColumnRow from './components/List/ListColumnRow';
-import ListColumnRowExpander from './components/List/ListColumnRowExpander';
-import ListColumnRowExpanderToggle from './components/List/ListColumnRowExpanderToggle';
-import ListToggle from './components/List/ListToggle';
-import Chart from './components/Chart/Chart';
-import ChartCalendar from './components/Chart/Calendar/ChartCalendar';
-import ChartCalendarDate from './components/Chart/Calendar/ChartCalendarDate';
-import ChartTimeline from './components/Chart/Timeline/ChartTimeline';
-import ChartTimelineGrid from './components/Chart/Timeline/ChartTimelineGrid';
-import ChartTimelineGridRow from './components/Chart/Timeline/ChartTimelineGridRow';
-import ChartTimelineGridRowCell from './components/Chart/Timeline/ChartTimelineGridRowCell';
-import ChartTimelineItems from './components/Chart/Timeline/ChartTimelineItems';
-import ChartTimelineItemsRow from './components/Chart/Timeline/ChartTimelineItemsRow';
-import ChartTimelineItemsRowItem from './components/Chart/Timeline/ChartTimelineItemsRowItem';
+import Main from './components/main';
+import ScrollBar from './components/scroll-bar';
+import List from './components/list/list';
+import ListColumn from './components/list/column/column';
+import ListColumnHeader from './components/list/column/column-header';
+import ListColumnHeaderResizer from './components/list/column/column-header-resizer';
+import ListColumnRow from './components/list/column/row/row';
+import ListColumnRowExpander from './components/list/column/row/row-expander';
+import ListColumnRowExpanderToggle from './components/list/column/row/row-expander-toggle';
+import ListToggle from './components/list/list-toggle';
+import Chart from './components/chart/chart';
+import ChartCalendar from './components/chart/calendar/calendar';
+import ChartCalendarDate from './components/chart/calendar/calendar-date';
+import ChartTimeline from './components/chart/timeline/timeline';
+import ChartTimelineGrid from './components/chart/timeline/grid/grid';
+import ChartTimelineGridRow from './components/chart/timeline/grid/grid-row';
+import ChartTimelineGridRowCell from './components/chart/timeline/grid/grid-row-cell';
+import ChartTimelineItems from './components/chart/timeline/items/items';
+import ChartTimelineItemsRow from './components/chart/timeline/items/items-row';
+import ChartTimelineItemsRowItem from './components/chart/timeline/items/items-row-item';
 
-import { Config } from '@src/index';
+import { Config } from '@src/gstc';
 
 export const actionNames = [
   'main',

@@ -1,7 +1,7 @@
-declare module "api/Time" {
+declare module "api/time" {
     import dayjs, { Dayjs } from 'dayjs';
-    import { DataChartTime, DataChartTimeLevelDate, ChartTimeDate, ScrollTypeHorizontal, Period, ChartCalendarLevel, ChartCalendarFormat } from "index";
-    export class TimeApi {
+    import { DataChartTime, DataChartTimeLevelDate, ChartTimeDate, ScrollTypeHorizontal, Period, ChartCalendarLevel, ChartCalendarFormat } from "gstc";
+    export class Time {
         private locale;
         private utcMode;
         private state;
@@ -30,17 +30,16 @@ declare module "api/Time" {
         getDatesDiffPx(fromTime: Dayjs, toTime: Dayjs, time: DataChartTime): number;
     }
 }
-declare module "api/Api" {
-    import { TimeApi } from "api/Time";
-    import DeepState from "../node_modules/deep-state-observer/index";
+declare module "api/api" {
+    import { Time } from "api/time";
+    import DeepState from 'deep-state-observer';
     import dayjs from 'dayjs';
-    import { Config, Row, Item, Vido } from "index";
-    import { mergeDeep } from "../node_modules/@neuronet.io/vido/helpers";
+    import { Config, Row, Item, Vido } from "gstc";
     export function stateFromConfig(userConfig: Config): any;
     export const publicApi: {
         name: string;
         stateFromConfig: typeof stateFromConfig;
-        mergeDeep: typeof mergeDeep;
+        mergeDeep: typeof import("@neuronet.io/vido/helpers").mergeDeep;
         date(time: any): dayjs.Dayjs;
         setPeriod(period: dayjs.OpUnitType): number;
         dayjs: typeof dayjs;
@@ -59,14 +58,14 @@ declare module "api/Api" {
         name: string;
         debug: boolean;
         state: DeepState;
-        time: TimeApi;
+        time: Time;
         vido: Vido;
         private iconsCache;
         private unsubscribes;
         constructor(state: DeepState);
         setVido(Vido: Vido): void;
         log(...args: any[]): void;
-        mergeDeep: typeof mergeDeep;
+        mergeDeep: typeof import("@neuronet.io/vido/helpers").mergeDeep;
         getClass(name: string): string;
         allActions: any[];
         getActions(name: string): any;
@@ -94,13 +93,13 @@ declare module "api/Api" {
         destroy(): void;
     }
 }
-declare module "index" {
+declare module "gstc" {
     import 'pepjs';
-    import { Api } from "api/Api";
+    import { Api } from "api/api";
     import { vido, lithtml } from '@neuronet.io/vido/vido.d';
     import { Dayjs, OpUnitType } from 'dayjs';
     import { Properties as CSSProps } from 'csstype';
-    import DeepState from "../node_modules/deep-state-observer/index";
+    import DeepState from 'deep-state-observer';
     export type Vido = vido<DeepState, Api>;
     export interface RowData {
         actualHeight: number;
@@ -586,7 +585,7 @@ declare module "index" {
     namespace GSTC {
         var api: {
             name: string;
-            stateFromConfig: typeof import("api/Api").stateFromConfig;
+            stateFromConfig: typeof import("api/api").stateFromConfig;
             mergeDeep: typeof import("@neuronet.io/vido/helpers").mergeDeep;
             date(time: any): Dayjs;
             setPeriod(period: OpUnitType): number;
@@ -595,78 +594,78 @@ declare module "index" {
     }
     export default GSTC;
 }
-declare module "components/Main" {
-    import { Vido } from "index";
+declare module "components/main" {
+    import { Vido } from "gstc";
     export default function Main(vido: Vido, props?: {}): (templateProps: any) => any;
 }
-declare module "components/ScrollBar" {
-    import { Vido } from "index";
+declare module "components/scroll-bar" {
+    import { Vido } from "gstc";
     export interface Props {
         type: 'horizontal' | 'vertical';
     }
     export default function ScrollBar(vido: Vido, props: Props): () => import("lit-html-optimised").TemplateResult;
 }
-declare module "components/List/List" {
-    import { Vido } from "index";
+declare module "components/list/list" {
+    import { Vido } from "gstc";
     export default function List(vido: Vido, props?: {}): (templateProps: any) => any;
 }
-declare module "components/List/ListColumn" {
-    import { Vido } from "index";
+declare module "components/list/column/column" {
+    import { Vido } from "gstc";
     export interface Props {
         columnId: string;
     }
     export default function ListColumn(vido: Vido, props: Props): (templateProps: any) => any;
 }
-declare module "components/List/ListColumnHeader" {
-    import { Vido } from "index";
+declare module "components/list/column/column-header" {
+    import { Vido } from "gstc";
     export interface Props {
         columnId: string;
     }
     export default function ListColumnHeader(vido: Vido, props: Props): (templateProps: any) => any;
 }
-declare module "components/List/ListColumnHeaderResizer" {
-    import { Vido } from "index";
+declare module "components/list/column/column-header-resizer" {
+    import { Vido } from "gstc";
     export interface Props {
         columnId: string;
     }
     export default function ListColumnHeaderResizer(vido: Vido, props: Props): (templateProps: any) => any;
 }
-declare module "components/List/ListColumnRow" {
-    import { Vido } from "index";
+declare module "components/list/column/row/row" {
+    import { Vido } from "gstc";
     export interface Props {
         rowId: string;
         columnId: string;
     }
     export default function ListColumnRow(vido: Vido, props: Props): (templateProps: any) => any;
 }
-declare module "components/List/ListColumnRowExpander" {
-    import { Row, Vido } from "index";
+declare module "components/list/column/row/row-expander" {
+    import { Row, Vido } from "gstc";
     export interface Props {
         row: Row;
     }
     export default function ListColumnRowExpander(vido: Vido, props: Props): (templateProps: any) => any;
 }
-declare module "components/List/ListColumnRowExpanderToggle" {
-    import { Row, Vido } from "index";
+declare module "components/list/column/row/row-expander-toggle" {
+    import { Row, Vido } from "gstc";
     export interface Props {
         row: Row;
     }
     export default function ListColumnRowExpanderToggle(vido: Vido, props: Props): (templateProps: any) => any;
 }
-declare module "components/List/ListToggle" {
-    import { Vido } from "index";
+declare module "components/list/list-toggle" {
+    import { Vido } from "gstc";
     export default function ListToggle(vido: Vido, props?: {}): (templateProps: any) => any;
 }
-declare module "components/Chart/Chart" {
-    import { Vido } from "index";
+declare module "components/chart/chart" {
+    import { Vido } from "gstc";
     export default function Chart(vido: Vido, props?: {}): (templateProps: any) => any;
 }
-declare module "components/Chart/Calendar/ChartCalendar" {
-    import { Vido } from "index";
+declare module "components/chart/calendar/calendar" {
+    import { Vido } from "gstc";
     export default function ChartCalendar(vido: Vido, props: any): (templateProps: any) => any;
 }
-declare module "components/Chart/Calendar/ChartCalendarDate" {
-    import { ChartTimeDate, Period, Vido } from "index";
+declare module "components/chart/calendar/calendar-date" {
+    import { ChartTimeDate, Period, Vido } from "gstc";
     export interface Props {
         level: number;
         date: ChartTimeDate;
@@ -674,20 +673,20 @@ declare module "components/Chart/Calendar/ChartCalendarDate" {
     }
     export default function ChartCalendarDay(vido: Vido, props: Props): (templateProps: any) => any;
 }
-declare module "components/Chart/Timeline/ChartTimeline" {
-    import { Vido } from "index";
+declare module "components/chart/timeline/timeline" {
+    import { Vido } from "gstc";
     export default function ChartTimeline(vido: Vido, props: any): (templateProps: any) => any;
 }
-declare module "components/Chart/Timeline/ChartTimelineGrid" {
-    import { Vido } from "index";
+declare module "components/chart/timeline/grid/grid" {
+    import { Vido } from "gstc";
     export default function ChartTimelineGrid(vido: Vido, props: any): (templateProps: any) => any;
 }
-declare module "components/Chart/Timeline/ChartTimelineGridRow" {
-    import { RowWithCells, Vido } from "index";
+declare module "components/chart/timeline/grid/grid-row" {
+    import { RowWithCells, Vido } from "gstc";
     export default function ChartTimelineGridRow(vido: Vido, props: RowWithCells): (templateProps: any) => any;
 }
-declare module "components/Chart/Timeline/ChartTimelineGridRowCell" {
-    import { Row, ChartTimeDate, Vido } from "index";
+declare module "components/chart/timeline/grid/grid-row-cell" {
+    import { Row, ChartTimeDate, Vido } from "gstc";
     interface Props {
         row: Row;
         time: ChartTimeDate;
@@ -695,19 +694,19 @@ declare module "components/Chart/Timeline/ChartTimelineGridRowCell" {
     function ChartTimelineGridRowCell(vido: Vido, props: Props): (templateProps: any) => any;
     export default ChartTimelineGridRowCell;
 }
-declare module "components/Chart/Timeline/ChartTimelineItems" {
-    import { Vido } from "index";
+declare module "components/chart/timeline/items/items" {
+    import { Vido } from "gstc";
     export default function ChartTimelineItems(vido: Vido, props?: {}): (templateProps: any) => any;
 }
-declare module "components/Chart/Timeline/ChartTimelineItemsRow" {
-    import { Row, Vido } from "index";
+declare module "components/chart/timeline/items/items-row" {
+    import { Row, Vido } from "gstc";
     export interface Props {
         row: Row;
     }
     export default function ChartTimelineItemsRow(vido: Vido, props: Props): (templateProps: any) => any;
 }
-declare module "components/Chart/Timeline/ChartTimelineItemsRowItem" {
-    import { Row, Item, Vido } from "index";
+declare module "components/chart/timeline/items/items-row-item" {
+    import { Row, Item, Vido } from "gstc";
     export interface Props {
         row: Row;
         item: Item;
@@ -715,12 +714,12 @@ declare module "components/Chart/Timeline/ChartTimelineItemsRowItem" {
     export default function ChartTimelineItemsRowItem(vido: Vido, props: Props): (templateProps: any) => any;
 }
 declare module "default-config" {
-    import { Config } from "index";
+    import { Config } from "gstc";
     export const actionNames: string[];
     function defaultConfig(): Config;
     export default defaultConfig;
 }
-declare module "plugins/CalendarScroll.plugin" {
+declare module "plugins/calendar-scroll.plugin" {
     export interface Point {
         x: number;
         y: number;
@@ -730,7 +729,15 @@ declare module "plugins/CalendarScroll.plugin" {
     }
     export function Plugin(options?: Options): (vidoInstance: any) => void;
 }
-declare module "plugins/ItemHold.plugin" {
+declare module "plugins/highlight-weekends.plugin" {
+    import { Vido } from "gstc";
+    export interface Options {
+        weekdays?: number[];
+        className?: string;
+    }
+    export function Plugin(options?: Options): (vidoInstance: Vido) => () => void;
+}
+declare module "plugins/item-hold.plugin" {
     export interface Options {
         time?: number;
         movementThreshold?: number;
@@ -738,8 +745,8 @@ declare module "plugins/ItemHold.plugin" {
     }
     export default function ItemHold(options?: Options): (vido: any) => void;
 }
-declare module "plugins/TimelinePointer.plugin" {
-    import { Vido } from "index";
+declare module "plugins/timeline-pointer.plugin" {
+    import { Vido } from "gstc";
     export const CELL = "chart-timeline-grid-row-cell";
     export type CELL_TYPE = 'chart-timeline-grid-row-cell';
     export const ITEM = "chart-timeline-items-row-item";
@@ -770,9 +777,9 @@ declare module "plugins/TimelinePointer.plugin" {
         enabled: boolean;
     }): (vidoInstance: Vido) => () => void;
 }
-declare module "plugins/Selection.plugin" {
-    import { ITEM, ITEM_TYPE, CELL, CELL_TYPE, Point, PointerState } from "plugins/TimelinePointer.plugin";
-    import { Item, Cell, Vido } from "index";
+declare module "plugins/selection.plugin" {
+    import { ITEM, ITEM_TYPE, CELL, CELL_TYPE, Point, PointerState } from "plugins/timeline-pointer.plugin";
+    import { Item, Cell, Vido } from "gstc";
     export interface Options {
         enabled?: boolean;
         cells?: boolean;
@@ -819,9 +826,9 @@ declare module "plugins/Selection.plugin" {
     }
     export function Plugin(options?: Options): (vidoInstance: Vido) => () => void;
 }
-declare module "plugins/ItemMovement.plugin" {
-    import { Item, DataChartTime, Scroll, DataChartDimensions, Vido } from "index";
-    import { Point } from "plugins/TimelinePointer.plugin";
+declare module "plugins/item-movement.plugin" {
+    import { Item, DataChartTime, Scroll, DataChartDimensions, Vido } from "gstc";
+    import { Point } from "plugins/timeline-pointer.plugin";
     import { Dayjs } from 'dayjs';
     export interface SnapArg {
         time: DataChartTime;
@@ -867,9 +874,9 @@ declare module "plugins/ItemMovement.plugin" {
     }
     export function Plugin(options?: Options): (vidoInstance: Vido) => void;
 }
-declare module "plugins/ItemResizing.plugin" {
-    import { Vido } from "index";
-    import { Point } from "plugins/TimelinePointer.plugin";
+declare module "plugins/item-resizing.plugin" {
+    import { Vido } from "gstc";
+    import { Point } from "plugins/timeline-pointer.plugin";
     export interface Handle {
         width?: number;
         horizontalMargin?: number;
@@ -896,22 +903,14 @@ declare module "plugins/ItemResizing.plugin" {
     }
     export function Plugin(options?: Options): (vidoInstance: Vido) => void;
 }
-declare module "plugins/WeekendHighlight.plugin" {
-    import { Vido } from "index";
-    export interface Options {
-        weekdays?: number[];
-        className?: string;
-    }
-    export function Plugin(options?: Options): (vidoInstance: Vido) => () => void;
-}
 declare module "plugins/plugins" {
-    import * as TimelinePointer from "plugins/TimelinePointer.plugin";
-    import * as ItemHold from "plugins/ItemHold.plugin";
-    import * as ItemMovement from "plugins/ItemMovement.plugin";
-    import * as ItemResizing from "plugins/ItemResizing.plugin";
-    import * as Selection from "plugins/Selection.plugin";
-    import * as CalendarScroll from "plugins/CalendarScroll.plugin";
-    import * as WeekendHighlight from "plugins/WeekendHighlight.plugin";
+    import * as TimelinePointer from "plugins/timeline-pointer.plugin";
+    import * as ItemHold from "plugins/item-hold.plugin";
+    import * as ItemMovement from "plugins/item-movement.plugin";
+    import * as ItemResizing from "plugins/item-resizing.plugin";
+    import * as Selection from "plugins/selection.plugin";
+    import * as CalendarScroll from "plugins/calendar-scroll.plugin";
+    import * as HighlightWeekends from "plugins/highlight-weekends.plugin";
     const _default: {
         TimelinePointer: typeof TimelinePointer;
         ItemHold: typeof ItemHold;
@@ -919,7 +918,7 @@ declare module "plugins/plugins" {
         ItemResizing: typeof ItemResizing;
         Selection: typeof Selection;
         CalendarScroll: typeof CalendarScroll;
-        WeekendHighlight: typeof WeekendHighlight;
+        HighlightWeekends: typeof HighlightWeekends;
     };
     export default _default;
 }

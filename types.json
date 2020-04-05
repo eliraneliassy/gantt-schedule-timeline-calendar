@@ -1,0 +1,33 @@
+{
+  "exclude": [
+    "./index.d.ts",
+    "./dist/**",
+    "./*.conf.js",
+    "./*.config.js",
+    "./tests/**/*.js",
+    "./node_modules/**/*.ts",
+    "node_modules",
+    "node_modules/**"
+  ],
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationMap": true,
+    "target": "ES2015",
+    "outFile": "index.d.ts",
+    "removeComments": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": false,
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "moduleResolution": "node",
+    "downlevelIteration": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@src/*": ["./src/*"]
+    },
+    "esModuleInterop": true
+  }
+}
