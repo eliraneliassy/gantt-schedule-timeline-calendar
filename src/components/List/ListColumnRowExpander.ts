@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Row, Vido } from '../../types';
+import { Row, Vido } from '@src/index';
 
 export interface Props {
   row: Row;
@@ -24,7 +24,7 @@ export default function ListColumnRowExpander(vido: Vido, props: Props) {
   let ListColumnRowExpanderToggleComponent;
   const toggleUnsub = state.subscribe(
     'config.components.ListColumnRowExpanderToggle',
-    value => (ListColumnRowExpanderToggleComponent = value)
+    (value) => (ListColumnRowExpanderToggleComponent = value)
   );
 
   const ListColumnRowExpanderToggle = createComponent(
@@ -37,10 +37,10 @@ export default function ListColumnRowExpander(vido: Vido, props: Props) {
   });
 
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.ListColumnRowExpander', value => (wrapper = value)));
+  onDestroy(state.subscribe('config.wrappers.ListColumnRowExpander', (value) => (wrapper = value)));
 
   onDestroy(
-    state.subscribe('config.classNames', value => {
+    state.subscribe('config.classNames', (value) => {
       className = api.getClass(componentName);
       update();
     })
@@ -59,7 +59,7 @@ export default function ListColumnRowExpander(vido: Vido, props: Props) {
 
   const actions = Actions.create(componentActions, actionProps);
 
-  return templateProps =>
+  return (templateProps) =>
     wrapper(
       html`
         <div class=${className} data-action=${actions}>

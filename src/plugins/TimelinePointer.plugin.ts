@@ -8,10 +8,9 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { vido } from '@neuronet.io/vido/vido';
 import DeepState from 'deep-state-observer';
 import { Api } from '../api/Api';
-import { Vido } from '../types';
+import { Vido } from '@src/index';
 
 export const CELL = 'chart-timeline-grid-row-cell';
 export type CELL_TYPE = 'chart-timeline-grid-row-cell';
@@ -50,7 +49,7 @@ export function Plugin(options = { enabled: true }) {
 
   const classNames = {
     cell: '',
-    item: ''
+    item: '',
   };
 
   function generateEmptyData(): PluginData {
@@ -67,8 +66,8 @@ export function Plugin(options = { enabled: true }) {
       events: {
         down: null,
         move: null,
-        up: null
-      }
+        up: null,
+      },
     };
   }
 
@@ -86,7 +85,7 @@ export function Plugin(options = { enabled: true }) {
       element.addEventListener('pointerdown', this.pointerDown);
       document.addEventListener('pointerup', this.pointerUp);
       document.addEventListener('pointermove', this.pointerMove);
-      this.unsub.push(state.subscribe(pluginPath, value => (this.data = value)));
+      this.unsub.push(state.subscribe(pluginPath, (value) => (this.data = value)));
     }
 
     public destroy(element) {
@@ -175,12 +174,12 @@ export function Plugin(options = { enabled: true }) {
     state = vido.state;
     classNames.cell = api.getClass(CELL);
     classNames.item = api.getClass(ITEM);
-    const unsub = state.subscribe('$data.elements.chart-timeline', el => (chartTimelineElement = el));
-    state.update('config.actions.chart-timeline', timelineActions => {
+    const unsub = state.subscribe('$data.elements.chart-timeline', (el) => (chartTimelineElement = el));
+    state.update('config.actions.chart-timeline', (timelineActions) => {
       timelineActions.push(TimelinePointerAction);
       return timelineActions;
     });
-    state.update(pluginPath, data => {
+    state.update(pluginPath, (data) => {
       return generateEmptyData();
     });
 

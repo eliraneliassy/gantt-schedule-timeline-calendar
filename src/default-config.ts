@@ -28,7 +28,7 @@ import ChartTimelineItems from './components/Chart/Timeline/ChartTimelineItems';
 import ChartTimelineItemsRow from './components/Chart/Timeline/ChartTimelineItemsRow';
 import ChartTimelineItemsRowItem from './components/Chart/Timeline/ChartTimelineItemsRowItem';
 
-import { Config } from './types';
+import { Config } from '@src/index';
 
 export const actionNames = [
   'main',
@@ -51,18 +51,18 @@ export const actionNames = [
   'chart-timeline-grid-row-cell',
   'chart-timeline-items',
   'chart-timeline-items-row',
-  'chart-timeline-items-row-item'
+  'chart-timeline-items-row-item',
 ];
 
 function generateEmptyActions() {
   const actions = {};
-  actionNames.forEach(name => (actions[name] = []));
+  actionNames.forEach((name) => (actions[name] = []));
   return actions;
 }
 
 function generateEmptySlots() {
   const slots = {};
-  actionNames.forEach(name => {
+  actionNames.forEach((name) => {
     slots[name] = { before: [], after: [] };
   });
   return slots;
@@ -97,7 +97,7 @@ function defaultConfig(): Config {
       ChartTimelineGridRowCell,
       ChartTimelineItems,
       ChartTimelineItemsRow,
-      ChartTimelineItemsRowItem
+      ChartTimelineItemsRowItem,
     },
     wrappers: {
       Main(input) {
@@ -159,7 +159,7 @@ function defaultConfig(): Config {
       },
       ChartTimelineItemsRowItem(input) {
         return input;
-      }
+      },
     },
     list: {
       rows: {},
@@ -167,25 +167,25 @@ function defaultConfig(): Config {
         height: 40,
         gap: {
           top: 0,
-          bottom: 0
-        }
+          bottom: 0,
+        },
       },
       columns: {
         percent: 100,
         resizer: {
           width: 10,
           inRealTime: true,
-          dots: 6
+          dots: 6,
         },
         minWidth: 50,
-        data: {}
+        data: {},
       },
       expander: {
         padding: 18,
         size: 20,
         icon: {
           width: 16,
-          height: 16
+          height: 16,
         },
         icons: {
           child:
@@ -193,16 +193,16 @@ function defaultConfig(): Config {
           open:
             '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/><path fill="none" d="M0 0h24v24H0V0z"/></svg>',
           closed:
-            '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/><path fill="none" d="M0 0h24v24H0V0z"/></svg>'
-        }
+            '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/><path fill="none" d="M0 0h24v24H0V0z"/></svg>',
+        },
       },
       toggle: {
         display: true,
         icons: {
           open: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path stroke="null" d="m16.406954,16.012672l4.00393,-4.012673l-4.00393,-4.012673l1.232651,-1.232651l5.245324,5.245324l-5.245324,5.245324l-1.232651,-1.232651z"/><path stroke="null" d="m-0.343497,12.97734zm1.620144,0l11.341011,0l0,-1.954681l-11.341011,0l0,1.954681zm0,3.909362l11.341011,0l0,-1.954681l-11.341011,0l0,1.954681zm0,-9.773404l0,1.95468l11.341011,0l0,-1.95468l-11.341011,0z"/></svg>`,
-          close: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path transform="rotate(-180 4.392796516418457,12) " stroke="null" d="m1.153809,16.012672l4.00393,-4.012673l-4.00393,-4.012673l1.232651,-1.232651l5.245324,5.245324l-5.245324,5.245324l-1.232651,-1.232651z"/><path stroke="null" d="m9.773297,12.97734zm1.620144,0l11.341011,0l0,-1.954681l-11.341011,0l0,1.954681zm0,3.909362l11.341011,0l0,-1.954681l-11.341011,0l0,1.954681zm0,-9.773404l0,1.95468l11.341011,0l0,-1.95468l-11.341011,0z"/></svg>`
-        }
-      }
+          close: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path transform="rotate(-180 4.392796516418457,12) " stroke="null" d="m1.153809,16.012672l4.00393,-4.012673l-4.00393,-4.012673l1.232651,-1.232651l5.245324,5.245324l-5.245324,5.245324l-1.232651,-1.232651z"/><path stroke="null" d="m9.773297,12.97734zm1.620144,0l11.341011,0l0,-1.954681l-11.341011,0l0,1.954681zm0,3.909362l11.341011,0l0,-1.954681l-11.341011,0l0,1.954681zm0,-9.773404l0,1.95468l11.341011,0l0,-1.95468l-11.341011,0z"/></svg>`,
+        },
+      },
     },
     scroll: {
       horizontal: {
@@ -211,7 +211,7 @@ function defaultConfig(): Config {
         data: null,
         posPx: 0,
         maxPosPx: 0,
-        area: 0
+        area: 0,
       },
       vertical: {
         size: 14,
@@ -219,8 +219,8 @@ function defaultConfig(): Config {
         data: null,
         posPx: 0,
         maxPosPx: 0,
-        area: 0
-      }
+        area: 0,
+      },
     },
     chart: {
       time: {
@@ -237,7 +237,7 @@ function defaultConfig(): Config {
         calculatedZoomMode: false,
         onLevelDates: [],
         onCurrentViewLevelDates: [],
-        allDates: []
+        allDates: [],
       },
       calendar: {
         expand: true,
@@ -250,35 +250,35 @@ function defaultConfig(): Config {
                 className: 'gstc-date-medium gstc-date-left',
                 format({ timeStart }) {
                   return timeStart.format('DD MMMM YYYY (dddd)');
-                }
+                },
               },
               {
                 zoomTo: 23,
                 period: 'month',
                 format({ timeStart }) {
                   return timeStart.format('MMMM YYYY');
-                }
+                },
               },
               {
                 zoomTo: 24,
                 period: 'month',
                 format({ timeStart, className, vido }) {
                   return timeStart.format("MMMM 'YY");
-                }
+                },
               },
               {
                 zoomTo: 25,
                 period: 'month',
                 format({ timeStart }) {
                   return timeStart.format('MMM YYYY');
-                }
+                },
               },
               {
                 zoomTo: 27,
                 period: 'year',
                 format({ timeStart }) {
                   return timeStart.format('YYYY');
-                }
+                },
               },
               {
                 zoomTo: 100,
@@ -286,9 +286,9 @@ function defaultConfig(): Config {
                 default: true,
                 format() {
                   return null;
-                }
-              }
-            ]
+                },
+              },
+            ],
           },
           {
             main: true,
@@ -298,7 +298,7 @@ function defaultConfig(): Config {
                 period: 'hour',
                 format({ timeStart }) {
                   return timeStart.format('HH:mm');
-                }
+                },
               },
               {
                 zoomTo: 17,
@@ -306,7 +306,7 @@ function defaultConfig(): Config {
                 default: true,
                 format({ timeStart }) {
                   return timeStart.format('HH');
-                }
+                },
               },
               {
                 zoomTo: 19,
@@ -316,7 +316,7 @@ function defaultConfig(): Config {
                   return vido.html`<span class="${className}-content gstc-date-bold">${timeStart.format(
                     'DD'
                   )}</span> <span class="${className}-content gstc-date-thin">${timeStart.format('dddd')}</span>`;
-                }
+                },
               },
               {
                 zoomTo: 20,
@@ -326,7 +326,7 @@ function defaultConfig(): Config {
                   return vido.html`<div class="${className}-content gstc-date-top">${timeStart.format(
                     'DD'
                   )}</div><div class="${className}-content gstc-date-small">${timeStart.format('dddd')}</div>`;
-                }
+                },
               },
               {
                 zoomTo: 21,
@@ -335,7 +335,7 @@ function defaultConfig(): Config {
                   return vido.html`<div class="${className}-content gstc-date-top">${timeStart.format(
                     'DD'
                   )}</div><div class="${className}-content gstc-date-small">${timeStart.format('ddd')}</div>`;
-                }
+                },
               },
               {
                 zoomTo: 22,
@@ -345,7 +345,7 @@ function defaultConfig(): Config {
                   return vido.html`<div class="${className}-content gstc-date-top">${timeStart.format(
                     'DD'
                   )}</div><div class="${className}-content gstc-date-extra-small">${timeStart.format('ddd')}</div>`;
-                }
+                },
               },
               {
                 zoomTo: 23,
@@ -359,7 +359,7 @@ function defaultConfig(): Config {
                   )}</div><div class="${className}-content gstc-date-small gstc-date-thin">${timeStart.format(
                     'ddd'
                   )} - ${timeEnd.format('dd')}</div>`;
-                }
+                },
               },
               {
                 zoomTo: 25,
@@ -371,7 +371,7 @@ function defaultConfig(): Config {
                   )}</div><div class="gstc-dash gstc-date-small">-</div><div class="${className}-content gstc-date-small gstc-date-normal">${timeEnd.format(
                     'DD'
                   )}</div>`;
-                }
+                },
               },
               {
                 zoomTo: 26,
@@ -384,7 +384,7 @@ function defaultConfig(): Config {
                   )}</div><div class="${className}-content gstc-date-small gstc-date-bottom">${timeStart.format(
                     'MM'
                   )}</div>`;
-                }
+                },
               },
               {
                 zoomTo: 27,
@@ -394,7 +394,7 @@ function defaultConfig(): Config {
                   return vido.html`<div class="${className}-content gstc-date-top">${timeStart.format(
                     'MM'
                   )}</div><div class="${className}-content gstc-date-extra-small">${timeStart.format('MMM')}</div>`;
-                }
+                },
               },
               {
                 zoomTo: 28,
@@ -403,7 +403,7 @@ function defaultConfig(): Config {
                 className: 'gstc-date-big',
                 format({ timeStart }) {
                   return timeStart.format('YYYY');
-                }
+                },
               },
               {
                 zoomTo: 29,
@@ -411,7 +411,7 @@ function defaultConfig(): Config {
                 className: 'gstc-date-medium',
                 format({ timeStart }) {
                   return timeStart.format('YYYY');
-                }
+                },
               },
               {
                 zoomTo: 30,
@@ -419,7 +419,7 @@ function defaultConfig(): Config {
                 className: 'gstc-date-medium',
                 format({ timeStart }) {
                   return timeStart.format('YY');
-                }
+                },
               },
               {
                 zoomTo: 100,
@@ -427,27 +427,27 @@ function defaultConfig(): Config {
                 default: true,
                 format() {
                   return null;
-                }
-              }
-            ]
-          }
-        ]
+                },
+              },
+            ],
+          },
+        ],
       },
       grid: {
         cell: {
-          onCreate: []
-        }
+          onCreate: [],
+        },
       },
       item: {
         gap: {
           top: 4,
-          bottom: 4
+          bottom: 4,
         },
         top: 0,
-        height: 40 - 8
+        height: 40 - 8,
       },
       items: {},
-      spacing: 1
+      spacing: 1,
     },
     slots,
     classNames: {},
@@ -473,7 +473,7 @@ function defaultConfig(): Config {
         M: 'a month',
         MM: '%d months',
         y: 'a year',
-        yy: '%d years'
+        yy: '%d years',
       },
       formats: {
         LT: 'HH:mm',
@@ -481,16 +481,16 @@ function defaultConfig(): Config {
         L: 'DD/MM/YYYY',
         LL: 'D MMMM YYYY',
         LLL: 'D MMMM YYYY HH:mm',
-        LLLL: 'dddd, D MMMM YYYY HH:mm'
+        LLLL: 'dddd, D MMMM YYYY HH:mm',
       },
       ordinal: (n: number) => {
         const s = ['th', 'st', 'nd', 'rd'];
         const v = n % 100;
         return `[${n}${s[(v - 20) % 10] || s[v] || s[0]}]`;
-      }
+      },
     },
     utcMode: false,
-    usageStatistics: true
+    usageStatistics: true,
   };
 }
 

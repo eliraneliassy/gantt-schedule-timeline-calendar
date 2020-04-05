@@ -8,10 +8,8 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Vido } from '../../../types';
-import { Component } from '@neuronet.io/vido/vido';
+import { Vido } from '@src/index';
 
-/** @type {Component} */
 export default function ChartCalendar(vido: Vido, props) {
   const { api, state, onDestroy, Actions, update, reuseComponents, html, StyleMap } = vido;
   const componentName = 'chart-calendar';
@@ -21,11 +19,11 @@ export default function ChartCalendar(vido: Vido, props) {
   const ChartCalendarDateComponent = state.get('config.components.ChartCalendarDate');
 
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.ChartCalendar', value => (wrapper = value)));
+  onDestroy(state.subscribe('config.wrappers.ChartCalendar', (value) => (wrapper = value)));
 
   let className;
   onDestroy(
-    state.subscribe('config.classNames', value => {
+    state.subscribe('config.classNames', (value) => {
       className = api.getClass(componentName);
       update();
     })
@@ -34,7 +32,7 @@ export default function ChartCalendar(vido: Vido, props) {
   let headerHeight;
   const styleMap = new StyleMap({ height: '', ['--headerHeight' as any]: '', 'margin-left': '' });
   onDestroy(
-    state.subscribe('config.headerHeight', value => {
+    state.subscribe('config.headerHeight', (value) => {
       headerHeight = value;
       styleMap.style['height'] = headerHeight + 'px';
       styleMap.style['--calendar-height'] = headerHeight + 'px';
@@ -44,7 +42,7 @@ export default function ChartCalendar(vido: Vido, props) {
 
   const components = [[], []];
   onDestroy(
-    state.subscribe(`$data.chart.time.levels`, levels => {
+    state.subscribe(`$data.chart.time.levels`, (levels) => {
       let level = 0;
       for (const dates of levels) {
         if (!dates.length) continue;
@@ -67,7 +65,7 @@ export default function ChartCalendar(vido: Vido, props) {
         reuseComponents(
           components[level],
           dates,
-          date => date && { level, date, currentDate, currentDateFormat },
+          (date) => date && { level, date, currentDate, currentDateFormat },
           ChartCalendarDateComponent
         );
         level++;
@@ -76,22 +74,22 @@ export default function ChartCalendar(vido: Vido, props) {
     })
   );
   onDestroy(() => {
-    components.forEach(level => level.forEach(component => component.destroy()));
+    components.forEach((level) => level.forEach((component) => component.destroy()));
   });
 
-  componentActions.push(element => {
+  componentActions.push((element) => {
     state.update('$data.elements.chart-calendar', element);
   });
 
   const actions = Actions.create(componentActions, actionProps);
-  return templateProps =>
+  return (templateProps) =>
     wrapper(
       html`
         <div class=${className} data-actions=${actions} style=${styleMap}>
           ${components.map(
             (components, level) => html`
               <div class=${className + '-dates ' + className + `-dates--level-${level}`}>
-                ${components.map(m => m.html())}
+                ${components.map((m) => m.html())}
               </div>
             `
           )}

@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { ScrollTypeHorizontal, Vido } from '../types';
+import { ScrollTypeHorizontal, Vido } from '@src/index';
 import DeepState from 'deep-state-observer';
 import { Api } from '../api/Api';
 
@@ -22,7 +22,7 @@ export interface Options {
 }
 
 const defaultOptions = {
-  enabled: true
+  enabled: true,
 };
 
 export function Plugin(options: Options = defaultOptions) {
@@ -121,8 +121,8 @@ export function Plugin(options: Options = defaultOptions) {
     api = vido.api;
     state = vido.state;
     state.update('config.plugin.CalendarScroll', options);
-    state.subscribe('config.plugin.CalendarScroll.enabled', value => (enabled = value));
-    state.update('config.actions.chart-calendar', chartActions => {
+    state.subscribe('config.plugin.CalendarScroll.enabled', (value) => (enabled = value));
+    state.update('config.actions.chart-calendar', (chartActions) => {
       chartActions.push(ChartAction);
       return chartActions;
     });

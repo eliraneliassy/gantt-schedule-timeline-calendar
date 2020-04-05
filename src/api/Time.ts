@@ -17,7 +17,8 @@ import {
   ScrollTypeHorizontal,
   Period,
   ChartCalendarLevel,
-} from '../types';
+  ChartCalendarFormat,
+} from '@src/index';
 
 export class TimeApi {
   private locale: Locale;
@@ -229,7 +230,7 @@ export class TimeApi {
     return Math.round((scroll.maxPosPx - scroll.innerSize) * date.leftPercent);
   }
 
-  public getCurrentFormatForLevel(level: ChartCalendarLevel, time: DataChartTime) {
+  public getCurrentFormatForLevel(level: ChartCalendarLevel, time: DataChartTime): ChartCalendarFormat {
     return level.formats.find((format) => +time.zoom <= +format.zoomTo);
   }
 

@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Row, Vido } from '../../../types';
+import { Row, Vido } from '@src/index';
 
 /**
  * Bind element action
@@ -30,8 +30,8 @@ class BindElementAction {
     if (shouldUpdate) data.state.update('$data.elements.chart-timeline-items-rows', rows, { only: null });
   }
   public destroy(element, data) {
-    data.state.update('$data.elements.chart-timeline-items-rows', rows => {
-      return rows.filter(el => el !== element);
+    data.state.update('$data.elements.chart-timeline-items-rows', (rows) => {
+      return rows.filter((el) => el !== element);
     });
   }
 }
@@ -44,10 +44,10 @@ export default function ChartTimelineItemsRow(vido: Vido, props: Props) {
   const { api, state, onDestroy, Detach, Actions, update, html, onChange, reuseComponents, StyleMap } = vido;
   const actionProps = { ...props, api, state };
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.ChartTimelineItemsRow', value => (wrapper = value)));
+  onDestroy(state.subscribe('config.wrappers.ChartTimelineItemsRow', (value) => (wrapper = value)));
 
   let ItemComponent;
-  onDestroy(state.subscribe('config.components.ChartTimelineItemsRowItem', value => (ItemComponent = value)));
+  onDestroy(state.subscribe('config.components.ChartTimelineItemsRowItem', (value) => (ItemComponent = value)));
 
   let itemsPath = `$data.flatTreeMapById.${props.row.id}.$data.items`;
   let rowSub, itemsSub;
@@ -79,7 +79,7 @@ export default function ChartTimelineItemsRow(vido: Vido, props: Props) {
     if (typeof itemsSub === 'function') {
       itemsSub();
     }
-    rowSub = state.subscribe('$data.chart', value => {
+    rowSub = state.subscribe('$data.chart', (value) => {
       if (value === undefined) {
         shouldDetach = true;
         return update();
@@ -87,13 +87,13 @@ export default function ChartTimelineItemsRow(vido: Vido, props: Props) {
       updateDom();
       update();
     });
-    itemsSub = state.subscribe(itemsPath, value => {
+    itemsSub = state.subscribe(itemsPath, (value) => {
       if (value === undefined) {
         shouldDetach = true;
-        reuseComponents(itemComponents, [], item => ({ row, item }), ItemComponent);
+        reuseComponents(itemComponents, [], (item) => ({ row, item }), ItemComponent);
         return update();
       }
-      reuseComponents(itemComponents, value, item => ({ row, item }), ItemComponent);
+      reuseComponents(itemComponents, value, (item) => ({ row, item }), ItemComponent);
       updateDom();
       update();
     });
@@ -115,7 +115,7 @@ export default function ChartTimelineItemsRow(vido: Vido, props: Props) {
   onChange((changedProps: Props, options) => {
     if (options.leave || changedProps.row === undefined) {
       shouldDetach = true;
-      reuseComponents(itemComponents, [], item => ({ row: undefined, item }), ItemComponent);
+      reuseComponents(itemComponents, [], (item) => ({ row: undefined, item }), ItemComponent);
       return update();
     }
     props = changedProps;
@@ -133,7 +133,7 @@ export default function ChartTimelineItemsRow(vido: Vido, props: Props) {
   onDestroy(() => {
     itemsSub();
     rowSub();
-    itemComponents.forEach(item => item.destroy());
+    itemComponents.forEach((item) => item.destroy());
   });
 
   const componentActions = api.getActions(componentName);
@@ -141,11 +141,11 @@ export default function ChartTimelineItemsRow(vido: Vido, props: Props) {
 
   const actions = Actions.create(componentActions, actionProps);
 
-  return templateProps => {
+  return (templateProps) => {
     return wrapper(
       html`
         <div detach=${detach} class=${classNameCurrent} data-actions=${actions} style=${styleMap}>
-          ${itemComponents.map(i => i.html())}
+          ${itemComponents.map((i) => i.html())}
         </div>
       `,
       { props, vido, templateProps }

@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Row, ChartTimeDate, Rows, Vido } from '../../../types';
+import { Row, ChartTimeDate, Rows, Vido } from '@src/index';
 
 /**
  * Bind element action
@@ -35,8 +35,8 @@ class BindElementAction {
   public destroy(element, data) {
     data.state.update(
       '$data.elements.chart-timeline-grid-row-cells',
-      cells => {
-        return cells.filter(el => el !== element);
+      (cells) => {
+        return cells.filter((el) => el !== element);
       },
       { only: [''] }
     );
@@ -54,7 +54,7 @@ function ChartTimelineGridRowCell(vido: Vido, props: Props) {
   const actionProps = {
     ...props,
     api,
-    state
+    state,
   };
 
   let shouldDetach = false;
@@ -63,7 +63,7 @@ function ChartTimelineGridRowCell(vido: Vido, props: Props) {
   const componentActions = api.getActions(componentName);
   let wrapper;
   onDestroy(
-    state.subscribe('config.wrappers.ChartTimelineGridRowCell', value => {
+    state.subscribe('config.wrappers.ChartTimelineGridRowCell', (value) => {
       wrapper = value;
       update();
     })
@@ -110,13 +110,12 @@ function ChartTimelineGridRowCell(vido: Vido, props: Props) {
 
   componentActions.push(BindElementAction);
   const actions = Actions.create(componentActions, actionProps);
-  return templateProps => {
-    return wrapper(
-      html`
-        <div detach=${detach} class=${className} data-actions=${actions} style=${styleMap}></div>
-      `,
-      { props, vido, templateProps }
-    );
+  return (templateProps) => {
+    return wrapper(html` <div detach=${detach} class=${className} data-actions=${actions} style=${styleMap}></div> `, {
+      props,
+      vido,
+      templateProps,
+    });
   };
 }
 export default ChartTimelineGridRowCell;

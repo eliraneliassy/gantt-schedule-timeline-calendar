@@ -20,7 +20,7 @@
       const pluginPath = 'config.plugin.TimelinePointer';
       const classNames = {
           cell: '',
-          item: ''
+          item: '',
       };
       function generateEmptyData() {
           return {
@@ -36,8 +36,8 @@
               events: {
                   down: null,
                   move: null,
-                  up: null
-              }
+                  up: null,
+              },
           };
       }
       let chartTimelineElement;
@@ -51,7 +51,7 @@
               element.addEventListener('pointerdown', this.pointerDown);
               document.addEventListener('pointerup', this.pointerUp);
               document.addEventListener('pointermove', this.pointerMove);
-              this.unsub.push(state.subscribe(pluginPath, value => (this.data = value)));
+              this.unsub.push(state.subscribe(pluginPath, (value) => (this.data = value)));
           }
           destroy(element) {
               element.removeEventListener('pointerdown', this.pointerDown);
@@ -138,12 +138,12 @@
           state = vido.state;
           classNames.cell = api.getClass(CELL);
           classNames.item = api.getClass(ITEM);
-          const unsub = state.subscribe('$data.elements.chart-timeline', el => (chartTimelineElement = el));
-          state.update('config.actions.chart-timeline', timelineActions => {
+          const unsub = state.subscribe('$data.elements.chart-timeline', (el) => (chartTimelineElement = el));
+          state.update('config.actions.chart-timeline', (timelineActions) => {
               timelineActions.push(TimelinePointerAction);
               return timelineActions;
           });
-          state.update(pluginPath, data => {
+          state.update(pluginPath, (data) => {
               return generateEmptyData();
           });
           return function destroy() {

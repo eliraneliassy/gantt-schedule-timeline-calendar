@@ -5,8 +5,10 @@
   "main": "dist/index.umd.js",
   "module": "dist/index.esm.js",
   "scripts": {
-    "build": "rollup -c",
+    "build": "run-p types build-dist",
+    "build-dist": "rollup -c",
     "autobuild": "rollup -c -w",
+    "types": "tsc -p ./tscfg.json",
     "dev": "run-p start:dev autobuild",
     "start": "sirv dist --single",
     "start:dev": "sirv dist --single --dev",
@@ -43,7 +45,7 @@
     "tslib": "^1.11.1",
     "typescript": "^3.8.3"
   },
-  "types": "./src/types.d.ts",
+  "types": "./index.d.ts",
   "keywords": [
     "gantt",
     "schedule",

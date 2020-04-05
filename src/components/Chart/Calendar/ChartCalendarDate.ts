@@ -9,7 +9,7 @@
  */
 
 import Action from '@neuronet.io/vido/Action';
-import { ChartTimeDate, Period, Vido } from '../../../types';
+import { ChartTimeDate, Period, Vido } from '@src/index';
 
 /**
  * Save element
@@ -19,7 +19,7 @@ import { ChartTimeDate, Period, Vido } from '../../../types';
 class BindElementAction extends Action {
   constructor(element, data) {
     super();
-    data.state.update('$data.elements.chart-calendar-dates', elements => {
+    data.state.update('$data.elements.chart-calendar-dates', (elements) => {
       if (typeof elements === 'undefined') {
         elements = [];
       }
@@ -44,7 +44,7 @@ export default function ChartCalendarDay(vido: Vido, props: Props) {
   const componentActions = api.getActions(componentName);
 
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.ChartCalendarDate', value => (wrapper = value)));
+  onDestroy(state.subscribe('config.wrappers.ChartCalendarDate', (value) => (wrapper = value)));
 
   let className;
   onDestroy(
@@ -63,7 +63,7 @@ export default function ChartCalendarDay(vido: Vido, props: Props) {
     const level = state.get(`config.chart.calendar.levels.${props.level}`);
     styleMap.style.width = props.date.currentView.width + 'px';
     time = state.get('$data.chart.time');
-    const formatting = level.formats.find(formatting => +time.zoom <= +formatting.zoomTo);
+    const formatting = level.formats.find((formatting) => +time.zoom <= +formatting.zoomTo);
     if (props.date.current) {
       additionalClass = ' gstc-current';
     } else if (props.date.next) {
@@ -106,7 +106,7 @@ export default function ChartCalendarDay(vido: Vido, props: Props) {
       timeSub();
     }
     timeSub = state.subscribeAll(['$data.chart.time', 'config.chart.calendar.levels'], updateDate, {
-      bulk: true
+      bulk: true,
     });
   });
 
@@ -117,20 +117,20 @@ export default function ChartCalendarDay(vido: Vido, props: Props) {
   if (!componentActions.includes(BindElementAction)) componentActions.push(BindElementAction);
 
   const actions = Actions.create(componentActions, actionProps);
-  return templateProps =>
+  return (templateProps) =>
     wrapper(
       html`
         <div
           detach=${detach}
           class=${className +
-            ' ' +
-            className +
-            `--${props.date.period}` +
-            ' ' +
-            className +
-            `--level-${props.level}` +
-            additionalClass +
-            formatClassName}
+          ' ' +
+          className +
+          `--${props.date.period}` +
+          ' ' +
+          className +
+          `--level-${props.level}` +
+          additionalClass +
+          formatClassName}
           style=${styleMap}
           data-actions=${actions}
         >

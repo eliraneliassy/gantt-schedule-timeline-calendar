@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { RowWithCells, Vido } from '../../../types';
+import { RowWithCells, Vido } from '@src/index';
 
 /**
  * Bind element action
@@ -28,8 +28,8 @@ class BindElementAction {
     if (shouldUpdate) data.state.update('$data.elements.chart-timeline-grid-rows', rows, { only: null });
   }
   public destroy(element, data) {
-    data.state.update('$data.elements.chart-timeline-grid-rows', rows => {
-      return rows.filter(el => el !== element);
+    data.state.update('$data.elements.chart-timeline-grid-rows', (rows) => {
+      return rows.filter((el) => el !== element);
     });
   }
 }
@@ -40,11 +40,11 @@ export default function ChartTimelineGridRow(vido: Vido, props: RowWithCells) {
   const actionProps = {
     ...props,
     api,
-    state
+    state,
   };
   let wrapper;
   onDestroy(
-    state.subscribe('config.wrappers.ChartTimelineGridRow', value => {
+    state.subscribe('config.wrappers.ChartTimelineGridRow', (value) => {
       wrapper = value;
       update();
     })
@@ -64,7 +64,7 @@ export default function ChartTimelineGridRow(vido: Vido, props: RowWithCells) {
     {
       width: props.width + 'px',
       height: props.row.height + 'px',
-      overflow: 'hidden'
+      overflow: 'hidden',
     },
     true
   );
@@ -76,13 +76,13 @@ export default function ChartTimelineGridRow(vido: Vido, props: RowWithCells) {
   onChange(function onPropsChange(changedProps, options) {
     if (options.leave || changedProps.row === undefined) {
       shouldDetach = true;
-      reuseComponents(rowsCellsComponents, [], cell => cell, GridCellComponent);
+      reuseComponents(rowsCellsComponents, [], (cell) => cell, GridCellComponent);
       update();
       return;
     }
     shouldDetach = false;
     props = changedProps;
-    reuseComponents(rowsCellsComponents, props.cells, cell => cell, GridCellComponent);
+    reuseComponents(rowsCellsComponents, props.cells, (cell) => cell, GridCellComponent);
     styleMap.setStyle({});
     styleMap.style.height = props.row.$data.outerHeight + 'px';
     styleMap.style.width = props.width + 'px';
@@ -107,7 +107,7 @@ export default function ChartTimelineGridRow(vido: Vido, props: RowWithCells) {
   });
 
   onDestroy(function destroy() {
-    rowsCellsComponents.forEach(rowCell => rowCell.destroy());
+    rowsCellsComponents.forEach((rowCell) => rowCell.destroy());
   });
 
   if (componentActions.indexOf(BindElementAction) === -1) {
@@ -116,11 +116,11 @@ export default function ChartTimelineGridRow(vido: Vido, props: RowWithCells) {
 
   const actions = Actions.create(componentActions, actionProps);
 
-  return templateProps => {
+  return (templateProps) => {
     return wrapper(
       html`
         <div detach=${detach} class=${className} data-actions=${actions} style=${styleMap}>
-          ${rowsCellsComponents.map(r => r.html())}
+          ${rowsCellsComponents.map((r) => r.html())}
         </div>
       `,
       { vido, props, templateProps }

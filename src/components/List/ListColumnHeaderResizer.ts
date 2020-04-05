@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Vido } from '../../types';
+import { Vido } from '@src/index';
 
 export interface Props {
   columnId: string;
@@ -22,11 +22,11 @@ export default function ListColumnHeaderResizer(vido: Vido, props: Props) {
   const componentDotsActions = api.getActions(componentName + '-dots');
 
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.ListColumnHeaderResizer', value => (wrapper = value)));
+  onDestroy(state.subscribe('config.wrappers.ListColumnHeaderResizer', (value) => (wrapper = value)));
 
   let column;
   onDestroy(
-    state.subscribe(`config.list.columns.data.${props.columnId}`, val => {
+    state.subscribe(`config.list.columns.data.${props.columnId}`, (val) => {
       column = val;
       update();
     })
@@ -36,7 +36,7 @@ export default function ListColumnHeaderResizer(vido: Vido, props: Props) {
   const dotsStyleMap = new StyleMap({ width: '' });
   let inRealTime = false;
   onDestroy(
-    state.subscribe('config.classNames', value => {
+    state.subscribe('config.classNames', (value) => {
       className = api.getClass(componentName);
       containerClass = api.getClass(componentName + '-container');
       dotsClass = api.getClass(componentName + '-dots');
@@ -50,7 +50,7 @@ export default function ListColumnHeaderResizer(vido: Vido, props: Props) {
         `config.list.columns.data.${column.id}.width`,
         'config.list.columns.percent',
         'config.list.columns.resizer.width',
-        'config.list.columns.resizer.inRealTime'
+        'config.list.columns.resizer.inRealTime',
       ],
       (value, path) => {
         const list = state.get('config.list');
@@ -65,7 +65,7 @@ export default function ListColumnHeaderResizer(vido: Vido, props: Props) {
 
   let dots = [1, 2, 3, 4, 5, 6, 7, 8];
   onDestroy(
-    state.subscribe('config.list.columns.resizer.dots', value => {
+    state.subscribe('config.list.columns.resizer.dots', (value) => {
       dots = [];
       for (let i = 0; i < value; i++) {
         dots.push(i);
@@ -101,34 +101,23 @@ export default function ListColumnHeaderResizer(vido: Vido, props: Props) {
         if (inRealTime) {
           state.update(columnWidthPath, left);
         }
-      }
-    }
+      },
+    },
   };
 
   componentActions.push(PointerAction);
   const actions = Actions.create(componentActions, actionProps);
   const dotsActions = Actions.create(componentDotsActions, actionProps);
 
-  return templateProps =>
+  return (templateProps) =>
     wrapper(
       html`
         <div class=${className} data-actions=${actions}>
           <div class=${containerClass}>
-            ${cache(
-              column.header.html
-                ? html`
-                    ${column.header.html}
-                  `
-                : column.header.content
-            )}
+            ${cache(column.header.html ? html` ${column.header.html} ` : column.header.content)}
           </div>
           <div class=${dotsClass} style=${dotsStyleMap} data-actions=${dotsActions}>
-            ${dots.map(
-              dot =>
-                html`
-                  <div class=${dotClass} />
-                `
-            )}
+            ${dots.map((dot) => html` <div class=${dotClass} /> `)}
           </div>
         </div>
       `,

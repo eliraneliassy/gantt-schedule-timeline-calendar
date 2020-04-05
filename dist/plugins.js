@@ -14,7 +14,7 @@ function Plugin(options = { enabled: true }) {
     const pluginPath = 'config.plugin.TimelinePointer';
     const classNames = {
         cell: '',
-        item: ''
+        item: '',
     };
     function generateEmptyData() {
         return {
@@ -30,8 +30,8 @@ function Plugin(options = { enabled: true }) {
             events: {
                 down: null,
                 move: null,
-                up: null
-            }
+                up: null,
+            },
         };
     }
     let chartTimelineElement;
@@ -45,7 +45,7 @@ function Plugin(options = { enabled: true }) {
             element.addEventListener('pointerdown', this.pointerDown);
             document.addEventListener('pointerup', this.pointerUp);
             document.addEventListener('pointermove', this.pointerMove);
-            this.unsub.push(state.subscribe(pluginPath, value => (this.data = value)));
+            this.unsub.push(state.subscribe(pluginPath, (value) => (this.data = value)));
         }
         destroy(element) {
             element.removeEventListener('pointerdown', this.pointerDown);
@@ -132,12 +132,12 @@ function Plugin(options = { enabled: true }) {
         state = vido.state;
         classNames.cell = api.getClass(CELL);
         classNames.item = api.getClass(ITEM);
-        const unsub = state.subscribe('$data.elements.chart-timeline', el => (chartTimelineElement = el));
-        state.update('config.actions.chart-timeline', timelineActions => {
+        const unsub = state.subscribe('$data.elements.chart-timeline', (el) => (chartTimelineElement = el));
+        state.update('config.actions.chart-timeline', (timelineActions) => {
             timelineActions.push(TimelinePointerAction);
             return timelineActions;
         });
-        state.update(pluginPath, data => {
+        state.update(pluginPath, (data) => {
             return generateEmptyData();
         });
         return function destroy() {
@@ -850,7 +850,7 @@ var Selection = /*#__PURE__*/Object.freeze({
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 const defaultOptions = {
-    enabled: true
+    enabled: true,
 };
 function Plugin$4(options = defaultOptions) {
     let vido, api, state;
@@ -944,8 +944,8 @@ function Plugin$4(options = defaultOptions) {
         api = vido.api;
         state = vido.state;
         state.update('config.plugin.CalendarScroll', options);
-        state.subscribe('config.plugin.CalendarScroll.enabled', value => (enabled = value));
-        state.update('config.actions.chart-calendar', chartActions => {
+        state.subscribe('config.plugin.CalendarScroll.enabled', (value) => (enabled = value));
+        state.update('config.actions.chart-calendar', (chartActions) => {
             chartActions.push(ChartAction);
             return chartActions;
         });
@@ -1184,8 +1184,8 @@ function Plugin$5(options = {}) {
     return function initialize(vidoInstance) {
         api = vidoInstance.api;
         className = options.className || api.getClass('chart-timeline-grid-row-cell') + '--weekend';
-        const destroy = vidoInstance.state.subscribe('$data.chart.time.format.period', period => (enabled = period === 'day'));
-        vidoInstance.state.update('config.actions.chart-timeline-grid-row-cell', actions => {
+        const destroy = vidoInstance.state.subscribe('$data.chart.time.format.period', (period) => (enabled = period === 'day'));
+        vidoInstance.state.update('config.actions.chart-timeline-grid-row-cell', (actions) => {
             actions.push(WeekendHighlightAction);
             return actions;
         });

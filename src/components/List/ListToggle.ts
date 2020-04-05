@@ -8,26 +8,26 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Vido } from '../../types';
+import { Vido } from '@src/index';
 
 export default function ListToggle(vido: Vido, props = {}) {
   const { html, onDestroy, api, state, update } = vido;
   const componentName = 'list-toggle';
   let className;
   onDestroy(
-    state.subscribe('config.classNames', classNames => {
+    state.subscribe('config.classNames', (classNames) => {
       className = api.getClass(componentName);
     })
   );
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.ListToggle', ListToggleWrapper => (wrapper = ListToggleWrapper)));
+  onDestroy(state.subscribe('config.wrappers.ListToggle', (ListToggleWrapper) => (wrapper = ListToggleWrapper)));
 
   let toggleIconsSrc = {
     open: '',
-    close: ''
+    close: '',
   };
   onDestroy(
-    state.subscribe('$data.list.toggle.icons', value => {
+    state.subscribe('$data.list.toggle.icons', (value) => {
       if (value) {
         toggleIconsSrc = value;
         update();
@@ -37,11 +37,11 @@ export default function ListToggle(vido: Vido, props = {}) {
 
   let open = true;
   onDestroy(
-    state.subscribe('config.list.columns.percent', percent => (percent === 0 ? (open = false) : (open = true)))
+    state.subscribe('config.list.columns.percent', (percent) => (percent === 0 ? (open = false) : (open = true)))
   );
 
   function toggle() {
-    state.update('config.list.columns.percent', percent => {
+    state.update('config.list.columns.percent', (percent) => {
       return percent === 0 ? 100 : 0;
     });
   }
@@ -57,7 +57,7 @@ export default function ListToggle(vido: Vido, props = {}) {
     }
   }
 
-  return templateProps =>
+  return (templateProps) =>
     wrapper(
       html`
         <div class=${className} @pointerdown=${pointerDown} @pointerup=${pointerUp}>

@@ -12,12 +12,12 @@ import { TimeApi } from './Time';
 import State from 'deep-state-observer';
 import DeepState from 'deep-state-observer';
 import dayjs from 'dayjs';
-import { Config, Period, DataChartTime, ScrollTypeHorizontal, Row, Item, Vido } from '../types';
+import { Config, Period, DataChartTime, ScrollTypeHorizontal, Row, Item, Vido } from '@src/index';
 import { mergeDeep } from '@neuronet.io/vido/helpers';
 
 const lib = 'gantt-schedule-timeline-calendar';
 
-function mergeActions(userConfig, defaultConfig) {
+function mergeActions(userConfig: Config, defaultConfig: Config) {
   const defaultConfigActions = mergeDeep({}, defaultConfig.actions);
   const userActions = mergeDeep({}, userConfig.actions);
   let allActionNames = [...Object.keys(defaultConfigActions), ...Object.keys(userActions)];
@@ -67,14 +67,20 @@ export interface WheelResult {
   event: MouseWheelEvent;
 }
 
+export interface IconsCache {
+  [key: string]: string;
+}
+
+export type Unsubscribes = (() => void)[];
+
 export class Api {
   public name = lib;
   public debug = false;
   public state: DeepState;
   public time: TimeApi;
   public vido: Vido;
-  private iconsCache = {};
-  private unsubscribes = [];
+  private iconsCache: IconsCache = {};
+  private unsubscribes: Unsubscribes = [];
 
   constructor(state: DeepState) {
     this.state = state;

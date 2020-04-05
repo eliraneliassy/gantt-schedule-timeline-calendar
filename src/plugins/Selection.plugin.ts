@@ -18,7 +18,7 @@ import {
   PointerState,
 } from './TimelinePointer.plugin';
 
-import { Item, Cell, Items, Vido, htmlResult, Wrapper } from '../types';
+import { Item, Cell, Items, Vido, htmlResult, Wrapper } from '@src/index';
 import DeepState from 'deep-state-observer';
 import { Api } from '../api/Api';
 import { StyleMap, lithtml } from '@neuronet.io/vido/vido';

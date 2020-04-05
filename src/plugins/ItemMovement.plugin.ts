@@ -9,7 +9,7 @@
  */
 
 import { PluginData as SelectionPluginData } from './Selection.plugin';
-import { Item, DataChartTime, Scroll, DataChartDimensions, ItemTime, ItemDataTime, Vido, ItemData } from '../types';
+import { Item, DataChartTime, Scroll, DataChartDimensions, ItemTime, Vido, ItemData } from '@src/index';
 import { ITEM, Point } from './TimelinePointer.plugin';
 import { Dayjs } from 'dayjs';
 import { Api } from '../api/Api';

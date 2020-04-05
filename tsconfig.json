@@ -1,0 +1,19 @@
+{
+  "exclude": ["./index.d.ts", "./dist/**", "./*.conf.js", "./*.config.js", "./tests/**/*.js", "node_modules/**"],
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@src/*": ["src/*"]
+    },
+    "esModuleInterop": true,
+    "strict": false,
+    "module": "ESNext",
+    "downlevelIteration": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "target": "ES2015",
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true
+  }
+}

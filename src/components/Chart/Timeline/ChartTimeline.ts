@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Vido } from '../../../types';
+import { Vido } from '@src/index';
 
 export default function ChartTimeline(vido: Vido, props) {
   const { api, state, onDestroy, Action, Actions, update, html, createComponent, StyleMap } = vido;
@@ -17,7 +17,7 @@ export default function ChartTimeline(vido: Vido, props) {
   const actionProps = { ...props, api, state };
 
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.ChartTimeline', value => (wrapper = value)));
+  onDestroy(state.subscribe('config.wrappers.ChartTimeline', (value) => (wrapper = value)));
 
   const GridComponent = state.get('config.components.ChartTimelineGrid');
   const ItemsComponent = state.get('config.components.ChartTimelineItems');
@@ -40,7 +40,7 @@ export default function ChartTimeline(vido: Vido, props) {
   );
 
   let showToggle;
-  onDestroy(state.subscribe('config.list.toggle.display', val => (showToggle = val)));
+  onDestroy(state.subscribe('config.list.toggle.display', (val) => (showToggle = val)));
 
   const styleMap = new StyleMap({}),
     innerStyleMap = new StyleMap({});
@@ -75,7 +75,7 @@ export default function ChartTimeline(vido: Vido, props) {
 
   let componentActions = [];
   onDestroy(
-    state.subscribe('config.actions.chart-timeline', actions => {
+    state.subscribe('config.actions.chart-timeline', (actions) => {
       componentActions = actions;
     })
   );
@@ -91,7 +91,7 @@ export default function ChartTimeline(vido: Vido, props) {
   );
 
   const actions = Actions.create(componentActions, actionProps);
-  return templateProps =>
+  return (templateProps) =>
     wrapper(
       html`
         <div class=${className} style=${styleMap} data-actions=${actions}>

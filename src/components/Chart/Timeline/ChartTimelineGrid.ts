@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Cell, RowWithCells, Vido } from '../../../types';
+import { Cell, RowWithCells, Vido } from '@src/index';
 
 /**
  * Bind element action
@@ -19,7 +19,7 @@ class BindElementAction {
     if (old !== element) data.state.update('$data.elements.chart-timeline-grid', element);
   }
   public destroy(element, data) {
-    data.state.update('$data.elements', elements => {
+    data.state.update('$data.elements', (elements) => {
       delete elements['chart-timeline-grid'];
       return elements;
     });
@@ -33,7 +33,7 @@ export default function ChartTimelineGrid(vido: Vido, props) {
   const actionProps = { api, state };
 
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.ChartTimelineGrid', value => (wrapper = value)));
+  onDestroy(state.subscribe('config.wrappers.ChartTimelineGrid', (value) => (wrapper = value)));
 
   const GridRowComponent = state.get('config.components.ChartTimelineGridRow');
 
@@ -46,7 +46,7 @@ export default function ChartTimelineGrid(vido: Vido, props) {
   );
 
   let onCellCreate;
-  onDestroy(state.subscribe('config.chart.grid.cell.onCreate', onCreate => (onCellCreate = onCreate)));
+  onDestroy(state.subscribe('config.chart.grid.cell.onCreate', (onCreate) => (onCellCreate = onCreate)));
 
   const rowsComponents = [];
   const rowsWithCells: RowWithCells[] = [];
@@ -97,7 +97,7 @@ export default function ChartTimelineGrid(vido: Vido, props) {
       ['$data.list.visibleRows;', `$data.chart.time.levels`, '$data.innerHeight', '$data.chart.dimensions.width'],
       generateCells,
       {
-        bulk: true
+        bulk: true,
       }
     )
   );
@@ -107,21 +107,21 @@ export default function ChartTimelineGrid(vido: Vido, props) {
    * @param {array} rowsWithCells
    */
   function generateRowsComponents(rowsWithCells: RowWithCells[]) {
-    reuseComponents(rowsComponents, rowsWithCells || [], row => row, GridRowComponent);
+    reuseComponents(rowsComponents, rowsWithCells || [], (row) => row, GridRowComponent);
     update();
   }
   onDestroy(state.subscribe('$data.chart.grid.rowsWithCells', generateRowsComponents));
   onDestroy(() => {
-    rowsComponents.forEach(row => row.destroy());
+    rowsComponents.forEach((row) => row.destroy());
   });
   componentActions.push(BindElementAction);
 
   const actions = Actions.create(componentActions, actionProps);
-  return templateProps =>
+  return (templateProps) =>
     wrapper(
       html`
         <div class=${className} data-actions=${actions} style=${styleMap}>
-          ${rowsComponents.map(r => r.html())}
+          ${rowsComponents.map((r) => r.html())}
         </div>
       `,
       { props, vido, templateProps }

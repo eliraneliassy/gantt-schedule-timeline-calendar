@@ -9,7 +9,7 @@
  */
 
 import ResizeObserver from 'resize-observer-polyfill';
-import { Vido } from '../../types';
+import { Vido } from '@src/index';
 
 export default function Chart(vido: Vido, props = {}) {
   const { api, state, onDestroy, Actions, update, html, createComponent } = vido;
@@ -17,11 +17,11 @@ export default function Chart(vido: Vido, props = {}) {
 
   const componentSubs = [];
   let ChartCalendarComponent;
-  componentSubs.push(state.subscribe('config.components.ChartCalendar', value => (ChartCalendarComponent = value)));
+  componentSubs.push(state.subscribe('config.components.ChartCalendar', (value) => (ChartCalendarComponent = value)));
   let ChartTimelineComponent;
-  componentSubs.push(state.subscribe('config.components.ChartTimeline', value => (ChartTimelineComponent = value)));
+  componentSubs.push(state.subscribe('config.components.ChartTimeline', (value) => (ChartTimelineComponent = value)));
   let ScrollBarComponent;
-  componentSubs.push(state.subscribe('config.components.ScrollBar', value => (ScrollBarComponent = value)));
+  componentSubs.push(state.subscribe('config.components.ScrollBar', (value) => (ScrollBarComponent = value)));
 
   const ChartCalendar = createComponent(ChartCalendarComponent);
   onDestroy(ChartCalendar.destroy);
@@ -33,17 +33,17 @@ export default function Chart(vido: Vido, props = {}) {
   onDestroy(ScrollBarVertical.destroy);
 
   onDestroy(() => {
-    componentSubs.forEach(unsub => unsub());
+    componentSubs.forEach((unsub) => unsub());
   });
 
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.Chart', value => (wrapper = value)));
+  onDestroy(state.subscribe('config.wrappers.Chart', (value) => (wrapper = value)));
 
   let className, classNameScroll, classNameScrollInner, scrollElement, scrollInnerElement;
   const componentActions = api.getActions(componentName);
 
   let calculatedZoomMode = false;
-  onDestroy(state.subscribe('config.chart.time.calculatedZoomMode', zoomMode => (calculatedZoomMode = zoomMode)));
+  onDestroy(state.subscribe('config.chart.time.calculatedZoomMode', (zoomMode) => (calculatedZoomMode = zoomMode)));
 
   onDestroy(
     state.subscribe('config.classNames', () => {
@@ -63,7 +63,7 @@ export default function Chart(vido: Vido, props = {}) {
   const onWheel = {
     handleEvent: onWheelHandler,
     passive: false,
-    capture: false
+    capture: false,
   };
 
   let chartWidth = 0;
@@ -91,7 +91,7 @@ export default function Chart(vido: Vido, props = {}) {
 
   const actions = Actions.create(componentActions, { api, state });
 
-  return templateProps =>
+  return (templateProps) =>
     wrapper(
       html`
         <div class=${className} data-actions=${actions} @wheel=${onWheel}>

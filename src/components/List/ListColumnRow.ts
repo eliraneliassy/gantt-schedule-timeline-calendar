@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { ColumnData, Row, Vido } from '../../types';
+import { ColumnData, Row, Vido } from '@src/index';
 
 /**
  * Bind element action
@@ -28,8 +28,8 @@ class BindElementAction {
     if (shouldUpdate) data.state.update('$data.elements.list-column-rows', elements);
   }
   public destroy(element, data) {
-    data.state.update('$data.elements.list-column-rows', elements => {
-      return elements.filter(el => el !== element);
+    data.state.update('$data.elements.list-column-rows', (elements) => {
+      return elements.filter((el) => el !== element);
     });
   }
 }
@@ -51,7 +51,7 @@ export default function ListColumnRow(vido: Vido, props: Props) {
     createComponent,
     onChange,
     StyleMap,
-    unsafeHTML
+    unsafeHTML,
   } = vido;
 
   const componentName = 'list-column-row';
@@ -60,11 +60,11 @@ export default function ListColumnRow(vido: Vido, props: Props) {
   const detach = new Detach(() => shouldDetach);
 
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.ListColumnRow', value => (wrapper = value)));
+  onDestroy(state.subscribe('config.wrappers.ListColumnRow', (value) => (wrapper = value)));
 
   let ListColumnRowExpanderComponent;
   onDestroy(
-    state.subscribe('config.components.ListColumnRowExpander', value => (ListColumnRowExpanderComponent = value))
+    state.subscribe('config.components.ListColumnRowExpander', (value) => (ListColumnRowExpanderComponent = value))
   );
 
   let rowPath = `$data.flatTreeMapById.${props.rowId}`,
@@ -78,12 +78,12 @@ export default function ListColumnRow(vido: Vido, props: Props) {
           top: '',
           ['--height' as any]: '',
           ['--expander-padding-width' as any]: '',
-          ['--expander-size' as any]: ''
+          ['--expander-size' as any]: '',
         }
       : {
           height: '',
           top: '',
-          ['--height' as any]: ''
+          ['--height' as any]: '',
         },
     true
   );
@@ -92,7 +92,7 @@ export default function ListColumnRow(vido: Vido, props: Props) {
 
   let className;
   onDestroy(
-    state.subscribe('config.classNames', value => {
+    state.subscribe('config.classNames', (value) => {
       className = api.getClass(componentName);
       update();
     })
@@ -120,7 +120,7 @@ export default function ListColumnRow(vido: Vido, props: Props) {
     colPath = `config.list.columns.data.${columnId}`;
     rowSub = state.subscribeAll(
       [rowPath, colPath, 'config.list.expander'],
-      bulk => {
+      (bulk) => {
         column = state.get(colPath);
         row = state.get(rowPath);
         if (column === undefined || row === undefined) {
@@ -172,7 +172,7 @@ export default function ListColumnRow(vido: Vido, props: Props) {
       ListColumnRowExpander.change({ row });
     }
 
-    colSub = state.subscribe(colPath, val => {
+    colSub = state.subscribe(colPath, (val) => {
       column = val;
       update();
     });
@@ -201,7 +201,7 @@ export default function ListColumnRow(vido: Vido, props: Props) {
   if (!componentActions.includes(BindElementAction)) componentActions.push(BindElementAction);
   const actions = Actions.create(componentActions, actionProps);
 
-  return templateProps =>
+  return (templateProps) =>
     wrapper(
       html`
         <div detach=${detach} class=${classNameCurrent} style=${styleMap} data-actions=${actions}>

@@ -27,7 +27,7 @@ import {
   ItemData,
   Vido,
   Reason,
-} from '../types';
+} from '@src/index';
 
 import { OpUnitType } from 'dayjs';
 import { Component, ComponentInstance } from '@neuronet.io/vido/vido';
@@ -758,6 +758,7 @@ export default function Main(vido: Vido, props = {}) {
     }
     const startsWith = ['192.', '127.', 'test', 'demo', 'local'];
     const endsWith = ['test', 'local', 'demo'];
+    // @ts-ignore
     function startsEnds() {
       for (let i = 0, len = startsWith.length; i < len; i++) {
         if (location.hostname.startsWith(startsWith[i])) return true;
@@ -767,6 +768,7 @@ export default function Main(vido: Vido, props = {}) {
       }
       return false;
     }
+    // @ts-ignore
     function shouldSend(): boolean {
       return !ignoreHosts.includes(loc) && location.hostname !== 'localhost' && !startsEnds();
     }

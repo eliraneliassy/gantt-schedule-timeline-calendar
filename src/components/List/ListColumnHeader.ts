@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Vido } from '../../types';
+import { Vido } from '@src/index';
 
 export interface Props {
   columnId: string;
@@ -20,7 +20,7 @@ export default function ListColumnHeader(vido: Vido, props: Props) {
   const actionProps = { ...props, api, state };
 
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.ListColumnHeader', value => (wrapper = value)));
+  onDestroy(state.subscribe('config.wrappers.ListColumnHeader', (value) => (wrapper = value)));
 
   const componentName = 'list-column-header';
   const componentActions = api.getActions(componentName);
@@ -28,36 +28,36 @@ export default function ListColumnHeader(vido: Vido, props: Props) {
   const componentsSubs = [];
   let ListColumnHeaderResizerComponent;
   componentsSubs.push(
-    state.subscribe('config.components.ListColumnHeaderResizer', value => (ListColumnHeaderResizerComponent = value))
+    state.subscribe('config.components.ListColumnHeaderResizer', (value) => (ListColumnHeaderResizerComponent = value))
   );
   const ListColumnHeaderResizer = createComponent(ListColumnHeaderResizerComponent, { columnId: props.columnId });
 
   let ListColumnRowExpanderComponent;
   componentsSubs.push(
-    state.subscribe('config.components.ListColumnRowExpander', value => (ListColumnRowExpanderComponent = value))
+    state.subscribe('config.components.ListColumnRowExpander', (value) => (ListColumnRowExpanderComponent = value))
   );
   const ListColumnRowExpander = createComponent(ListColumnRowExpanderComponent, {});
   onDestroy(() => {
     ListColumnHeaderResizer.destroy();
     ListColumnRowExpander.destroy();
-    componentsSubs.forEach(unsub => unsub());
+    componentsSubs.forEach((unsub) => unsub());
   });
 
   let column;
-  let columnSub = state.subscribe(`config.list.columns.data.${props.columnId}`, val => {
+  let columnSub = state.subscribe(`config.list.columns.data.${props.columnId}`, (val) => {
     column = val;
     update();
   });
 
   onDestroy(columnSub);
 
-  onChange(changedProps => {
+  onChange((changedProps) => {
     props = changedProps;
     for (const prop in props) {
       actionProps[prop] = props[prop];
     }
     if (columnSub) columnSub();
-    columnSub = state.subscribe(`config.list.columns.data.${props.columnId}`, val => {
+    columnSub = state.subscribe(`config.list.columns.data.${props.columnId}`, (val) => {
       column = val;
       update();
     });
@@ -74,7 +74,7 @@ export default function ListColumnHeader(vido: Vido, props: Props) {
   const styleMap = new StyleMap({
     height: '',
     ['--height' as any]: '',
-    ['--paddings-count' as any]: ''
+    ['--paddings-count' as any]: '',
   });
   onDestroy(
     state.subscribe('config.headerHeight', () => {
@@ -104,7 +104,7 @@ export default function ListColumnHeader(vido: Vido, props: Props) {
 
   const actions = Actions.create(componentActions, actionProps);
 
-  return templateProps =>
+  return (templateProps) =>
     wrapper(
       html`
         <div class=${className} style=${styleMap} data-actions=${actions}>

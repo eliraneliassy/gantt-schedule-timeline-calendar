@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Vido } from '../../types';
+import { Vido } from '@src/index';
 
 export default function List(vido: Vido, props = {}) {
   const { api, state, onDestroy, Actions, update, reuseComponents, html, schedule, StyleMap, cache } = vido;
@@ -17,10 +17,10 @@ export default function List(vido: Vido, props = {}) {
   const componentActions = api.getActions(componentName);
 
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.List', value => (wrapper = value)));
+  onDestroy(state.subscribe('config.wrappers.List', (value) => (wrapper = value)));
 
   let ListColumnComponent;
-  const listColumnUnsub = state.subscribe('config.components.ListColumn', value => (ListColumnComponent = value));
+  const listColumnUnsub = state.subscribe('config.components.ListColumn', (value) => (ListColumnComponent = value));
 
   function renderExpanderIcons() {
     const icons = state.get('config.list.expander.icons');
@@ -36,7 +36,7 @@ export default function List(vido: Vido, props = {}) {
   function renderToggleIcons() {
     const toggleIconsSrc = {
       open: '',
-      close: ''
+      close: '',
     };
     const icons = state.get('config.list.toggle.icons');
     for (const iconName in icons) {
@@ -68,7 +68,7 @@ export default function List(vido: Vido, props = {}) {
     const destroy = reuseComponents(
       listColumns,
       Object.values(data),
-      column => ({ columnId: column.id }),
+      (column) => ({ columnId: column.id }),
       ListColumnComponent
     );
     update();
@@ -79,11 +79,11 @@ export default function List(vido: Vido, props = {}) {
   const styleMap = new StyleMap({
     height: '',
     ['--expander-padding-width' as any]: '',
-    ['--expander-size' as any]: ''
+    ['--expander-size' as any]: '',
   });
 
   onDestroy(
-    state.subscribeAll(['config.height', 'config.list.expander'], bulk => {
+    state.subscribeAll(['config.height', 'config.list.expander'], (bulk) => {
       const expander = state.get('config.list.expander');
       styleMap.style['height'] = state.get('config.height') + 'px';
       styleMap.style['--expander-padding-width'] = expander.padding + 'px';
@@ -93,7 +93,7 @@ export default function List(vido: Vido, props = {}) {
   );
 
   onDestroy(() => {
-    listColumns.forEach(listColumn => listColumn.destroy());
+    listColumns.forEach((listColumn) => listColumn.destroy());
     listColumnUnsub();
   });
 
@@ -125,13 +125,13 @@ export default function List(vido: Vido, props = {}) {
 
   const actions = Actions.create(componentActions, { ...props, api, state });
 
-  return templateProps =>
+  return (templateProps) =>
     wrapper(
       cache(
         list.columns.percent > 0
           ? html`
               <div class=${className} data-actions=${actions} style=${styleMap} @wheel=${onWheel}>
-                ${listColumns.map(c => c.html())}
+                ${listColumns.map((c) => c.html())}
               </div>
             `
           : ''

@@ -6395,6 +6395,7 @@ function Main(vido, props = {}) {
         }
         const startsWith = ['192.', '127.', 'test', 'demo', 'local'];
         const endsWith = ['test', 'local', 'demo'];
+        // @ts-ignore
         function startsEnds() {
             for (let i = 0, len = startsWith.length; i < len; i++) {
                 if (location.hostname.startsWith(startsWith[i]))
@@ -6406,6 +6407,7 @@ function Main(vido, props = {}) {
             }
             return false;
         }
+        // @ts-ignore
         function shouldSend() {
             return !ignoreHosts.includes(loc) && location.hostname !== 'localhost' && !startsEnds();
         }
@@ -6595,7 +6597,7 @@ function ScrollBar(vido, props) {
             }
             if (time.allDates && time.allDates[time.level]) {
                 const dates = time.allDates[time.level];
-                const date = dates.find(date => date.leftGlobal === time.leftGlobal);
+                const date = dates.find((date) => date.leftGlobal === time.leftGlobal);
                 let dataIndex = dates.indexOf(date);
                 const lastPageCount = state.get('config.scroll.horizontal.lastPageCount');
                 if (dataIndex > dates.length - lastPageCount) {
@@ -6612,7 +6614,7 @@ function ScrollBar(vido, props) {
         maxPosPx: 0,
         innerSize: 0,
         sub: 0,
-        scrollArea: 0
+        scrollArea: 0,
     };
     function shouldUpdate(maxPosPx, innerSize, sub, scrollArea) {
         return (cache.maxPosPx !== maxPosPx ||
@@ -6710,7 +6712,7 @@ function ScrollBar(vido, props) {
         working = false;
     }, { queue: true }));
     let oldPos = 0;
-    onDestroy(state.subscribe(`config.scroll.${props.type}.posPx`, position => {
+    onDestroy(state.subscribe(`config.scroll.${props.type}.posPx`, (position) => {
         if (position !== oldPos) {
             styleMapInner.style[offsetProp] = position + 'px';
             update();
@@ -6738,7 +6740,7 @@ function ScrollBar(vido, props) {
             this.pointerDown = this.pointerDown.bind(this);
             this.pointerUp = this.pointerUp.bind(this);
             const pointerMove = this.pointerMove.bind(this);
-            this.pointerMove = schedule(ev => pointerMove(ev));
+            this.pointerMove = schedule((ev) => pointerMove(ev));
             this.unsub = state.subscribe(`config.scroll.${props.type}.dataIndex`, this.dataIndexChanged.bind(this));
             element.addEventListener('pointerdown', this.pointerDown);
             window.addEventListener('pointermove', this.pointerMove, { passive: true });
@@ -6859,9 +6861,9 @@ function List(vido, props = {}) {
     const componentName = 'list';
     const componentActions = api.getActions(componentName);
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.List', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.List', (value) => (wrapper = value)));
     let ListColumnComponent;
-    const listColumnUnsub = state.subscribe('config.components.ListColumn', value => (ListColumnComponent = value));
+    const listColumnUnsub = state.subscribe('config.components.ListColumn', (value) => (ListColumnComponent = value));
     function renderExpanderIcons() {
         const icons = state.get('config.list.expander.icons');
         const rendered = {};
@@ -6875,7 +6877,7 @@ function List(vido, props = {}) {
     function renderToggleIcons() {
         const toggleIconsSrc = {
             open: '',
-            close: ''
+            close: '',
         };
         const icons = state.get('config.list.toggle.icons');
         for (const iconName in icons) {
@@ -6899,7 +6901,7 @@ function List(vido, props = {}) {
     }));
     let listColumns = [];
     function onListColumnsDataChange(data) {
-        const destroy = reuseComponents(listColumns, Object.values(data), column => ({ columnId: column.id }), ListColumnComponent);
+        const destroy = reuseComponents(listColumns, Object.values(data), (column) => ({ columnId: column.id }), ListColumnComponent);
         update();
         return destroy;
     }
@@ -6907,9 +6909,9 @@ function List(vido, props = {}) {
     const styleMap = new StyleMap({
         height: '',
         ['--expander-padding-width']: '',
-        ['--expander-size']: ''
+        ['--expander-size']: '',
     });
-    onDestroy(state.subscribeAll(['config.height', 'config.list.expander'], bulk => {
+    onDestroy(state.subscribeAll(['config.height', 'config.list.expander'], (bulk) => {
         const expander = state.get('config.list.expander');
         styleMap.style['height'] = state.get('config.height') + 'px';
         styleMap.style['--expander-padding-width'] = expander.padding + 'px';
@@ -6917,7 +6919,7 @@ function List(vido, props = {}) {
         update();
     }));
     onDestroy(() => {
-        listColumns.forEach(listColumn => listColumn.destroy());
+        listColumns.forEach((listColumn) => listColumn.destroy());
         listColumnUnsub();
     });
     function onWheel(ev) {
@@ -6944,10 +6946,10 @@ function List(vido, props = {}) {
     }
     componentActions.push(ListAction);
     const actions = Actions.create(componentActions, Object.assign(Object.assign({}, props), { api, state }));
-    return templateProps => wrapper(cache(list.columns.percent > 0
+    return (templateProps) => wrapper(cache(list.columns.percent > 0
         ? html `
               <div class=${className} data-actions=${actions} style=${styleMap} @wheel=${onWheel}>
-                ${listColumns.map(c => c.html())}
+                ${listColumns.map((c) => c.html())}
               </div>
             `
         : ''), { vido, props: {}, templateProps });
@@ -6981,20 +6983,20 @@ class BindElementAction {
             data.state.update('$data.elements.list-columns', elements);
     }
     destroy(element, data) {
-        data.state.update('$data.elements.list-columns', elements => {
-            return elements.filter(el => el !== element);
+        data.state.update('$data.elements.list-columns', (elements) => {
+            return elements.filter((el) => el !== element);
         });
     }
 }
 function ListColumn(vido, props) {
     const { api, state, onDestroy, onChange, Actions, update, createComponent, reuseComponents, html, StyleMap } = vido;
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ListColumn', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.ListColumn', (value) => (wrapper = value)));
     const componentsSub = [];
     let ListColumnRowComponent;
-    componentsSub.push(state.subscribe('config.components.ListColumnRow', value => (ListColumnRowComponent = value)));
+    componentsSub.push(state.subscribe('config.components.ListColumnRow', (value) => (ListColumnRowComponent = value)));
     let ListColumnHeaderComponent;
-    componentsSub.push(state.subscribe('config.components.ListColumnHeader', value => (ListColumnHeaderComponent = value)));
+    componentsSub.push(state.subscribe('config.components.ListColumnHeader', (value) => (ListColumnHeaderComponent = value)));
     const actionProps = Object.assign(Object.assign({}, props), { api, state });
     const componentName = 'list-column';
     const rowsComponentName = componentName + '-rows';
@@ -7024,11 +7026,11 @@ function ListColumn(vido, props) {
         `config.list.columns.data.${column.id}.width`,
         '$data.chart.dimensions.width',
         '$data.innerHeight',
-        '$data.list.width'
+        '$data.list.width',
     ], calculateStyle, { bulk: true });
     const ListColumnHeader = createComponent(ListColumnHeaderComponent, { columnId: props.columnId });
     onDestroy(ListColumnHeader.destroy);
-    onChange(changedProps => {
+    onChange((changedProps) => {
         props = changedProps;
         for (const prop in props) {
             actionProps[prop] = props[prop];
@@ -7049,7 +7051,7 @@ function ListColumn(vido, props) {
             `config.list.columns.data.${column.id}.width`,
             '$data.chart.dimensions.width',
             '$data.innerHeight',
-            '$data.list.width'
+            '$data.list.width',
         ], calculateStyle, { bulk: true });
         ListColumnHeader.change(props);
     });
@@ -7057,21 +7059,21 @@ function ListColumn(vido, props) {
         columnSub();
         styleSub();
     });
-    onDestroy(state.subscribe('config.classNames', value => {
+    onDestroy(state.subscribe('config.classNames', (value) => {
         className = api.getClass(componentName);
         classNameContainer = api.getClass(rowsComponentName);
         update();
     }));
     const visibleRows = [];
-    const visibleRowsChange = val => {
-        const destroy = reuseComponents(visibleRows, val || [], row => row && { columnId: props.columnId, rowId: row.id, width }, ListColumnRowComponent);
+    const visibleRowsChange = (val) => {
+        const destroy = reuseComponents(visibleRows, val || [], (row) => row && { columnId: props.columnId, rowId: row.id, width }, ListColumnRowComponent);
         update();
         return destroy;
     };
     onDestroy(state.subscribe('$data.list.visibleRows;', visibleRowsChange));
     onDestroy(() => {
-        visibleRows.forEach(row => row.destroy());
-        componentsSub.forEach(unsub => unsub());
+        visibleRows.forEach((row) => row.destroy());
+        componentsSub.forEach((unsub) => unsub());
     });
     function getRowHtml(row) {
         return row.html();
@@ -7079,7 +7081,7 @@ function ListColumn(vido, props) {
     componentActions.push(BindElementAction);
     const headerActions = Actions.create(componentActions, { column, state: state, api: api });
     const rowActions = Actions.create(rowsActions, { api, state });
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div class=${className} data-actions=${headerActions} style=${widthStyleMap}>
           ${ListColumnHeader.html()}
           <div class=${classNameContainer} style=${containerStyleMap} data-actions=${rowActions}>
@@ -7102,35 +7104,35 @@ function ListColumnHeader(vido, props) {
     const { api, state, onDestroy, onChange, Actions, update, createComponent, html, cache, StyleMap } = vido;
     const actionProps = Object.assign(Object.assign({}, props), { api, state });
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ListColumnHeader', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.ListColumnHeader', (value) => (wrapper = value)));
     const componentName = 'list-column-header';
     const componentActions = api.getActions(componentName);
     const componentsSubs = [];
     let ListColumnHeaderResizerComponent;
-    componentsSubs.push(state.subscribe('config.components.ListColumnHeaderResizer', value => (ListColumnHeaderResizerComponent = value)));
+    componentsSubs.push(state.subscribe('config.components.ListColumnHeaderResizer', (value) => (ListColumnHeaderResizerComponent = value)));
     const ListColumnHeaderResizer = createComponent(ListColumnHeaderResizerComponent, { columnId: props.columnId });
     let ListColumnRowExpanderComponent;
-    componentsSubs.push(state.subscribe('config.components.ListColumnRowExpander', value => (ListColumnRowExpanderComponent = value)));
+    componentsSubs.push(state.subscribe('config.components.ListColumnRowExpander', (value) => (ListColumnRowExpanderComponent = value)));
     const ListColumnRowExpander = createComponent(ListColumnRowExpanderComponent, {});
     onDestroy(() => {
         ListColumnHeaderResizer.destroy();
         ListColumnRowExpander.destroy();
-        componentsSubs.forEach(unsub => unsub());
+        componentsSubs.forEach((unsub) => unsub());
     });
     let column;
-    let columnSub = state.subscribe(`config.list.columns.data.${props.columnId}`, val => {
+    let columnSub = state.subscribe(`config.list.columns.data.${props.columnId}`, (val) => {
         column = val;
         update();
     });
     onDestroy(columnSub);
-    onChange(changedProps => {
+    onChange((changedProps) => {
         props = changedProps;
         for (const prop in props) {
             actionProps[prop] = props[prop];
         }
         if (columnSub)
             columnSub();
-        columnSub = state.subscribe(`config.list.columns.data.${props.columnId}`, val => {
+        columnSub = state.subscribe(`config.list.columns.data.${props.columnId}`, (val) => {
             column = val;
             update();
         });
@@ -7143,7 +7145,7 @@ function ListColumnHeader(vido, props) {
     const styleMap = new StyleMap({
         height: '',
         ['--height']: '',
-        ['--paddings-count']: ''
+        ['--paddings-count']: '',
     });
     onDestroy(state.subscribe('config.headerHeight', () => {
         const value = state.get('config');
@@ -7167,7 +7169,7 @@ function ListColumnHeader(vido, props) {
     `;
     }
     const actions = Actions.create(componentActions, actionProps);
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div class=${className} style=${styleMap} data-actions=${actions}>
           ${cache(column.expander ? withExpander() : withoutExpander())}
         </div>
@@ -7189,16 +7191,16 @@ function ListColumnHeaderResizer(vido, props) {
     const componentActions = api.getActions(componentName);
     const componentDotsActions = api.getActions(componentName + '-dots');
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ListColumnHeaderResizer', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.ListColumnHeaderResizer', (value) => (wrapper = value)));
     let column;
-    onDestroy(state.subscribe(`config.list.columns.data.${props.columnId}`, val => {
+    onDestroy(state.subscribe(`config.list.columns.data.${props.columnId}`, (val) => {
         column = val;
         update();
     }));
     let className, containerClass, dotsClass, dotClass, calculatedWidth;
     const dotsStyleMap = new StyleMap({ width: '' });
     let inRealTime = false;
-    onDestroy(state.subscribe('config.classNames', value => {
+    onDestroy(state.subscribe('config.classNames', (value) => {
         className = api.getClass(componentName);
         containerClass = api.getClass(componentName + '-container');
         dotsClass = api.getClass(componentName + '-dots');
@@ -7209,7 +7211,7 @@ function ListColumnHeaderResizer(vido, props) {
         `config.list.columns.data.${column.id}.width`,
         'config.list.columns.percent',
         'config.list.columns.resizer.width',
-        'config.list.columns.resizer.inRealTime'
+        'config.list.columns.resizer.inRealTime',
     ], (value, path) => {
         const list = state.get('config.list');
         calculatedWidth = column.width * list.columns.percent * 0.01;
@@ -7219,7 +7221,7 @@ function ListColumnHeaderResizer(vido, props) {
         update();
     }));
     let dots = [1, 2, 3, 4, 5, 6, 7, 8];
-    onDestroy(state.subscribe('config.list.columns.resizer.dots', value => {
+    onDestroy(state.subscribe('config.list.columns.resizer.dots', (value) => {
         dots = [];
         for (let i = 0; i < value; i++) {
             dots.push(i);
@@ -7252,25 +7254,19 @@ function ListColumnHeaderResizer(vido, props) {
                 if (inRealTime) {
                     state.update(columnWidthPath, left);
                 }
-            }
-        }
+            },
+        },
     };
     componentActions.push(PointerAction);
     const actions = Actions.create(componentActions, actionProps);
     const dotsActions = Actions.create(componentDotsActions, actionProps);
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div class=${className} data-actions=${actions}>
           <div class=${containerClass}>
-            ${cache(column.header.html
-        ? html `
-                    ${column.header.html}
-                  `
-        : column.header.content)}
+            ${cache(column.header.html ? html ` ${column.header.html} ` : column.header.content)}
           </div>
           <div class=${dotsClass} style=${dotsStyleMap} data-actions=${dotsActions}>
-            ${dots.map(dot => html `
-                  <div class=${dotClass} />
-                `)}
+            ${dots.map((dot) => html ` <div class=${dotClass} /> `)}
           </div>
         </div>
       `, { vido, props, templateProps });
@@ -7304,21 +7300,21 @@ class BindElementAction$1 {
             data.state.update('$data.elements.list-column-rows', elements);
     }
     destroy(element, data) {
-        data.state.update('$data.elements.list-column-rows', elements => {
-            return elements.filter(el => el !== element);
+        data.state.update('$data.elements.list-column-rows', (elements) => {
+            return elements.filter((el) => el !== element);
         });
     }
 }
 function ListColumnRow(vido, props) {
-    const { api, state, onDestroy, Detach, Actions, update, html, createComponent, onChange, StyleMap, unsafeHTML } = vido;
+    const { api, state, onDestroy, Detach, Actions, update, html, createComponent, onChange, StyleMap, unsafeHTML, } = vido;
     const componentName = 'list-column-row';
     const actionProps = Object.assign(Object.assign({}, props), { api, state });
     let shouldDetach = false;
     const detach = new Detach(() => shouldDetach);
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ListColumnRow', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.ListColumnRow', (value) => (wrapper = value)));
     let ListColumnRowExpanderComponent;
-    onDestroy(state.subscribe('config.components.ListColumnRowExpander', value => (ListColumnRowExpanderComponent = value)));
+    onDestroy(state.subscribe('config.components.ListColumnRowExpander', (value) => (ListColumnRowExpanderComponent = value)));
     let rowPath = `$data.flatTreeMapById.${props.rowId}`, row = state.get(rowPath);
     let colPath = `config.list.columns.data.${props.columnId}`, column = state.get(colPath);
     const styleMap = new StyleMap(column.expander
@@ -7327,17 +7323,17 @@ function ListColumnRow(vido, props) {
             top: '',
             ['--height']: '',
             ['--expander-padding-width']: '',
-            ['--expander-size']: ''
+            ['--expander-size']: '',
         }
         : {
             height: '',
             top: '',
-            ['--height']: ''
+            ['--height']: '',
         }, true);
     let rowSub, colSub;
     const ListColumnRowExpander = createComponent(ListColumnRowExpanderComponent, { row });
     let className;
-    onDestroy(state.subscribe('config.classNames', value => {
+    onDestroy(state.subscribe('config.classNames', (value) => {
         className = api.getClass(componentName);
         update();
     }));
@@ -7365,7 +7361,7 @@ function ListColumnRow(vido, props) {
             colSub();
         rowPath = `$data.flatTreeMapById.${rowId}`;
         colPath = `config.list.columns.data.${columnId}`;
-        rowSub = state.subscribeAll([rowPath, colPath, 'config.list.expander'], bulk => {
+        rowSub = state.subscribeAll([rowPath, colPath, 'config.list.expander'], (bulk) => {
             column = state.get(colPath);
             row = state.get(rowPath);
             if (column === undefined || row === undefined) {
@@ -7413,7 +7409,7 @@ function ListColumnRow(vido, props) {
         if (ListColumnRowExpander) {
             ListColumnRowExpander.change({ row });
         }
-        colSub = state.subscribe(colPath, val => {
+        colSub = state.subscribe(colPath, (val) => {
             column = val;
             update();
         });
@@ -7443,7 +7439,7 @@ function ListColumnRow(vido, props) {
     if (!componentActions.includes(BindElementAction$1))
         componentActions.push(BindElementAction$1);
     const actions = Actions.create(componentActions, actionProps);
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div detach=${detach} class=${classNameCurrent} style=${styleMap} data-actions=${actions}>
           ${column.expander ? ListColumnRowExpander.html() : null}
           <div class=${className + '-content'}>
@@ -7469,15 +7465,15 @@ function ListColumnRowExpander(vido, props) {
     const actionProps = Object.assign(Object.assign({}, props), { api, state });
     let className;
     let ListColumnRowExpanderToggleComponent;
-    const toggleUnsub = state.subscribe('config.components.ListColumnRowExpanderToggle', value => (ListColumnRowExpanderToggleComponent = value));
+    const toggleUnsub = state.subscribe('config.components.ListColumnRowExpanderToggle', (value) => (ListColumnRowExpanderToggleComponent = value));
     const ListColumnRowExpanderToggle = createComponent(ListColumnRowExpanderToggleComponent, props.row ? { row: props.row } : {});
     onDestroy(() => {
         ListColumnRowExpanderToggle.destroy();
         toggleUnsub();
     });
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ListColumnRowExpander', value => (wrapper = value)));
-    onDestroy(state.subscribe('config.classNames', value => {
+    onDestroy(state.subscribe('config.wrappers.ListColumnRowExpander', (value) => (wrapper = value)));
+    onDestroy(state.subscribe('config.classNames', (value) => {
         className = api.getClass(componentName);
         update();
     }));
@@ -7492,7 +7488,7 @@ function ListColumnRowExpander(vido, props) {
         onChange(onPropsChange);
     }
     const actions = Actions.create(componentActions, actionProps);
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div class=${className} data-action=${actions}>
           ${ListColumnRowExpanderToggle.html()}
         </div>
@@ -7513,19 +7509,19 @@ function ListColumnRowExpanderToggle(vido, props) {
     const componentName = 'list-column-row-expander-toggle';
     const actionProps = Object.assign(Object.assign({}, props), { api, state });
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ListColumnRowExpanderToggle', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.ListColumnRowExpanderToggle', (value) => (wrapper = value)));
     const componentActions = api.getActions(componentName);
     let className, classNameChild, classNameOpen, classNameClosed;
     let expanded = false;
     let iconChild, iconOpen, iconClosed;
-    onDestroy(state.subscribe('config.classNames', value => {
+    onDestroy(state.subscribe('config.classNames', (value) => {
         className = api.getClass(componentName);
         classNameChild = className + '-child';
         classNameOpen = className + '-open';
         classNameClosed = className + '-closed';
         update();
     }));
-    onDestroy(state.subscribe('$data.list.expander.icons', icons => {
+    onDestroy(state.subscribe('$data.list.expander.icons', (icons) => {
         if (icons) {
             iconChild = icons.child;
             iconOpen = icons.open;
@@ -7533,23 +7529,32 @@ function ListColumnRowExpanderToggle(vido, props) {
         }
         update();
     }));
-    if (props.row) {
-        function expandedChange(isExpanded) {
-            expanded = isExpanded;
-            update();
+    function expandedChangeRow(isExpanded) {
+        expanded = isExpanded;
+        update();
+    }
+    let expandedSub;
+    function onPropsChange(changedProps) {
+        var _a;
+        props = changedProps;
+        for (const prop in props) {
+            actionProps[prop] = props[prop];
         }
-        let expandedSub;
-        function onPropsChange(changedProps) {
-            var _a;
-            props = changedProps;
-            for (const prop in props) {
-                actionProps[prop] = props[prop];
+        if (expandedSub)
+            expandedSub();
+        if ((_a = props === null || props === void 0 ? void 0 : props.row) === null || _a === void 0 ? void 0 : _a.id)
+            expandedSub = state.subscribe(`config.list.rows.${props.row.id}.expanded`, expandedChangeRow);
+    }
+    function expandedChangeNoRow(bulk) {
+        for (const rowExpanded of bulk) {
+            if (rowExpanded.value) {
+                expanded = true;
+                break;
             }
-            if (expandedSub)
-                expandedSub();
-            if ((_a = props === null || props === void 0 ? void 0 : props.row) === null || _a === void 0 ? void 0 : _a.id)
-                expandedSub = state.subscribe(`config.list.rows.${props.row.id}.expanded`, expandedChange);
         }
+        update();
+    }
+    if (props.row) {
         onChange(onPropsChange);
         onDestroy(function listToggleDestroy() {
             if (expandedSub)
@@ -7557,16 +7562,7 @@ function ListColumnRowExpanderToggle(vido, props) {
         });
     }
     else {
-        function expandedChange(bulk) {
-            for (const rowExpanded of bulk) {
-                if (rowExpanded.value) {
-                    expanded = true;
-                    break;
-                }
-            }
-            update();
-        }
-        onDestroy(state.subscribe('config.list.rows.*.expanded', expandedChange, { bulk: true }));
+        onDestroy(state.subscribe('config.list.rows.*.expanded', expandedChangeNoRow, { bulk: true }));
     }
     function toggle() {
         expanded = !expanded;
@@ -7574,7 +7570,7 @@ function ListColumnRowExpanderToggle(vido, props) {
             state.update(`config.list.rows.${props.row.id}.expanded`, expanded);
         }
         else {
-            state.update(`config.list.rows`, rows => {
+            state.update(`config.list.rows`, (rows) => {
                 for (const rowId in rows) {
                     rows[rowId].expanded = expanded;
                 }
@@ -7586,22 +7582,16 @@ function ListColumnRowExpanderToggle(vido, props) {
         var _a, _b, _c;
         if (iconChild) {
             if (((_c = (_b = (_a = props.row) === null || _a === void 0 ? void 0 : _a.$data) === null || _b === void 0 ? void 0 : _b.children) === null || _c === void 0 ? void 0 : _c.length) === 0) {
-                return html `
-          <img width="16" height="16" class=${classNameChild} src=${iconChild} />
-        `;
+                return html ` <img width="16" height="16" class=${classNameChild} src=${iconChild} /> `;
             }
             return expanded
-                ? html `
-            <img width="16" height="16" class=${classNameOpen} src=${iconOpen} />
-          `
-                : html `
-            <img width="16" height="16" class=${classNameClosed} src=${iconClosed} />
-          `;
+                ? html ` <img width="16" height="16" class=${classNameOpen} src=${iconOpen} /> `
+                : html ` <img width="16" height="16" class=${classNameClosed} src=${iconClosed} /> `;
         }
         return '';
     };
     const actions = Actions.create(componentActions, actionProps);
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div class=${className} data-action=${actions} @click=${toggle}>
           ${cache(getIcon())}
         </div>
@@ -7621,25 +7611,25 @@ function ListToggle(vido, props = {}) {
     const { html, onDestroy, api, state, update } = vido;
     const componentName = 'list-toggle';
     let className;
-    onDestroy(state.subscribe('config.classNames', classNames => {
+    onDestroy(state.subscribe('config.classNames', (classNames) => {
         className = api.getClass(componentName);
     }));
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ListToggle', ListToggleWrapper => (wrapper = ListToggleWrapper)));
+    onDestroy(state.subscribe('config.wrappers.ListToggle', (ListToggleWrapper) => (wrapper = ListToggleWrapper)));
     let toggleIconsSrc = {
         open: '',
-        close: ''
+        close: '',
     };
-    onDestroy(state.subscribe('$data.list.toggle.icons', value => {
+    onDestroy(state.subscribe('$data.list.toggle.icons', (value) => {
         if (value) {
             toggleIconsSrc = value;
             update();
         }
     }));
     let open = true;
-    onDestroy(state.subscribe('config.list.columns.percent', percent => (percent === 0 ? (open = false) : (open = true))));
+    onDestroy(state.subscribe('config.list.columns.percent', (percent) => (percent === 0 ? (open = false) : (open = true))));
     function toggle() {
-        state.update('config.list.columns.percent', percent => {
+        state.update('config.list.columns.percent', (percent) => {
             return percent === 0 ? 100 : 0;
         });
     }
@@ -7653,7 +7643,7 @@ function ListToggle(vido, props = {}) {
             toggle();
         }
     }
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div class=${className} @pointerdown=${pointerDown} @pointerup=${pointerUp}>
           <img src=${open ? toggleIconsSrc.close : toggleIconsSrc.open} />
         </div>
@@ -7674,11 +7664,11 @@ function Chart(vido, props = {}) {
     const componentName = 'chart';
     const componentSubs = [];
     let ChartCalendarComponent;
-    componentSubs.push(state.subscribe('config.components.ChartCalendar', value => (ChartCalendarComponent = value)));
+    componentSubs.push(state.subscribe('config.components.ChartCalendar', (value) => (ChartCalendarComponent = value)));
     let ChartTimelineComponent;
-    componentSubs.push(state.subscribe('config.components.ChartTimeline', value => (ChartTimelineComponent = value)));
+    componentSubs.push(state.subscribe('config.components.ChartTimeline', (value) => (ChartTimelineComponent = value)));
     let ScrollBarComponent;
-    componentSubs.push(state.subscribe('config.components.ScrollBar', value => (ScrollBarComponent = value)));
+    componentSubs.push(state.subscribe('config.components.ScrollBar', (value) => (ScrollBarComponent = value)));
     const ChartCalendar = createComponent(ChartCalendarComponent);
     onDestroy(ChartCalendar.destroy);
     const ChartTimeline = createComponent(ChartTimelineComponent);
@@ -7688,14 +7678,14 @@ function Chart(vido, props = {}) {
     const ScrollBarVertical = createComponent(ScrollBarComponent, { type: 'vertical' });
     onDestroy(ScrollBarVertical.destroy);
     onDestroy(() => {
-        componentSubs.forEach(unsub => unsub());
+        componentSubs.forEach((unsub) => unsub());
     });
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.Chart', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.Chart', (value) => (wrapper = value)));
     let className, classNameScroll, classNameScrollInner;
     const componentActions = api.getActions(componentName);
     let calculatedZoomMode = false;
-    onDestroy(state.subscribe('config.chart.time.calculatedZoomMode', zoomMode => (calculatedZoomMode = zoomMode)));
+    onDestroy(state.subscribe('config.chart.time.calculatedZoomMode', (zoomMode) => (calculatedZoomMode = zoomMode)));
     onDestroy(state.subscribe('config.classNames', () => {
         className = api.getClass(componentName);
         classNameScroll = api.getClass('horizontal-scroll');
@@ -7708,7 +7698,7 @@ function Chart(vido, props = {}) {
     const onWheel = {
         handleEvent: onWheelHandler,
         passive: false,
-        capture: false
+        capture: false,
     };
     let chartWidth = 0;
     let ro;
@@ -7732,7 +7722,7 @@ function Chart(vido, props = {}) {
         ro.disconnect();
     });
     const actions = Actions.create(componentActions, { api, state });
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div class=${className} data-actions=${actions} @wheel=${onWheel}>
           ${ChartCalendar.html()}${ChartTimeline.html()}${ScrollBarVertical.html()}${calculatedZoomMode
         ? null
@@ -7750,7 +7740,6 @@ function Chart(vido, props = {}) {
  * @license   AGPL-3.0 (https://github.com/neuronetio/gantt-schedule-timeline-calendar/blob/master/LICENSE)
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
-/** @type {Component} */
 function ChartCalendar(vido, props) {
     const { api, state, onDestroy, Actions, update, reuseComponents, html, StyleMap } = vido;
     const componentName = 'chart-calendar';
@@ -7758,22 +7747,22 @@ function ChartCalendar(vido, props) {
     const actionProps = Object.assign(Object.assign({}, props), { api, state });
     const ChartCalendarDateComponent = state.get('config.components.ChartCalendarDate');
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ChartCalendar', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.ChartCalendar', (value) => (wrapper = value)));
     let className;
-    onDestroy(state.subscribe('config.classNames', value => {
+    onDestroy(state.subscribe('config.classNames', (value) => {
         className = api.getClass(componentName);
         update();
     }));
     let headerHeight;
     const styleMap = new StyleMap({ height: '', ['--headerHeight']: '', 'margin-left': '' });
-    onDestroy(state.subscribe('config.headerHeight', value => {
+    onDestroy(state.subscribe('config.headerHeight', (value) => {
         headerHeight = value;
         styleMap.style['height'] = headerHeight + 'px';
         styleMap.style['--calendar-height'] = headerHeight + 'px';
         update();
     }));
     const components = [[], []];
-    onDestroy(state.subscribe(`$data.chart.time.levels`, levels => {
+    onDestroy(state.subscribe(`$data.chart.time.levels`, (levels) => {
         let level = 0;
         for (const dates of levels) {
             if (!dates.length)
@@ -7794,23 +7783,23 @@ function ChartCalendar(vido, props) {
                     break;
             }
             const currentDate = api.time.date().format(currentDateFormat);
-            reuseComponents(components[level], dates, date => date && { level, date, currentDate, currentDateFormat }, ChartCalendarDateComponent);
+            reuseComponents(components[level], dates, (date) => date && { level, date, currentDate, currentDateFormat }, ChartCalendarDateComponent);
             level++;
         }
         update();
     }));
     onDestroy(() => {
-        components.forEach(level => level.forEach(component => component.destroy()));
+        components.forEach((level) => level.forEach((component) => component.destroy()));
     });
-    componentActions.push(element => {
+    componentActions.push((element) => {
         state.update('$data.elements.chart-calendar', element);
     });
     const actions = Actions.create(componentActions, actionProps);
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div class=${className} data-actions=${actions} style=${styleMap}>
           ${components.map((components, level) => html `
               <div class=${className + '-dates ' + className + `-dates--level-${level}`}>
-                ${components.map(m => m.html())}
+                ${components.map((m) => m.html())}
               </div>
             `)}
         </div>
@@ -7834,7 +7823,7 @@ function ChartCalendar(vido, props) {
 class BindElementAction$2 extends Action {
     constructor(element, data) {
         super();
-        data.state.update('$data.elements.chart-calendar-dates', elements => {
+        data.state.update('$data.elements.chart-calendar-dates', (elements) => {
             if (typeof elements === 'undefined') {
                 elements = [];
             }
@@ -7850,7 +7839,7 @@ function ChartCalendarDay(vido, props) {
     const componentName = 'chart-calendar-date';
     const componentActions = api.getActions(componentName);
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ChartCalendarDate', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.ChartCalendarDate', (value) => (wrapper = value)));
     let className;
     onDestroy(state.subscribe('config.classNames', () => {
         className = api.getClass(componentName);
@@ -7865,7 +7854,7 @@ function ChartCalendarDay(vido, props) {
         const level = state.get(`config.chart.calendar.levels.${props.level}`);
         styleMap.style.width = props.date.currentView.width + 'px';
         time = state.get('$data.chart.time');
-        const formatting = level.formats.find(formatting => +time.zoom <= +formatting.zoomTo);
+        const formatting = level.formats.find((formatting) => +time.zoom <= +formatting.zoomTo);
         if (props.date.current) {
             additionalClass = ' gstc-current';
         }
@@ -7910,7 +7899,7 @@ function ChartCalendarDay(vido, props) {
             timeSub();
         }
         timeSub = state.subscribeAll(['$data.chart.time', 'config.chart.calendar.levels'], updateDate, {
-            bulk: true
+            bulk: true,
         });
     });
     onDestroy(() => {
@@ -7919,7 +7908,7 @@ function ChartCalendarDay(vido, props) {
     if (!componentActions.includes(BindElementAction$2))
         componentActions.push(BindElementAction$2);
     const actions = Actions.create(componentActions, actionProps);
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div
           detach=${detach}
           class=${className +
@@ -7953,7 +7942,7 @@ function ChartTimeline(vido, props) {
     const componentName = 'chart-timeline';
     const actionProps = Object.assign(Object.assign({}, props), { api, state });
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ChartTimeline', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.ChartTimeline', (value) => (wrapper = value)));
     const GridComponent = state.get('config.components.ChartTimelineGrid');
     const ItemsComponent = state.get('config.components.ChartTimelineItems');
     const ListToggleComponent = state.get('config.components.ListToggle');
@@ -7970,7 +7959,7 @@ function ChartTimeline(vido, props) {
         update();
     }));
     let showToggle;
-    onDestroy(state.subscribe('config.list.toggle.display', val => (showToggle = val)));
+    onDestroy(state.subscribe('config.list.toggle.display', (val) => (showToggle = val)));
     const styleMap = new StyleMap({}), innerStyleMap = new StyleMap({});
     function calculateStyle() {
         const width = state.get('$data.chart.dimensions.width');
@@ -7996,7 +7985,7 @@ function ChartTimeline(vido, props) {
     }
     onDestroy(state.subscribeAll(['$data.innerHeight', '$data.chart.dimensions.width', '$data.list.rowsHeight', '$data.chart.time.dates.day'], calculateStyle));
     let componentActions = [];
-    onDestroy(state.subscribe('config.actions.chart-timeline', actions => {
+    onDestroy(state.subscribe('config.actions.chart-timeline', (actions) => {
         componentActions = actions;
     }));
     componentActions.push(class BindElementAction extends Action {
@@ -8008,7 +7997,7 @@ function ChartTimeline(vido, props) {
         }
     });
     const actions = Actions.create(componentActions, actionProps);
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div class=${className} style=${styleMap} data-actions=${actions}>
           <div class=${classNameInner} style=${innerStyleMap}>
             ${Grid.html()}${Items.html()}${showToggle ? ListToggle.html() : ''}
@@ -8036,7 +8025,7 @@ class BindElementAction$3 {
             data.state.update('$data.elements.chart-timeline-grid', element);
     }
     destroy(element, data) {
-        data.state.update('$data.elements', elements => {
+        data.state.update('$data.elements', (elements) => {
             delete elements['chart-timeline-grid'];
             return elements;
         });
@@ -8048,7 +8037,7 @@ function ChartTimelineGrid(vido, props) {
     const componentActions = api.getActions(componentName);
     const actionProps = { api, state };
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ChartTimelineGrid', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.ChartTimelineGrid', (value) => (wrapper = value)));
     const GridRowComponent = state.get('config.components.ChartTimelineGridRow');
     let className;
     onDestroy(state.subscribe('config.classNames', () => {
@@ -8056,7 +8045,7 @@ function ChartTimelineGrid(vido, props) {
         update();
     }));
     let onCellCreate;
-    onDestroy(state.subscribe('config.chart.grid.cell.onCreate', onCreate => (onCellCreate = onCreate)));
+    onDestroy(state.subscribe('config.chart.grid.cell.onCreate', (onCreate) => (onCellCreate = onCreate)));
     const rowsComponents = [];
     const rowsWithCells = [];
     const formatCache = new Map();
@@ -8102,25 +8091,25 @@ function ChartTimelineGrid(vido, props) {
         state.update('$data.chart.grid.rowsWithCells', rowsWithCells);
     }
     onDestroy(state.subscribeAll(['$data.list.visibleRows;', `$data.chart.time.levels`, '$data.innerHeight', '$data.chart.dimensions.width'], generateCells, {
-        bulk: true
+        bulk: true,
     }));
     /**
      * Generate rows components
      * @param {array} rowsWithCells
      */
     function generateRowsComponents(rowsWithCells) {
-        reuseComponents(rowsComponents, rowsWithCells || [], row => row, GridRowComponent);
+        reuseComponents(rowsComponents, rowsWithCells || [], (row) => row, GridRowComponent);
         update();
     }
     onDestroy(state.subscribe('$data.chart.grid.rowsWithCells', generateRowsComponents));
     onDestroy(() => {
-        rowsComponents.forEach(row => row.destroy());
+        rowsComponents.forEach((row) => row.destroy());
     });
     componentActions.push(BindElementAction$3);
     const actions = Actions.create(componentActions, actionProps);
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div class=${className} data-actions=${actions} style=${styleMap}>
-          ${rowsComponents.map(r => r.html())}
+          ${rowsComponents.map((r) => r.html())}
         </div>
       `, { props, vido, templateProps });
 }
@@ -8153,8 +8142,8 @@ class BindElementAction$4 {
             data.state.update('$data.elements.chart-timeline-grid-rows', rows, { only: null });
     }
     destroy(element, data) {
-        data.state.update('$data.elements.chart-timeline-grid-rows', rows => {
-            return rows.filter(el => el !== element);
+        data.state.update('$data.elements.chart-timeline-grid-rows', (rows) => {
+            return rows.filter((el) => el !== element);
         });
     }
 }
@@ -8164,7 +8153,7 @@ function ChartTimelineGridRow(vido, props) {
     const actionProps = Object.assign(Object.assign({}, props), { api,
         state });
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ChartTimelineGridRow', value => {
+    onDestroy(state.subscribe('config.wrappers.ChartTimelineGridRow', (value) => {
         wrapper = value;
         update();
     }));
@@ -8177,7 +8166,7 @@ function ChartTimelineGridRow(vido, props) {
     const styleMap = new StyleMap({
         width: props.width + 'px',
         height: props.row.height + 'px',
-        overflow: 'hidden'
+        overflow: 'hidden',
     }, true);
     let shouldDetach = false;
     const detach = new Detach(() => shouldDetach);
@@ -8186,13 +8175,13 @@ function ChartTimelineGridRow(vido, props) {
         var _a, _b, _c, _d, _e, _f, _g;
         if (options.leave || changedProps.row === undefined) {
             shouldDetach = true;
-            reuseComponents(rowsCellsComponents, [], cell => cell, GridCellComponent);
+            reuseComponents(rowsCellsComponents, [], (cell) => cell, GridCellComponent);
             update();
             return;
         }
         shouldDetach = false;
         props = changedProps;
-        reuseComponents(rowsCellsComponents, props.cells, cell => cell, GridCellComponent);
+        reuseComponents(rowsCellsComponents, props.cells, (cell) => cell, GridCellComponent);
         styleMap.setStyle({});
         styleMap.style.height = props.row.$data.outerHeight + 'px';
         styleMap.style.width = props.width + 'px';
@@ -8216,16 +8205,16 @@ function ChartTimelineGridRow(vido, props) {
         update();
     });
     onDestroy(function destroy() {
-        rowsCellsComponents.forEach(rowCell => rowCell.destroy());
+        rowsCellsComponents.forEach((rowCell) => rowCell.destroy());
     });
     if (componentActions.indexOf(BindElementAction$4) === -1) {
         componentActions.push(BindElementAction$4);
     }
     const actions = Actions.create(componentActions, actionProps);
-    return templateProps => {
+    return (templateProps) => {
         return wrapper(html `
         <div detach=${detach} class=${className} data-actions=${actions} style=${styleMap}>
-          ${rowsCellsComponents.map(r => r.html())}
+          ${rowsCellsComponents.map((r) => r.html())}
         </div>
       `, { vido, props, templateProps });
     };
@@ -8262,8 +8251,8 @@ class BindElementAction$5 {
             data.state.update('$data.elements.chart-timeline-grid-row-cells', cells, { only: null });
     }
     destroy(element, data) {
-        data.state.update('$data.elements.chart-timeline-grid-row-cells', cells => {
-            return cells.filter(el => el !== element);
+        data.state.update('$data.elements.chart-timeline-grid-row-cells', (cells) => {
+            return cells.filter((el) => el !== element);
         }, { only: [''] });
     }
 }
@@ -8276,7 +8265,7 @@ function ChartTimelineGridRowCell(vido, props) {
     const detach = new Detach(() => shouldDetach);
     const componentActions = api.getActions(componentName);
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ChartTimelineGridRowCell', value => {
+    onDestroy(state.subscribe('config.wrappers.ChartTimelineGridRowCell', (value) => {
         wrapper = value;
         update();
     }));
@@ -8323,10 +8312,12 @@ function ChartTimelineGridRowCell(vido, props) {
     onChange(onPropsChange);
     componentActions.push(BindElementAction$5);
     const actions = Actions.create(componentActions, actionProps);
-    return templateProps => {
-        return wrapper(html `
-        <div detach=${detach} class=${className} data-actions=${actions} style=${styleMap}></div>
-      `, { props, vido, templateProps });
+    return (templateProps) => {
+        return wrapper(html ` <div detach=${detach} class=${className} data-actions=${actions} style=${styleMap}></div> `, {
+            props,
+            vido,
+            templateProps,
+        });
     };
 }
 
@@ -8344,9 +8335,9 @@ function ChartTimelineItems(vido, props = {}) {
     const componentName = 'chart-timeline-items';
     const componentActions = api.getActions(componentName);
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ChartTimelineItems', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.ChartTimelineItems', (value) => (wrapper = value)));
     let ItemsRowComponent;
-    onDestroy(state.subscribe('config.components.ChartTimelineItemsRow', value => (ItemsRowComponent = value)));
+    onDestroy(state.subscribe('config.components.ChartTimelineItemsRow', (value) => (ItemsRowComponent = value)));
     let className;
     onDestroy(state.subscribe('config.classNames', () => {
         className = api.getClass(componentName);
@@ -8363,17 +8354,17 @@ function ChartTimelineItems(vido, props = {}) {
     const rowsComponents = [];
     function createRowComponents() {
         const visibleRows = state.get('$data.list.visibleRows');
-        reuseComponents(rowsComponents, visibleRows || [], row => ({ row }), ItemsRowComponent);
+        reuseComponents(rowsComponents, visibleRows || [], (row) => ({ row }), ItemsRowComponent);
         update();
     }
     onDestroy(state.subscribeAll(['$data.list.visibleRows;', 'config.chart.items'], createRowComponents));
     onDestroy(() => {
-        rowsComponents.forEach(row => row.destroy());
+        rowsComponents.forEach((row) => row.destroy());
     });
     const actions = Actions.create(componentActions, { api, state });
-    return templateProps => wrapper(html `
+    return (templateProps) => wrapper(html `
         <div class=${className} style=${styleMap} data-actions=${actions}>
-          ${rowsComponents.map(r => r.html())}
+          ${rowsComponents.map((r) => r.html())}
         </div>
       `, { props, vido, templateProps });
 }
@@ -8408,8 +8399,8 @@ class BindElementAction$6 {
             data.state.update('$data.elements.chart-timeline-items-rows', rows, { only: null });
     }
     destroy(element, data) {
-        data.state.update('$data.elements.chart-timeline-items-rows', rows => {
-            return rows.filter(el => el !== element);
+        data.state.update('$data.elements.chart-timeline-items-rows', (rows) => {
+            return rows.filter((el) => el !== element);
         });
     }
 }
@@ -8417,9 +8408,9 @@ function ChartTimelineItemsRow(vido, props) {
     const { api, state, onDestroy, Detach, Actions, update, html, onChange, reuseComponents, StyleMap } = vido;
     const actionProps = Object.assign(Object.assign({}, props), { api, state });
     let wrapper;
-    onDestroy(state.subscribe('config.wrappers.ChartTimelineItemsRow', value => (wrapper = value)));
+    onDestroy(state.subscribe('config.wrappers.ChartTimelineItemsRow', (value) => (wrapper = value)));
     let ItemComponent;
-    onDestroy(state.subscribe('config.components.ChartTimelineItemsRowItem', value => (ItemComponent = value)));
+    onDestroy(state.subscribe('config.components.ChartTimelineItemsRowItem', (value) => (ItemComponent = value)));
     let itemsPath = `$data.flatTreeMapById.${props.row.id}.$data.items`;
     let rowSub, itemsSub;
     let classNameCurrent = '';
@@ -8445,7 +8436,7 @@ function ChartTimelineItemsRow(vido, props) {
         if (typeof itemsSub === 'function') {
             itemsSub();
         }
-        rowSub = state.subscribe('$data.chart', value => {
+        rowSub = state.subscribe('$data.chart', (value) => {
             if (value === undefined) {
                 shouldDetach = true;
                 return update();
@@ -8453,13 +8444,13 @@ function ChartTimelineItemsRow(vido, props) {
             updateDom();
             update();
         });
-        itemsSub = state.subscribe(itemsPath, value => {
+        itemsSub = state.subscribe(itemsPath, (value) => {
             if (value === undefined) {
                 shouldDetach = true;
-                reuseComponents(itemComponents, [], item => ({ row, item }), ItemComponent);
+                reuseComponents(itemComponents, [], (item) => ({ row, item }), ItemComponent);
                 return update();
             }
-            reuseComponents(itemComponents, value, item => ({ row, item }), ItemComponent);
+            reuseComponents(itemComponents, value, (item) => ({ row, item }), ItemComponent);
             updateDom();
             update();
         });
@@ -8477,7 +8468,7 @@ function ChartTimelineItemsRow(vido, props) {
     onChange((changedProps, options) => {
         if (options.leave || changedProps.row === undefined) {
             shouldDetach = true;
-            reuseComponents(itemComponents, [], item => ({ row: undefined, item }), ItemComponent);
+            reuseComponents(itemComponents, [], (item) => ({ row: undefined, item }), ItemComponent);
             return update();
         }
         props = changedProps;
@@ -8495,15 +8486,15 @@ function ChartTimelineItemsRow(vido, props) {
     onDestroy(() => {
         itemsSub();
         rowSub();
-        itemComponents.forEach(item => item.destroy());
+        itemComponents.forEach((item) => item.destroy());
     });
     const componentActions = api.getActions(componentName);
     componentActions.push(BindElementAction$6);
     const actions = Actions.create(componentActions, actionProps);
-    return templateProps => {
+    return (templateProps) => {
         return wrapper(html `
         <div detach=${detach} class=${classNameCurrent} data-actions=${actions} style=${styleMap}>
-          ${itemComponents.map(i => i.html())}
+          ${itemComponents.map((i) => i.html())}
         </div>
       `, { props, vido, templateProps });
     };
@@ -8717,16 +8708,16 @@ const actionNames = [
     'chart-timeline-grid-row-cell',
     'chart-timeline-items',
     'chart-timeline-items-row',
-    'chart-timeline-items-row-item'
+    'chart-timeline-items-row-item',
 ];
 function generateEmptyActions() {
     const actions = {};
-    actionNames.forEach(name => (actions[name] = []));
+    actionNames.forEach((name) => (actions[name] = []));
     return actions;
 }
 function generateEmptySlots() {
     const slots = {};
-    actionNames.forEach(name => {
+    actionNames.forEach((name) => {
         slots[name] = { before: [], after: [] };
     });
     return slots;
@@ -8760,7 +8751,7 @@ function defaultConfig() {
             ChartTimelineGridRowCell,
             ChartTimelineItems,
             ChartTimelineItemsRow,
-            ChartTimelineItemsRowItem
+            ChartTimelineItemsRowItem,
         },
         wrappers: {
             Main(input) {
@@ -8822,7 +8813,7 @@ function defaultConfig() {
             },
             ChartTimelineItemsRowItem(input) {
                 return input;
-            }
+            },
         },
         list: {
             rows: {},
@@ -8830,39 +8821,39 @@ function defaultConfig() {
                 height: 40,
                 gap: {
                     top: 0,
-                    bottom: 0
-                }
+                    bottom: 0,
+                },
             },
             columns: {
                 percent: 100,
                 resizer: {
                     width: 10,
                     inRealTime: true,
-                    dots: 6
+                    dots: 6,
                 },
                 minWidth: 50,
-                data: {}
+                data: {},
             },
             expander: {
                 padding: 18,
                 size: 20,
                 icon: {
                     width: 16,
-                    height: 16
+                    height: 16,
                 },
                 icons: {
                     child: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><ellipse ry="4" rx="4" id="svg_1" cy="12" cx="12" fill="#000000B0"/></svg>',
                     open: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/><path fill="none" d="M0 0h24v24H0V0z"/></svg>',
-                    closed: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/><path fill="none" d="M0 0h24v24H0V0z"/></svg>'
-                }
+                    closed: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/><path fill="none" d="M0 0h24v24H0V0z"/></svg>',
+                },
             },
             toggle: {
                 display: true,
                 icons: {
                     open: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path stroke="null" d="m16.406954,16.012672l4.00393,-4.012673l-4.00393,-4.012673l1.232651,-1.232651l5.245324,5.245324l-5.245324,5.245324l-1.232651,-1.232651z"/><path stroke="null" d="m-0.343497,12.97734zm1.620144,0l11.341011,0l0,-1.954681l-11.341011,0l0,1.954681zm0,3.909362l11.341011,0l0,-1.954681l-11.341011,0l0,1.954681zm0,-9.773404l0,1.95468l11.341011,0l0,-1.95468l-11.341011,0z"/></svg>`,
-                    close: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path transform="rotate(-180 4.392796516418457,12) " stroke="null" d="m1.153809,16.012672l4.00393,-4.012673l-4.00393,-4.012673l1.232651,-1.232651l5.245324,5.245324l-5.245324,5.245324l-1.232651,-1.232651z"/><path stroke="null" d="m9.773297,12.97734zm1.620144,0l11.341011,0l0,-1.954681l-11.341011,0l0,1.954681zm0,3.909362l11.341011,0l0,-1.954681l-11.341011,0l0,1.954681zm0,-9.773404l0,1.95468l11.341011,0l0,-1.95468l-11.341011,0z"/></svg>`
-                }
-            }
+                    close: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path transform="rotate(-180 4.392796516418457,12) " stroke="null" d="m1.153809,16.012672l4.00393,-4.012673l-4.00393,-4.012673l1.232651,-1.232651l5.245324,5.245324l-5.245324,5.245324l-1.232651,-1.232651z"/><path stroke="null" d="m9.773297,12.97734zm1.620144,0l11.341011,0l0,-1.954681l-11.341011,0l0,1.954681zm0,3.909362l11.341011,0l0,-1.954681l-11.341011,0l0,1.954681zm0,-9.773404l0,1.95468l11.341011,0l0,-1.95468l-11.341011,0z"/></svg>`,
+                },
+            },
         },
         scroll: {
             horizontal: {
@@ -8871,7 +8862,7 @@ function defaultConfig() {
                 data: null,
                 posPx: 0,
                 maxPosPx: 0,
-                area: 0
+                area: 0,
             },
             vertical: {
                 size: 14,
@@ -8879,8 +8870,8 @@ function defaultConfig() {
                 data: null,
                 posPx: 0,
                 maxPosPx: 0,
-                area: 0
-            }
+                area: 0,
+            },
         },
         chart: {
             time: {
@@ -8897,7 +8888,7 @@ function defaultConfig() {
                 calculatedZoomMode: false,
                 onLevelDates: [],
                 onCurrentViewLevelDates: [],
-                allDates: []
+                allDates: [],
             },
             calendar: {
                 expand: true,
@@ -8910,35 +8901,35 @@ function defaultConfig() {
                                 className: 'gstc-date-medium gstc-date-left',
                                 format({ timeStart }) {
                                     return timeStart.format('DD MMMM YYYY (dddd)');
-                                }
+                                },
                             },
                             {
                                 zoomTo: 23,
                                 period: 'month',
                                 format({ timeStart }) {
                                     return timeStart.format('MMMM YYYY');
-                                }
+                                },
                             },
                             {
                                 zoomTo: 24,
                                 period: 'month',
                                 format({ timeStart, className, vido }) {
                                     return timeStart.format("MMMM 'YY");
-                                }
+                                },
                             },
                             {
                                 zoomTo: 25,
                                 period: 'month',
                                 format({ timeStart }) {
                                     return timeStart.format('MMM YYYY');
-                                }
+                                },
                             },
                             {
                                 zoomTo: 27,
                                 period: 'year',
                                 format({ timeStart }) {
                                     return timeStart.format('YYYY');
-                                }
+                                },
                             },
                             {
                                 zoomTo: 100,
@@ -8946,9 +8937,9 @@ function defaultConfig() {
                                 default: true,
                                 format() {
                                     return null;
-                                }
-                            }
-                        ]
+                                },
+                            },
+                        ],
                     },
                     {
                         main: true,
@@ -8958,7 +8949,7 @@ function defaultConfig() {
                                 period: 'hour',
                                 format({ timeStart }) {
                                     return timeStart.format('HH:mm');
-                                }
+                                },
                             },
                             {
                                 zoomTo: 17,
@@ -8966,7 +8957,7 @@ function defaultConfig() {
                                 default: true,
                                 format({ timeStart }) {
                                     return timeStart.format('HH');
-                                }
+                                },
                             },
                             {
                                 zoomTo: 19,
@@ -8974,7 +8965,7 @@ function defaultConfig() {
                                 className: 'gstc-date-medium',
                                 format({ timeStart, className, vido }) {
                                     return vido.html `<span class="${className}-content gstc-date-bold">${timeStart.format('DD')}</span> <span class="${className}-content gstc-date-thin">${timeStart.format('dddd')}</span>`;
-                                }
+                                },
                             },
                             {
                                 zoomTo: 20,
@@ -8982,14 +8973,14 @@ function defaultConfig() {
                                 default: true,
                                 format({ timeStart, vido, className }) {
                                     return vido.html `<div class="${className}-content gstc-date-top">${timeStart.format('DD')}</div><div class="${className}-content gstc-date-small">${timeStart.format('dddd')}</div>`;
-                                }
+                                },
                             },
                             {
                                 zoomTo: 21,
                                 period: 'day',
                                 format({ timeStart, vido, className }) {
                                     return vido.html `<div class="${className}-content gstc-date-top">${timeStart.format('DD')}</div><div class="${className}-content gstc-date-small">${timeStart.format('ddd')}</div>`;
-                                }
+                                },
                             },
                             {
                                 zoomTo: 22,
@@ -8997,7 +8988,7 @@ function defaultConfig() {
                                 className: 'gstc-date-vertical',
                                 format({ timeStart, className, vido }) {
                                     return vido.html `<div class="${className}-content gstc-date-top">${timeStart.format('DD')}</div><div class="${className}-content gstc-date-extra-small">${timeStart.format('ddd')}</div>`;
-                                }
+                                },
                             },
                             {
                                 zoomTo: 23,
@@ -9005,7 +8996,7 @@ function defaultConfig() {
                                 default: true,
                                 format({ timeStart, timeEnd, className, vido }) {
                                     return vido.html `<div class="${className}-content gstc-date-top">${timeStart.format('DD')} - ${timeEnd.format('DD')}</div><div class="${className}-content gstc-date-small gstc-date-thin">${timeStart.format('ddd')} - ${timeEnd.format('dd')}</div>`;
-                                }
+                                },
                             },
                             {
                                 zoomTo: 25,
@@ -9013,7 +9004,7 @@ function defaultConfig() {
                                 className: 'gstc-date-vertical',
                                 format({ timeStart, timeEnd, className, vido }) {
                                     return vido.html `<div class="${className}-content gstc-date-top gstc-date-small gstc-date-normal">${timeStart.format('DD')}</div><div class="gstc-dash gstc-date-small">-</div><div class="${className}-content gstc-date-small gstc-date-normal">${timeEnd.format('DD')}</div>`;
-                                }
+                                },
                             },
                             {
                                 zoomTo: 26,
@@ -9022,7 +9013,7 @@ function defaultConfig() {
                                 className: 'gstc-date-month-level-1',
                                 format({ timeStart, vido, className }) {
                                     return vido.html `<div class="${className}-content gstc-date-top">${timeStart.format('MMM')}</div><div class="${className}-content gstc-date-small gstc-date-bottom">${timeStart.format('MM')}</div>`;
-                                }
+                                },
                             },
                             {
                                 zoomTo: 27,
@@ -9030,7 +9021,7 @@ function defaultConfig() {
                                 className: 'gstc-date-vertical',
                                 format({ timeStart, className, vido }) {
                                     return vido.html `<div class="${className}-content gstc-date-top">${timeStart.format('MM')}</div><div class="${className}-content gstc-date-extra-small">${timeStart.format('MMM')}</div>`;
-                                }
+                                },
                             },
                             {
                                 zoomTo: 28,
@@ -9039,7 +9030,7 @@ function defaultConfig() {
                                 className: 'gstc-date-big',
                                 format({ timeStart }) {
                                     return timeStart.format('YYYY');
-                                }
+                                },
                             },
                             {
                                 zoomTo: 29,
@@ -9047,7 +9038,7 @@ function defaultConfig() {
                                 className: 'gstc-date-medium',
                                 format({ timeStart }) {
                                     return timeStart.format('YYYY');
-                                }
+                                },
                             },
                             {
                                 zoomTo: 30,
@@ -9055,7 +9046,7 @@ function defaultConfig() {
                                 className: 'gstc-date-medium',
                                 format({ timeStart }) {
                                     return timeStart.format('YY');
-                                }
+                                },
                             },
                             {
                                 zoomTo: 100,
@@ -9063,27 +9054,27 @@ function defaultConfig() {
                                 default: true,
                                 format() {
                                     return null;
-                                }
-                            }
-                        ]
-                    }
-                ]
+                                },
+                            },
+                        ],
+                    },
+                ],
             },
             grid: {
                 cell: {
-                    onCreate: []
-                }
+                    onCreate: [],
+                },
             },
             item: {
                 gap: {
                     top: 4,
-                    bottom: 4
+                    bottom: 4,
                 },
                 top: 0,
-                height: 40 - 8
+                height: 40 - 8,
             },
             items: {},
-            spacing: 1
+            spacing: 1,
         },
         slots,
         classNames: {},
@@ -9109,7 +9100,7 @@ function defaultConfig() {
                 M: 'a month',
                 MM: '%d months',
                 y: 'a year',
-                yy: '%d years'
+                yy: '%d years',
             },
             formats: {
                 LT: 'HH:mm',
@@ -9117,16 +9108,16 @@ function defaultConfig() {
                 L: 'DD/MM/YYYY',
                 LL: 'D MMMM YYYY',
                 LLL: 'D MMMM YYYY HH:mm',
-                LLLL: 'dddd, D MMMM YYYY HH:mm'
+                LLLL: 'dddd, D MMMM YYYY HH:mm',
             },
             ordinal: (n) => {
                 const s = ['th', 'st', 'nd', 'rd'];
                 const v = n % 100;
                 return `[${n}${s[(v - 20) % 10] || s[v] || s[0]}]`;
-            }
+            },
         },
         utcMode: false,
-        usageStatistics: true
+        usageStatistics: true,
     };
 }
 
@@ -10923,6 +10914,7 @@ function GSTC(options) {
     // @ts-ignore
     const vido = new Vido(state, api);
     api.setVido(vido);
+    // @ts-ignore
     const app = vido.createApp({ component: Main, props: {}, element: options.element });
     const internalApi = app.vidoInstance.api;
     return { state, app, api: internalApi };

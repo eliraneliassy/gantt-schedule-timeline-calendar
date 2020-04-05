@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Vido } from '../../types';
+import { Vido } from '@src/index';
 
 /**
  * Bind element action
@@ -28,8 +28,8 @@ class BindElementAction {
     if (shouldUpdate) data.state.update('$data.elements.list-columns', elements);
   }
   public destroy(element, data) {
-    data.state.update('$data.elements.list-columns', elements => {
-      return elements.filter(el => el !== element);
+    data.state.update('$data.elements.list-columns', (elements) => {
+      return elements.filter((el) => el !== element);
     });
   }
 }
@@ -42,14 +42,14 @@ export default function ListColumn(vido: Vido, props: Props) {
   const { api, state, onDestroy, onChange, Actions, update, createComponent, reuseComponents, html, StyleMap } = vido;
 
   let wrapper;
-  onDestroy(state.subscribe('config.wrappers.ListColumn', value => (wrapper = value)));
+  onDestroy(state.subscribe('config.wrappers.ListColumn', (value) => (wrapper = value)));
 
   const componentsSub = [];
   let ListColumnRowComponent;
-  componentsSub.push(state.subscribe('config.components.ListColumnRow', value => (ListColumnRowComponent = value)));
+  componentsSub.push(state.subscribe('config.components.ListColumnRow', (value) => (ListColumnRowComponent = value)));
   let ListColumnHeaderComponent;
   componentsSub.push(
-    state.subscribe('config.components.ListColumnHeader', value => (ListColumnHeaderComponent = value))
+    state.subscribe('config.components.ListColumnHeader', (value) => (ListColumnHeaderComponent = value))
   );
 
   const actionProps = { ...props, api, state };
@@ -88,7 +88,7 @@ export default function ListColumn(vido: Vido, props: Props) {
       `config.list.columns.data.${column.id}.width`,
       '$data.chart.dimensions.width',
       '$data.innerHeight',
-      '$data.list.width'
+      '$data.list.width',
     ],
     calculateStyle,
     { bulk: true }
@@ -97,7 +97,7 @@ export default function ListColumn(vido: Vido, props: Props) {
   const ListColumnHeader = createComponent(ListColumnHeaderComponent, { columnId: props.columnId });
   onDestroy(ListColumnHeader.destroy);
 
-  onChange(changedProps => {
+  onChange((changedProps) => {
     props = changedProps;
     for (const prop in props) {
       actionProps[prop] = props[prop];
@@ -118,7 +118,7 @@ export default function ListColumn(vido: Vido, props: Props) {
         `config.list.columns.data.${column.id}.width`,
         '$data.chart.dimensions.width',
         '$data.innerHeight',
-        '$data.list.width'
+        '$data.list.width',
       ],
       calculateStyle,
       { bulk: true }
@@ -133,7 +133,7 @@ export default function ListColumn(vido: Vido, props: Props) {
   });
 
   onDestroy(
-    state.subscribe('config.classNames', value => {
+    state.subscribe('config.classNames', (value) => {
       className = api.getClass(componentName);
       classNameContainer = api.getClass(rowsComponentName);
       update();
@@ -141,11 +141,11 @@ export default function ListColumn(vido: Vido, props: Props) {
   );
 
   const visibleRows = [];
-  const visibleRowsChange = val => {
+  const visibleRowsChange = (val) => {
     const destroy = reuseComponents(
       visibleRows,
       val || [],
-      row => row && { columnId: props.columnId, rowId: row.id, width },
+      (row) => row && { columnId: props.columnId, rowId: row.id, width },
       ListColumnRowComponent
     );
     update();
@@ -154,8 +154,8 @@ export default function ListColumn(vido: Vido, props: Props) {
   onDestroy(state.subscribe('$data.list.visibleRows;', visibleRowsChange));
 
   onDestroy(() => {
-    visibleRows.forEach(row => row.destroy());
-    componentsSub.forEach(unsub => unsub());
+    visibleRows.forEach((row) => row.destroy());
+    componentsSub.forEach((unsub) => unsub());
   });
 
   function getRowHtml(row) {
@@ -166,7 +166,7 @@ export default function ListColumn(vido: Vido, props: Props) {
   const headerActions = Actions.create(componentActions, { column, state: state, api: api });
   const rowActions = Actions.create(rowsActions, { api, state });
 
-  return templateProps =>
+  return (templateProps) =>
     wrapper(
       html`
         <div class=${className} data-actions=${headerActions} style=${widthStyleMap}>

@@ -14,7 +14,7 @@
    * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
    */
   const defaultOptions = {
-      enabled: true
+      enabled: true,
   };
   function Plugin(options = defaultOptions) {
       let vido, api, state;
@@ -108,8 +108,8 @@
           api = vido.api;
           state = vido.state;
           state.update('config.plugin.CalendarScroll', options);
-          state.subscribe('config.plugin.CalendarScroll.enabled', value => (enabled = value));
-          state.update('config.actions.chart-calendar', chartActions => {
+          state.subscribe('config.plugin.CalendarScroll.enabled', (value) => (enabled = value));
+          state.update('config.actions.chart-calendar', (chartActions) => {
               chartActions.push(ChartAction);
               return chartActions;
           });

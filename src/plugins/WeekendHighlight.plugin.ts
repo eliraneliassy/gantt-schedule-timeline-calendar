@@ -10,7 +10,7 @@
 
 import { Action, vido } from '@neuronet.io/vido/vido';
 import { Api } from '../api/Api';
-import { Vido } from '../types';
+import { Vido } from '@src/index';
 
 export interface Options {
   weekdays?: number[];
@@ -55,9 +55,9 @@ export function Plugin(options: Options = {}) {
     className = options.className || api.getClass('chart-timeline-grid-row-cell') + '--weekend';
     const destroy = vidoInstance.state.subscribe(
       '$data.chart.time.format.period',
-      period => (enabled = period === 'day')
+      (period) => (enabled = period === 'day')
     );
-    vidoInstance.state.update('config.actions.chart-timeline-grid-row-cell', actions => {
+    vidoInstance.state.update('config.actions.chart-timeline-grid-row-cell', (actions) => {
       actions.push(WeekendHighlightAction);
       return actions;
     });
