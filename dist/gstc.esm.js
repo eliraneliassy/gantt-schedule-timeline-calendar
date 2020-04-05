@@ -4557,13 +4557,6 @@ var helpers = {
     schedule,
 };
 
-/**
- * Vido library
- *
- * @param {any} state - state management for the view (can be anything)
- * @param {any} api - some api's or other globally available services
- * @returns {VidoInstance} vido instance
- */
 function Vido(state, api) {
     let componentId = 0;
     const components = new Map();
@@ -10920,10 +10913,9 @@ function GSTC(options) {
     const vido = Vido(state, api);
     api.setVido(vido);
     const Main = state.get('config.components.Main');
-    // @ts-ignore
-    const app = vido.createApp({ component: Main, props: {}, element: options.element });
-    const internalApi = app.vidoInstance.api;
-    return { state, app, api: internalApi };
+    const component = vido.createApp({ component: Main, props: {}, element: options.element });
+    const internalApi = component.vidoInstance.api;
+    return { state, api: internalApi, component };
 }
 GSTC.api = publicApi;
 

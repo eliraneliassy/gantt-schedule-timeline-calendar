@@ -12,7 +12,7 @@ import Vido from '@neuronet.io/vido/vido';
 //import Vido from '../../vido/vido';
 import { publicApi, Api } from './api/api';
 
-import { vido, lithtml } from '@neuronet.io/vido/vido.d';
+import { vido, lithtml, ComponentInstance } from '@neuronet.io/vido/vido.d';
 import { Dayjs, OpUnitType } from 'dayjs';
 import { Properties as CSSProps } from 'csstype';
 import DeepState from 'deep-state-observer';
@@ -579,7 +579,13 @@ export interface GSTCOptions {
   debug?: boolean;
 }
 
-function GSTC(options: GSTCOptions) {
+export interface GSTCResult {
+  state: DeepState;
+  api: Api;
+  component: ComponentInstance;
+}
+
+function GSTC(options: GSTCOptions): GSTCResult {
   const state = options.state;
   const api = new Api(state);
   const $data: Data = {
@@ -654,11 +660,9 @@ function GSTC(options: GSTCOptions) {
   const vido: Vido = Vido(state, api);
   api.setVido(vido);
   const Main = state.get('config.components.Main');
-
-  // @ts-ignore
-  const app = vido.createApp({ component: Main, props: {}, element: options.element });
-  const internalApi = app.vidoInstance.api;
-  return { state, app, api: internalApi };
+  const component = vido.createApp({ component: Main, props: {}, element: options.element });
+  const internalApi = component.vidoInstance.api as Api;
+  return { state, api: internalApi, component };
 }
 
 GSTC.api = publicApi;

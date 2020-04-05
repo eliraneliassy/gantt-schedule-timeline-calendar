@@ -96,7 +96,7 @@ declare module "api/api" {
 declare module "gstc" {
     import 'pepjs';
     import { Api } from "api/api";
-    import { vido, lithtml } from '@neuronet.io/vido/vido.d';
+    import { vido, lithtml, ComponentInstance } from '@neuronet.io/vido/vido.d';
     import { Dayjs, OpUnitType } from 'dayjs';
     import { Properties as CSSProps } from 'csstype';
     import DeepState from 'deep-state-observer';
@@ -577,11 +577,12 @@ declare module "gstc" {
         element: HTMLElement;
         debug?: boolean;
     }
-    function GSTC(options: GSTCOptions): {
+    export interface GSTCResult {
         state: DeepState;
-        app: any;
-        api: any;
-    };
+        api: Api;
+        component: ComponentInstance;
+    }
+    function GSTC(options: GSTCOptions): GSTCResult;
     namespace GSTC {
         var api: {
             name: string;
