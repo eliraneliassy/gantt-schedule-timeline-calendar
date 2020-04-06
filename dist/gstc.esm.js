@@ -5868,7 +5868,10 @@ function Main(vido, props = {}) {
         });
         update();
     }
-    onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;', 'config.list.rows.*.height', 'config.chart.items.*.time'], prepareExpanded, { bulk: true }));
+    onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;', 'config.list.rows.*.height'], prepareExpanded, { bulk: true }));
+    onDestroy(state.subscribe('config.chart.items', () => {
+        state.update('$data.list.rowsHeight', api.recalculateRowsHeights(state.get('$data.list.rowsWithParentsExpanded')));
+    }));
     function getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded) {
         if (rowsWithParentsExpanded.length === 0)
             return 0;
@@ -8099,7 +8102,7 @@ function ChartTimelineGrid(vido, props) {
         reuseComponents(rowsComponents, rowsWithCells || [], (row) => row, GridRowComponent);
         update();
     }
-    onDestroy(state.subscribe('$data.chart.grid.rowsWithCells', generateRowsComponents));
+    onDestroy(state.subscribe('$data.chart.grid.rowsWithCells;', generateRowsComponents));
     onDestroy(() => {
         rowsComponents.forEach((row) => row.destroy());
     });
