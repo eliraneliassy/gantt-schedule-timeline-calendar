@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { ScrollTypeHorizontal, Vido } from '@src/gstc';
+import { ScrollTypeHorizontal, Vido } from '../gstc';
 import DeepState from 'deep-state-observer';
 import { Api } from '../api/api';
 

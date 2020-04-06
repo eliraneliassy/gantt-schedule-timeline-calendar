@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Vido } from '@src/gstc';
+import { Vido } from '../../gstc';
 
 export default function List(vido: Vido, props = {}) {
   const { api, state, onDestroy, Actions, update, reuseComponents, html, schedule, StyleMap, cache } = vido;

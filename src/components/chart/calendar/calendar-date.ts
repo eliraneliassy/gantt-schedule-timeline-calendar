@@ -9,7 +9,7 @@
  */
 
 import Action from '@neuronet.io/vido/Action';
-import { ChartTimeDate, Period, Vido } from '@src/gstc';
+import { ChartTimeDate, Period, Vido } from '../../../gstc';
 
 /**
  * Save element

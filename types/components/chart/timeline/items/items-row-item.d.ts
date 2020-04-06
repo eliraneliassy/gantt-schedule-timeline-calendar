@@ -1,4 +1,4 @@
-import { Row, Item, Vido } from '@src/gstc';
+import { Row, Item, Vido } from '../../../../gstc';
 export interface Props {
     row: Row;
     item: Item;

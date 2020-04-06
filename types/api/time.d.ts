@@ -1,5 +1,5 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { DataChartTime, DataChartTimeLevelDate, ChartTimeDate, ScrollTypeHorizontal, Period, ChartCalendarLevel, ChartCalendarFormat } from '@src/gstc';
+import { DataChartTime, DataChartTimeLevelDate, ChartTimeDate, ScrollTypeHorizontal, Period, ChartCalendarLevel, ChartCalendarFormat } from '../gstc';
 export interface CurrentDate {
     timestamp: number;
     hour: Dayjs;

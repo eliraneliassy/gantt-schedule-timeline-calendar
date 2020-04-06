@@ -12,7 +12,7 @@ import { Time } from './time';
 import State from 'deep-state-observer';
 import DeepState from 'deep-state-observer';
 import dayjs from 'dayjs';
-import { Config, Period, DataChartTime, ScrollTypeHorizontal, Row, Item, Vido, Items } from '@src/gstc';
+import { Config, Period, DataChartTime, ScrollTypeHorizontal, Row, Item, Vido, Items } from '../gstc';
 import helpers from '@neuronet.io/vido/helpers';
 const mergeDeep = helpers.mergeDeep;
 

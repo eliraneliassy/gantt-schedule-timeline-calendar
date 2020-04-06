@@ -1,4 +1,4 @@
-import { ChartTimeDate, Period, Vido } from '@src/gstc';
+import { ChartTimeDate, Period, Vido } from '../../../gstc';
 export interface Props {
     level: number;
     date: ChartTimeDate;

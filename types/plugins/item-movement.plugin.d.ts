@@ -1,4 +1,4 @@
-import { Item, DataChartTime, Scroll, DataChartDimensions, Vido } from '@src/gstc';
+import { Item, DataChartTime, Scroll, DataChartDimensions, Vido } from '../gstc';
 import { Point } from './timeline-pointer.plugin';
 import { Dayjs } from 'dayjs';
 export interface SnapArg {

@@ -9,7 +9,7 @@
  */
 
 import { PluginData as SelectionPluginData } from './selection.plugin';
-import { Item, DataChartTime, Scroll, DataChartDimensions, ItemTime, Vido, ItemData } from '@src/gstc';
+import { Item, DataChartTime, Scroll, DataChartDimensions, ItemTime, Vido, ItemData } from '../gstc';
 import { ITEM, Point } from './timeline-pointer.plugin';
 import { Dayjs } from 'dayjs';
 import { Api } from '../api/api';

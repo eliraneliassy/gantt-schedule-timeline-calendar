@@ -1,4 +1,4 @@
-import { Vido } from '@src/gstc';
+import { Vido } from '../../../gstc';
 export interface Props {
     columnId: string;
 }

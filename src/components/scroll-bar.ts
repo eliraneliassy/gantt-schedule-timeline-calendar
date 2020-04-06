@@ -9,7 +9,7 @@
  */
 
 import Action from '@neuronet.io/vido/Action';
-import { DataChartTimeLevelDate, ScrollTypeHorizontal, ScrollTypeVertical, ScrollType, Row, Vido } from '@src/gstc';
+import { DataChartTimeLevelDate, ScrollTypeHorizontal, ScrollTypeVertical, ScrollType, Row, Vido } from '../gstc';
 
 export interface Props {
   type: 'horizontal' | 'vertical';

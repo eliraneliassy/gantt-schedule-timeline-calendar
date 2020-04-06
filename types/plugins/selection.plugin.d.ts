@@ -1,5 +1,5 @@
 import { ITEM, ITEM_TYPE, CELL, CELL_TYPE, Point, PointerState } from './timeline-pointer.plugin';
-import { Item, Cell, Vido } from '@src/gstc';
+import { Item, Cell, Vido } from '../gstc';
 export interface Options {
     enabled?: boolean;
     cells?: boolean;

@@ -1,7 +1,7 @@
 import { Time } from './time';
 import DeepState from 'deep-state-observer';
 import dayjs from 'dayjs';
-import { Config, Row, Item, Vido } from '@src/gstc';
+import { Config, Row, Item, Vido } from '../gstc';
 export declare function stateFromConfig(userConfig: Config): any;
 export declare const publicApi: {
     name: string;

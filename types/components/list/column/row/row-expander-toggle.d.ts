@@ -1,4 +1,4 @@
-import { Row, Vido } from '@src/gstc';
+import { Row, Vido } from '../../../../gstc';
 export interface Props {
     row: Row;
 }

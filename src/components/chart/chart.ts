@@ -9,7 +9,7 @@
  */
 
 import ResizeObserver from 'resize-observer-polyfill';
-import { Vido } from '@src/gstc';
+import { Vido } from '../../gstc';
 
 export default function Chart(vido: Vido, props = {}) {
   const { api, state, onDestroy, Actions, update, html, createComponent } = vido;

@@ -18,7 +18,7 @@ import {
   Period,
   ChartCalendarLevel,
   ChartCalendarFormat,
-} from '@src/gstc';
+} from '../gstc';
 
 export interface CurrentDate {
   timestamp: number;

@@ -1,4 +1,4 @@
-import { Row, ChartTimeDate, Vido } from '@src/gstc';
+import { Row, ChartTimeDate, Vido } from '../../../../gstc';
 interface Props {
     row: Row;
     time: ChartTimeDate;

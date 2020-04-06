@@ -1,4 +1,4 @@
-import { Vido } from '@src/gstc';
+import { Vido } from '../gstc';
 import { Point } from './timeline-pointer.plugin';
 export interface Handle {
     width?: number;

@@ -10,7 +10,7 @@
 
 import { Action, vido } from '@neuronet.io/vido/vido';
 import { Api } from '../api/api';
-import { Vido } from '@src/gstc';
+import { Vido } from '../gstc';
 
 export interface Options {
   weekdays?: number[];

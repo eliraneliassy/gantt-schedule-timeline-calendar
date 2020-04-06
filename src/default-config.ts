@@ -11,8 +11,8 @@ import Main from './components/main';
 import ScrollBar from './components/scroll-bar';
 import List from './components/list/list';
 import ListColumn from './components/list/column/column';
-import ListColumnHeader from './components/list/column/column-header';
-import ListColumnHeaderResizer from './components/list/column/column-header-resizer';
+import ListColumnHeader from './components/list/column/header/column-header';
+import ListColumnHeaderResizer from './components/list/column/header/column-header-resizer';
 import ListColumnRow from './components/list/column/row/row';
 import ListColumnRowExpander from './components/list/column/row/row-expander';
 import ListColumnRowExpanderToggle from './components/list/column/row/row-expander-toggle';
@@ -28,7 +28,7 @@ import ChartTimelineItems from './components/chart/timeline/items/items';
 import ChartTimelineItemsRow from './components/chart/timeline/items/items-row';
 import ChartTimelineItemsRowItem from './components/chart/timeline/items/items-row-item';
 
-import { Config } from '@src/gstc';
+import { Config } from './gstc';
 
 export const actionNames = [
   'main',

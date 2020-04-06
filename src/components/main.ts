@@ -27,7 +27,7 @@ import {
   ItemData,
   Vido,
   Reason,
-} from '@src/gstc';
+} from '../gstc';
 
 import { OpUnitType } from 'dayjs';
 import { Component, ComponentInstance } from '@neuronet.io/vido/vido';

@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Row, ChartTimeDate, Rows, Vido } from '@src/gstc';
+import { Row, ChartTimeDate, Rows, Vido } from '../../../../gstc';
 
 /**
  * Bind element action

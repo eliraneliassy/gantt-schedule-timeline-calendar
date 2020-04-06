@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Vido, Wrapper, htmlResult, Item, DataChartTime } from '@src/gstc';
+import { Vido, Wrapper, htmlResult, Item, DataChartTime } from '../gstc';
 import DeepState from 'deep-state-observer';
 import { Api } from '../api/api';
 import { lithtml } from '@neuronet.io/vido/vido';
