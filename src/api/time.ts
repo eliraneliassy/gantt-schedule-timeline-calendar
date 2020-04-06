@@ -20,22 +20,45 @@ import {
   ChartCalendarFormat,
 } from '@src/gstc';
 
+export interface CurrentDate {
+  timestamp: number;
+  hour: Dayjs;
+  day: Dayjs;
+  week: Dayjs;
+  month: Dayjs;
+  year: Dayjs;
+}
+
 export class Time {
   private locale: Locale;
   private utcMode = false;
   private state: any;
   public dayjs: typeof dayjs;
+  public currentDate: CurrentDate;
 
   constructor(state) {
     this.dayjs = dayjs;
     this.state = state;
     this.locale = state.get('config.locale');
     this.utcMode = state.get('config.utcMode');
+    this.resetCurrentDate();
     if (this.utcMode) {
       dayjs.extend(utc);
     }
     // @ts-ignore
     dayjs.locale(this.locale, null, true);
+  }
+
+  private resetCurrentDate() {
+    const currentDate = dayjs();
+    this.currentDate = {
+      timestamp: currentDate.valueOf(),
+      hour: currentDate.startOf('hour'),
+      day: currentDate.startOf('day'),
+      week: currentDate.startOf('week'),
+      month: currentDate.startOf('month'),
+      year: currentDate.startOf('year'),
+    };
   }
 
   public date(time: number | string | Date | undefined = undefined) {
@@ -252,7 +275,6 @@ export class Time {
     if (!time.timePerPixel) return [];
     let leftPx = 0;
     const diff = Math.ceil(rightDate.diff(leftDate, period, true));
-    const currentDate = this.date().startOf(period);
     let dates = [];
     for (let i = 0; i < diff; i++) {
       const rightGlobalDate = leftDate.endOf(period);
@@ -266,9 +288,9 @@ export class Time {
         rightPx: 0,
         period,
         formatted: null,
-        current: leftDate.valueOf() === currentDate.valueOf(),
-        previous: leftDate.add(1, period).valueOf() === currentDate.valueOf(),
-        next: leftDate.subtract(1, period).valueOf() === currentDate.valueOf(),
+        current: leftDate.valueOf() === this.currentDate[period].valueOf(),
+        previous: leftDate.add(1, period).valueOf() === this.currentDate[period].valueOf(),
+        next: leftDate.subtract(1, period).valueOf() === this.currentDate[period].valueOf(),
       };
       const diffMs = date.rightGlobal - date.leftGlobal;
       date.width = diffMs / time.timePerPixel;

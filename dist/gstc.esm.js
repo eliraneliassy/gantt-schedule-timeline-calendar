@@ -9142,11 +9142,23 @@ class Time {
         this.state = state;
         this.locale = state.get('config.locale');
         this.utcMode = state.get('config.utcMode');
+        this.resetCurrentDate();
         if (this.utcMode) {
             dayjs_min.extend(utc);
         }
         // @ts-ignore
         dayjs_min.locale(this.locale, null, true);
+    }
+    resetCurrentDate() {
+        const currentDate = dayjs_min();
+        this.currentDate = {
+            timestamp: currentDate.valueOf(),
+            hour: currentDate.startOf('hour'),
+            day: currentDate.startOf('day'),
+            week: currentDate.startOf('week'),
+            month: currentDate.startOf('month'),
+            year: currentDate.startOf('year'),
+        };
     }
     date(time = undefined) {
         const _dayjs = this.utcMode ? dayjs_min.utc : dayjs_min;
@@ -9336,7 +9348,6 @@ class Time {
             return [];
         let leftPx = 0;
         const diff = Math.ceil(rightDate.diff(leftDate, period, true));
-        const currentDate = this.date().startOf(period);
         let dates = [];
         for (let i = 0; i < diff; i++) {
             const rightGlobalDate = leftDate.endOf(period);
@@ -9350,9 +9361,9 @@ class Time {
                 rightPx: 0,
                 period,
                 formatted: null,
-                current: leftDate.valueOf() === currentDate.valueOf(),
-                previous: leftDate.add(1, period).valueOf() === currentDate.valueOf(),
-                next: leftDate.subtract(1, period).valueOf() === currentDate.valueOf(),
+                current: leftDate.valueOf() === this.currentDate[period].valueOf(),
+                previous: leftDate.add(1, period).valueOf() === this.currentDate[period].valueOf(),
+                next: leftDate.subtract(1, period).valueOf() === this.currentDate[period].valueOf(),
             };
             const diffMs = date.rightGlobal - date.leftGlobal;
             date.width = diffMs / time.timePerPixel;

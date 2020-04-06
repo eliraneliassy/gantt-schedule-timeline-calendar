@@ -1,11 +1,21 @@
 import dayjs, { Dayjs } from 'dayjs';
 import { DataChartTime, DataChartTimeLevelDate, ChartTimeDate, ScrollTypeHorizontal, Period, ChartCalendarLevel, ChartCalendarFormat } from '@src/gstc';
+export interface CurrentDate {
+    timestamp: number;
+    hour: Dayjs;
+    day: Dayjs;
+    week: Dayjs;
+    month: Dayjs;
+    year: Dayjs;
+}
 export declare class Time {
     private locale;
     private utcMode;
     private state;
     dayjs: typeof dayjs;
+    currentDate: CurrentDate;
     constructor(state: any);
+    private resetCurrentDate;
     date(time?: number | string | Date | undefined): dayjs.Dayjs;
     private addAdditionalSpace;
     recalculateFromTo(time: DataChartTime): DataChartTime;

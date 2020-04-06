@@ -189,7 +189,9 @@
               const rightGlobal = this.api.time.getTimeFromViewOffsetPx(right, time);
               item.time.end = rightGlobal;
               item.$data.time.endDate = this.api.time.date(rightGlobal);
-              multi = multi.update(`config.chart.items.${item.id}`, item);
+              multi = multi
+                  .update(`config.chart.items.${item.id}.time`, item.time)
+                  .update(`config.chart.items.${item.id}.$data`, item.$data);
           }
           multi.done();
           this.updateData();
