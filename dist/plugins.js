@@ -465,7 +465,6 @@
       }
       getRightStyleMap(item, visible) {
           const rightStyleMap = new this.vido.StyleMap({});
-          rightStyleMap.style.display = visible ? 'block' : 'none';
           rightStyleMap.style.top = item.$data.position.actualTop + this.data.handle.verticalMargin + 'px';
           if (this.data.handle.outside) {
               rightStyleMap.style.left = item.$data.position.right + this.data.handle.horizontalMargin - this.spacing + 'px';
@@ -480,7 +479,6 @@
       }
       getLeftStyleMap(item, visible) {
           const leftStyleMap = new this.vido.StyleMap({});
-          leftStyleMap.style.display = visible ? 'block' : 'none';
           leftStyleMap.style.top = item.$data.position.actualTop + this.data.handle.verticalMargin + 'px';
           if (this.data.handle.outside) {
               leftStyleMap.style.left =
@@ -605,6 +603,7 @@
           if (this.data.handle.onlyWhenSelected) {
               visible = visible && item.selected;
           }
+          const detach = new this.vido.Detach(() => !visible);
           const rightStyleMap = this.getRightStyleMap(item, visible);
           const leftStyleMap = this.getLeftStyleMap(item, visible);
           const onLeftPointerDown = {
@@ -613,12 +612,8 @@
           const onRightPointerDown = {
               handleEvent: this.onRightPointerDown,
           };
-          const leftHandle = this
-              .html `<div class=${this.leftClassName} style=${leftStyleMap} @pointerdown=${onLeftPointerDown}></div>`;
-          const rightHandle = this
-              .html `<div class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}></div>`;
-          return this.html `${oldContent}${rightHandle}`;
-          //return this.html`${leftHandle}${oldContent}${rightHandle}`;
+          return this
+              .html `${oldContent}<div detach=${detach} class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}></div>`;
       }
       getWrapper(oldWrapper) {
           if (!this.oldWrapper) {
@@ -746,10 +741,6 @@
                       current.push(linkedItem);
                       this.collectLinkedItems(linkedItem, current);
                   }
-                  if (!linkedItem.linkedWith)
-                      linkedItem.linkedWith = [];
-                  if (!linkedItem.linkedWith.includes(item.id))
-                      linkedItem.linkedWith.push(item.id);
               }
           }
           return current;
@@ -810,18 +801,18 @@
       }
       wrapper(input, props) {
           const oldContent = this.oldWrapper(input, props);
-          if (this.data.isSelecting && this.data.showOverlay) {
+          let shouldDetach = true;
+          if (this.data.enabled && this.data.isSelecting && this.data.showOverlay) {
               this.wrapperStyleMap.style.display = 'block';
               this.wrapperStyleMap.style.left = this.data.selectionArea.x + 'px';
               this.wrapperStyleMap.style.top = this.data.selectionArea.y + 'px';
               this.wrapperStyleMap.style.width = this.data.selectionArea.width + 'px';
               this.wrapperStyleMap.style.height = this.data.selectionArea.height + 'px';
+              shouldDetach = false;
           }
-          else {
-              this.wrapperStyleMap.style.display = 'none';
-          }
-          const SelectionRectangle = this.html ` <div class=${this.wrapperClassName} style=${this.wrapperStyleMap}></div> `;
-          return this.html ` ${oldContent}${SelectionRectangle} `;
+          const detach = new this.vido.Detach(() => shouldDetach);
+          return this
+              .html ` ${oldContent}<div class=${this.wrapperClassName} detach=${detach} style=${this.wrapperStyleMap}></div>`;
       }
       getWrapper(oldWrapper) {
           if (!this.oldWrapper)

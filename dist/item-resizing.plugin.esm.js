@@ -75,7 +75,6 @@ class ItemResizing {
     }
     getRightStyleMap(item, visible) {
         const rightStyleMap = new this.vido.StyleMap({});
-        rightStyleMap.style.display = visible ? 'block' : 'none';
         rightStyleMap.style.top = item.$data.position.actualTop + this.data.handle.verticalMargin + 'px';
         if (this.data.handle.outside) {
             rightStyleMap.style.left = item.$data.position.right + this.data.handle.horizontalMargin - this.spacing + 'px';
@@ -90,7 +89,6 @@ class ItemResizing {
     }
     getLeftStyleMap(item, visible) {
         const leftStyleMap = new this.vido.StyleMap({});
-        leftStyleMap.style.display = visible ? 'block' : 'none';
         leftStyleMap.style.top = item.$data.position.actualTop + this.data.handle.verticalMargin + 'px';
         if (this.data.handle.outside) {
             leftStyleMap.style.left =
@@ -215,6 +213,7 @@ class ItemResizing {
         if (this.data.handle.onlyWhenSelected) {
             visible = visible && item.selected;
         }
+        const detach = new this.vido.Detach(() => !visible);
         const rightStyleMap = this.getRightStyleMap(item, visible);
         const leftStyleMap = this.getLeftStyleMap(item, visible);
         const onLeftPointerDown = {
@@ -223,12 +222,8 @@ class ItemResizing {
         const onRightPointerDown = {
             handleEvent: this.onRightPointerDown,
         };
-        const leftHandle = this
-            .html `<div class=${this.leftClassName} style=${leftStyleMap} @pointerdown=${onLeftPointerDown}></div>`;
-        const rightHandle = this
-            .html `<div class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}></div>`;
-        return this.html `${oldContent}${rightHandle}`;
-        //return this.html`${leftHandle}${oldContent}${rightHandle}`;
+        return this
+            .html `${oldContent}<div detach=${detach} class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}></div>`;
     }
     getWrapper(oldWrapper) {
         if (!this.oldWrapper) {

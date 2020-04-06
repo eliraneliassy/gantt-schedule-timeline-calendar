@@ -3945,15 +3945,27 @@ class Detach extends Directive {
         const element = part.committer.element;
         if (detach) {
             if (!detached.has(part)) {
-                const nextSibling = element.nextSibling;
-                detached.set(part, { element, nextSibling });
+                detached.set(part, {
+                    element,
+                    nextSibling: element.nextSibling,
+                    previousSibling: element.previousSibling,
+                    parent: element.parentNode,
+                });
             }
             element.remove();
         }
         else {
             const data = detached.get(part);
-            if (typeof data !== 'undefined' && data !== null) {
-                data.nextSibling.parentNode.insertBefore(data.element, data.nextSibling);
+            if (data) {
+                if (data.nextSibling && data.nextSibling.parentNode) {
+                    data.nextSibling.parentNode.insertBefore(data.element, data.nextSibling);
+                }
+                else if (data.previousSibling && data.previousSibling.parentNode) {
+                    data.previousSibling.parentNode.appendChild(data.element);
+                }
+                else if (data.parent) {
+                    data.parent.appendChild(data.element);
+                }
                 detached.delete(part);
             }
         }
@@ -10517,7 +10529,18 @@ class Api {
     }
     prepareItems(items) {
         const defaultItemHeight = this.state.get('config.chart.item.height');
+        const itemsObj = this.state.get('config.chart.items');
         for (const item of items) {
+            // linked items should have links to each others
+            if (item.linkedWith && item.linkedWith.length) {
+                for (const itemId of item.linkedWith) {
+                    const currentItem = itemsObj[itemId];
+                    if (!currentItem.linkedWith)
+                        currentItem.linkedWith = [];
+                    if (!currentItem.linkedWith.includes(item.id))
+                        currentItem.linkedWith.push(item.id);
+                }
+            }
             item.time.start = +item.time.start;
             item.time.end = +item.time.end;
             item.id = String(item.id);

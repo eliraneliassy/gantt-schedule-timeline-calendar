@@ -12,7 +12,7 @@ import { Time } from './time';
 import State from 'deep-state-observer';
 import DeepState from 'deep-state-observer';
 import dayjs from 'dayjs';
-import { Config, Period, DataChartTime, ScrollTypeHorizontal, Row, Item, Vido } from '@src/gstc';
+import { Config, Period, DataChartTime, ScrollTypeHorizontal, Row, Item, Vido, Items } from '@src/gstc';
 import helpers from '@neuronet.io/vido/helpers';
 const mergeDeep = helpers.mergeDeep;
 
@@ -135,7 +135,17 @@ export class Api {
 
   prepareItems(items: Item[]) {
     const defaultItemHeight = this.state.get('config.chart.item.height');
+    const itemsObj: Items = this.state.get('config.chart.items');
+    const linked = {};
     for (const item of items) {
+      // linked items should have links to each others
+      if (item.linkedWith && item.linkedWith.length) {
+        for (const itemId of item.linkedWith) {
+          const currentItem: Item = itemsObj[itemId];
+          if (!currentItem.linkedWith) currentItem.linkedWith = [];
+          if (!currentItem.linkedWith.includes(item.id)) currentItem.linkedWith.push(item.id);
+        }
+      }
       item.time.start = +item.time.start;
       item.time.end = +item.time.end;
       item.id = String(item.id);
@@ -232,7 +242,6 @@ export class Api {
   fixOverlappedItems(rowItems: Item[]) {
     if (rowItems.length === 0) return;
     let index = 0;
-    let rowHeight = 0;
     for (let item of rowItems) {
       item.$data.position.top = item.top;
       item.$data.position.actualTop = item.$data.position.top + item.gap.top;

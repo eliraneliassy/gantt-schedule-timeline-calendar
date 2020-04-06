@@ -123,7 +123,6 @@ class ItemResizing {
 
   private getRightStyleMap(item: Item, visible: boolean) {
     const rightStyleMap = new this.vido.StyleMap({});
-    rightStyleMap.style.display = visible ? 'block' : 'none';
     rightStyleMap.style.top = item.$data.position.actualTop + this.data.handle.verticalMargin + 'px';
     if (this.data.handle.outside) {
       rightStyleMap.style.left = item.$data.position.right + this.data.handle.horizontalMargin - this.spacing + 'px';
@@ -138,7 +137,6 @@ class ItemResizing {
 
   private getLeftStyleMap(item: Item, visible: boolean) {
     const leftStyleMap = new this.vido.StyleMap({});
-    leftStyleMap.style.display = visible ? 'block' : 'none';
     leftStyleMap.style.top = item.$data.position.actualTop + this.data.handle.verticalMargin + 'px';
     if (this.data.handle.outside) {
       leftStyleMap.style.left =
@@ -210,6 +208,7 @@ class ItemResizing {
     multi.done();
     this.updateData();
   }
+
   private onRightPointerMove(ev: PointerEvent) {
     if (!this.data.enabled || !this.data.rightIsMoving) return;
     this.onPointerMove(ev);
@@ -261,6 +260,7 @@ class ItemResizing {
     if (this.data.handle.onlyWhenSelected) {
       visible = visible && item.selected;
     }
+    const detach = new this.vido.Detach(() => !visible);
     const rightStyleMap = this.getRightStyleMap(item, visible);
     const leftStyleMap = this.getLeftStyleMap(item, visible);
     const onLeftPointerDown = {
@@ -271,12 +271,8 @@ class ItemResizing {
       handleEvent: this.onRightPointerDown,
       //capture: true,
     };
-    const leftHandle = this
-      .html`<div class=${this.leftClassName} style=${leftStyleMap} @pointerdown=${onLeftPointerDown}></div>`;
-    const rightHandle = this
-      .html`<div class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}></div>`;
-    return this.html`${oldContent}${rightHandle}`;
-    //return this.html`${leftHandle}${oldContent}${rightHandle}`;
+    return this
+      .html`${oldContent}<div detach=${detach} class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}></div>`;
   }
 
   public getWrapper(oldWrapper: Wrapper): Wrapper {

@@ -203,8 +203,6 @@ class SelectionPlugin {
           current.push(linkedItem);
           this.collectLinkedItems(linkedItem, current);
         }
-        if (!linkedItem.linkedWith) linkedItem.linkedWith = [];
-        if (!linkedItem.linkedWith.includes(item.id)) linkedItem.linkedWith.push(item.id);
       }
     }
     return current;
@@ -266,17 +264,18 @@ class SelectionPlugin {
 
   private wrapper(input: htmlResult, props?: any) {
     const oldContent = this.oldWrapper(input, props);
-    if (this.data.isSelecting && this.data.showOverlay) {
+    let shouldDetach = true;
+    if (this.data.enabled && this.data.isSelecting && this.data.showOverlay) {
       this.wrapperStyleMap.style.display = 'block';
       this.wrapperStyleMap.style.left = this.data.selectionArea.x + 'px';
       this.wrapperStyleMap.style.top = this.data.selectionArea.y + 'px';
       this.wrapperStyleMap.style.width = this.data.selectionArea.width + 'px';
       this.wrapperStyleMap.style.height = this.data.selectionArea.height + 'px';
-    } else {
-      this.wrapperStyleMap.style.display = 'none';
+      shouldDetach = false;
     }
-    const SelectionRectangle = this.html` <div class=${this.wrapperClassName} style=${this.wrapperStyleMap}></div> `;
-    return this.html` ${oldContent}${SelectionRectangle} `;
+    const detach = new this.vido.Detach(() => shouldDetach);
+    return this
+      .html` ${oldContent}<div class=${this.wrapperClassName} detach=${detach} style=${this.wrapperStyleMap}></div>`;
   }
 
   public getWrapper(oldWrapper: Wrapper): Wrapper {
