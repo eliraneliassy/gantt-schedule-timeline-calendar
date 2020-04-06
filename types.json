@@ -7,7 +7,8 @@
     "./tests/**/*.js",
     "./node_modules/**/*.ts",
     "node_modules",
-    "node_modules/**"
+    "node_modules/**",
+    "types/**"
   ],
   "compilerOptions": {
     "declaration": true,

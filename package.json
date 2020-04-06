@@ -5,12 +5,12 @@
   "main": "dist/index.umd.js",
   "module": "dist/index.esm.js",
   "scripts": {
+    "dev": "run-p autotypes autobuild start:dev",
     "build": "run-p types build-dist",
     "build-dist": "rollup -c",
     "autobuild": "rollup -c -w",
     "types": "tsc -p ./types.json",
     "autotypes": "tsc -p ./types.json -w",
-    "dev": "run-p autotypes autobuild start:dev",
     "start": "sirv dist --single",
     "start:dev": "sirv dist --single --dev",
     "test": "nightwatch --env chrome && nightwatch --env firefox"

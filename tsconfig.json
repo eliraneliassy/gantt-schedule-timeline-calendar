@@ -1,5 +1,13 @@
 {
-  "exclude": ["./index.d.ts", "./dist/**", "./*.conf.js", "./*.config.js", "./tests/**/*.js", "node_modules/**"],
+  "exclude": [
+    "./index.d.ts",
+    "./dist/**",
+    "./*.conf.js",
+    "./*.config.js",
+    "./tests/**/*.js",
+    "node_modules/**",
+    "types/**"
+  ],
   "compilerOptions": {
     "moduleResolution": "node",
     "baseUrl": ".",
