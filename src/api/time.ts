@@ -123,9 +123,10 @@ export class Time {
     const milliseconds = date.valueOf();
     const dates = time.allDates[time.level];
     if (!dates) return -1;
-    if (milliseconds < time.finalFrom) {
+    /*if (milliseconds < time.finalFrom) {
       const level: ChartCalendarLevel = this.state.get(`config.chart.calendar.levels.${time.level}`);
       const leftDate: Dayjs = date.startOf(time.period);
+      console.log('generating dates', leftDate.format('YYYY-MM-DD'), time.finalFromDate.format('YYYY-MM-DD'));
       const beforeDates = this.generatePeriodDates({
         leftDate,
         rightDate: time.finalFromDate,
@@ -142,7 +143,7 @@ export class Time {
       return -(px - diff);
     }
     if (milliseconds > time.totalViewDurationMs) {
-    }
+    }*/
     let firstMatching: ChartTimeDate;
     // find first date that is after milliseconds
     for (let i = 0, len = dates.length; i < len; i++) {

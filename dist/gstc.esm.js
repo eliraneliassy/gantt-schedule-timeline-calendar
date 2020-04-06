@@ -9220,25 +9220,27 @@ class Time {
         const dates = time.allDates[time.level];
         if (!dates)
             return -1;
-        if (milliseconds < time.finalFrom) {
-            const level = this.state.get(`config.chart.calendar.levels.${time.level}`);
-            const leftDate = date.startOf(time.period);
-            const beforeDates = this.generatePeriodDates({
-                leftDate,
-                rightDate: time.finalFromDate,
-                period: time.period,
-                level,
-                levelIndex: time.level,
-                time,
-            });
-            let px = 0;
-            for (let i = 0, len = beforeDates.length; i < len; i++) {
-                px += beforeDates[i].width;
-            }
-            const diff = (milliseconds - leftDate.valueOf()) / time.timePerPixel;
-            return -(px - diff);
+        /*if (milliseconds < time.finalFrom) {
+          const level: ChartCalendarLevel = this.state.get(`config.chart.calendar.levels.${time.level}`);
+          const leftDate: Dayjs = date.startOf(time.period);
+          console.log('generating dates', leftDate.format('YYYY-MM-DD'), time.finalFromDate.format('YYYY-MM-DD'));
+          const beforeDates = this.generatePeriodDates({
+            leftDate,
+            rightDate: time.finalFromDate,
+            period: time.period,
+            level,
+            levelIndex: time.level,
+            time,
+          });
+          let px = 0;
+          for (let i = 0, len = beforeDates.length; i < len; i++) {
+            px += beforeDates[i].width;
+          }
+          const diff = (milliseconds - leftDate.valueOf()) / time.timePerPixel;
+          return -(px - diff);
         }
-        if (milliseconds > time.totalViewDurationMs) ;
+        if (milliseconds > time.totalViewDurationMs) {
+        }*/
         let firstMatching;
         // find first date that is after milliseconds
         for (let i = 0, len = dates.length; i < len; i++) {
