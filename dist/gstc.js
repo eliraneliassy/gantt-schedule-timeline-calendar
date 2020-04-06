@@ -5880,10 +5880,11 @@
 	    }, { bulk: true }));
 	    onDestroy(state.subscribeAll(['config.chart.items.*.time', 'config.chart.items.*.$data.position'], () => {
 	        const visibleRows = state.get('$data.list.visibleRows');
+	        let height = 0;
 	        for (const row of visibleRows) {
-	            api.recalculateRowHeight(row);
+	            height += api.recalculateRowHeight(row);
 	        }
-	        state.update('$data.list.visibleRows', visibleRows);
+	        state.update('$data.list.visibleRowsHeight', height);
 	    }, { bulk: true }));
 	    function getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded) {
 	        if (rowsWithParentsExpanded.length === 0)
@@ -7079,12 +7080,13 @@
 	        update();
 	    }));
 	    const visibleRows = [];
-	    const visibleRowsChange = (val) => {
+	    function visibleRowsChange() {
+	        const val = state.get('$data.list.visibleRows');
 	        const destroy = reuseComponents(visibleRows, val || [], (row) => row && { columnId: props.columnId, rowId: row.id, width }, ListColumnRowComponent);
 	        update();
 	        return destroy;
-	    };
-	    onDestroy(state.subscribe('$data.list.visibleRows;', visibleRowsChange));
+	    }
+	    onDestroy(state.subscribeAll(['$data.list.visibleRows;', '$data.list.visibleRowsHeight'], visibleRowsChange));
 	    onDestroy(() => {
 	        visibleRows.forEach((row) => row.destroy());
 	        componentsSub.forEach((unsub) => unsub());
@@ -10882,6 +10884,7 @@
 	        flatTreeMapById: {},
 	        list: {
 	            visibleRows: [],
+	            visibleRowsHeight: 0,
 	            width: 0,
 	        },
 	        dimensions: {

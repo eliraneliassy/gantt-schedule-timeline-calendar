@@ -442,6 +442,7 @@ export interface TreeMap {
 export interface DataList {
     width: number;
     visibleRows: Row[];
+    visibleRowsHeight: number;
 }
 export interface Dimensions {
     width: number;

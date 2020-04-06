@@ -141,7 +141,8 @@ export default function ListColumn(vido: Vido, props: Props) {
   );
 
   const visibleRows = [];
-  const visibleRowsChange = (val) => {
+  function visibleRowsChange() {
+    const val = state.get('$data.list.visibleRows');
     const destroy = reuseComponents(
       visibleRows,
       val || [],
@@ -150,8 +151,8 @@ export default function ListColumn(vido: Vido, props: Props) {
     );
     update();
     return destroy;
-  };
-  onDestroy(state.subscribe('$data.list.visibleRows;', visibleRowsChange));
+  }
+  onDestroy(state.subscribeAll(['$data.list.visibleRows;', '$data.list.visibleRowsHeight'], visibleRowsChange));
 
   onDestroy(() => {
     visibleRows.forEach((row) => row.destroy());

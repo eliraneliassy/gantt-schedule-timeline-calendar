@@ -531,6 +531,7 @@ export interface TreeMap {
 export interface DataList {
   width: number;
   visibleRows: Row[];
+  visibleRowsHeight: number;
 }
 
 export interface Dimensions {
@@ -594,6 +595,7 @@ function GSTC(options: GSTCOptions): GSTCResult {
     flatTreeMapById: {},
     list: {
       visibleRows: [],
+      visibleRowsHeight: 0,
       width: 0,
     },
     dimensions: {

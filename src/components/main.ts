@@ -185,10 +185,11 @@ export default function Main(vido: Vido, props = {}) {
       ['config.chart.items.*.time', 'config.chart.items.*.$data.position'],
       () => {
         const visibleRows = state.get('$data.list.visibleRows') as Row[];
+        let height = 0;
         for (const row of visibleRows) {
-          api.recalculateRowHeight(row);
+          height += api.recalculateRowHeight(row);
         }
-        state.update('$data.list.visibleRows', visibleRows);
+        state.update('$data.list.visibleRowsHeight', height);
       },
       { bulk: true }
     )
