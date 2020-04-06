@@ -5879,9 +5879,11 @@
 	        state.update('$data.list.rowsHeight', api.recalculateRowsHeights(state.get('$data.list.rowsWithParentsExpanded')));
 	    }, { bulk: true }));
 	    onDestroy(state.subscribeAll(['config.chart.items.*.time', 'config.chart.items.*.$data.position'], () => {
-	        for (const row of state.get('$data.list.visibleRows')) {
+	        const visibleRows = state.get('$data.list.visibleRows');
+	        for (const row of visibleRows) {
 	            api.recalculateRowHeight(row);
 	        }
+	        state.update('$data.list.visibleRows', visibleRows);
 	    }, { bulk: true }));
 	    function getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded) {
 	        if (rowsWithParentsExpanded.length === 0)
