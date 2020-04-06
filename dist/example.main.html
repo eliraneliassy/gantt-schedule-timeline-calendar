@@ -44,7 +44,7 @@
     <script src="./item-resizing.plugin.js"></script>
     <script src="./calendar-scroll.plugin.js"></script>
     <script src="./highlight-weekends.plugin.js"></script>
-    <script src="./gstc.umd.js"></script>
+    <script src="./gstc.js"></script>
     <script>
       const iterations = 500;
 
@@ -178,7 +178,7 @@
       let selectionApi;
       const config = {
         plugins: [
-          WeekendHighlight.Plugin(),
+          HighlightWeekends.Plugin(),
           TimelinePointer.Plugin(),
           Selection.Plugin(),
           ItemMovement.Plugin(),

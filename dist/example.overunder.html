@@ -43,7 +43,7 @@
     <div id="app"></div>
     <script src="./highlight-weekends.plugin.js"></script>
     <script src="./calendar-scroll.plugin.js"></script>
-    <script src="./gstc.umd.js"></script>
+    <script src="./gstc.js"></script>
     <script>
       const iterations = 100;
 
@@ -173,7 +173,7 @@
 
       let selectionApi;
       const config = {
-        plugins: [WeekendHighlight.Plugin(), CalendarScroll.Plugin()],
+        plugins: [HighlightWeekends.Plugin(), CalendarScroll.Plugin()],
         height: 500,
         list: {
           rows,
