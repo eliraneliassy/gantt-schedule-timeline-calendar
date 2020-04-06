@@ -168,12 +168,28 @@ export default function Main(vido: Vido, props = {}) {
   );
 
   onDestroy(
-    state.subscribe('config.chart.items', () => {
-      state.update(
-        '$data.list.rowsHeight',
-        api.recalculateRowsHeights(state.get('$data.list.rowsWithParentsExpanded'))
-      );
-    })
+    state.subscribeAll(
+      ['config.chart.items.*.rowId', 'config.chart.items.*.height'],
+      () => {
+        state.update(
+          '$data.list.rowsHeight',
+          api.recalculateRowsHeights(state.get('$data.list.rowsWithParentsExpanded'))
+        );
+      },
+      { bulk: true }
+    )
+  );
+
+  onDestroy(
+    state.subscribeAll(
+      ['config.chart.items.*.time', 'config.chart.items.*.$data.position'],
+      () => {
+        for (const row of state.get('$data.list.visibleRows') as Row[]) {
+          api.recalculateRowHeight(row);
+        }
+      },
+      { bulk: true }
+    )
   );
 
   function getLastPageRowsHeight(innerHeight: number, rowsWithParentsExpanded: Row[]): number {

@@ -5875,9 +5875,14 @@
 	        update();
 	    }
 	    onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;', 'config.list.rows.*.height'], prepareExpanded, { bulk: true }));
-	    onDestroy(state.subscribe('config.chart.items', () => {
+	    onDestroy(state.subscribeAll(['config.chart.items.*.rowId', 'config.chart.items.*.height'], () => {
 	        state.update('$data.list.rowsHeight', api.recalculateRowsHeights(state.get('$data.list.rowsWithParentsExpanded')));
-	    }));
+	    }, { bulk: true }));
+	    onDestroy(state.subscribeAll(['config.chart.items.*.time', 'config.chart.items.*.$data.position'], () => {
+	        for (const row of state.get('$data.list.visibleRows')) {
+	            api.recalculateRowHeight(row);
+	        }
+	    }, { bulk: true }));
 	    function getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded) {
 	        if (rowsWithParentsExpanded.length === 0)
 	            return 0;
@@ -10619,15 +10624,15 @@
 	        }
 	        return false;
 	    }
-	    fixOverlappedItems(items) {
-	        if (items.length === 0)
+	    fixOverlappedItems(rowItems) {
+	        if (rowItems.length === 0)
 	            return;
 	        let index = 0;
-	        for (let item of items) {
+	        for (let item of rowItems) {
 	            item.$data.position.top = item.top;
 	            item.$data.position.actualTop = item.$data.position.top + item.gap.top;
-	            if (index && this.itemOverlapsWithOthers(item, items)) {
-	                while (this.itemOverlapsWithOthers(item, items)) {
+	            if (index && this.itemOverlapsWithOthers(item, rowItems)) {
+	                while (this.itemOverlapsWithOthers(item, rowItems)) {
 	                    item.$data.position.top += 1;
 	                    item.$data.position.actualTop = item.$data.position.top + item.gap.top;
 	                }
@@ -10635,18 +10640,22 @@
 	            index++;
 	        }
 	    }
+	    recalculateRowHeight(row) {
+	        let actualHeight = 0;
+	        this.fixOverlappedItems(row.$data.items);
+	        for (const item of row.$data.items) {
+	            actualHeight = Math.max(actualHeight, item.$data.position.top + item.$data.outerHeight);
+	        }
+	        if (actualHeight < row.height)
+	            actualHeight = row.height;
+	        row.$data.actualHeight = actualHeight;
+	        row.$data.outerHeight = row.$data.actualHeight + row.gap.top + row.gap.bottom;
+	        return row.$data.outerHeight;
+	    }
 	    recalculateRowsHeights(rows) {
 	        let top = 0;
 	        for (const row of rows) {
-	            let actualHeight = 0;
-	            this.fixOverlappedItems(row.$data.items);
-	            for (const item of row.$data.items) {
-	                actualHeight = Math.max(actualHeight, item.$data.position.top + item.$data.outerHeight);
-	            }
-	            if (actualHeight < row.height)
-	                actualHeight = row.height;
-	            row.$data.actualHeight = actualHeight;
-	            row.$data.outerHeight = row.$data.actualHeight + row.gap.top + row.gap.bottom;
+	            this.recalculateRowHeight(row);
 	            row.top = top;
 	            top += row.$data.outerHeight;
 	        }
