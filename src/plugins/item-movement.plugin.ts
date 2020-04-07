@@ -172,9 +172,9 @@ class ItemMovement {
           itemData.position.left = start.position;
           itemData.position.actualLeft = this.api.time.limitOffsetPxToView(start.position);
           itemData.width = start.width;
+          itemData.actualWidth = itemData.position.actualRight - itemData.position.actualLeft;
           itemData.position.right = itemData.position.left + itemData.width;
           itemData.position.actualRight = this.api.time.limitOffsetPxToView(itemData.position.right);
-          itemData.actualWidth = itemData.position.actualRight - itemData.position.actualLeft;
           return itemData;
         });
     }
