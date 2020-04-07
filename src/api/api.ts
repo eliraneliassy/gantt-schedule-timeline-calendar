@@ -137,7 +137,7 @@ export class Api {
   }
 
   isItemInViewport(item: Item, leftGlobal: number, rightGlobal: number) {
-    return item.time.start <= rightGlobal || item.time.end >= leftGlobal;
+    return item.time.start <= rightGlobal && item.time.end >= leftGlobal;
   }
 
   prepareItems(items: Item[]) {

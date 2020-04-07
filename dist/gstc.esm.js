@@ -10557,7 +10557,7 @@ class Api {
         return actions.slice();
     }
     isItemInViewport(item, leftGlobal, rightGlobal) {
-        return item.time.start <= rightGlobal || item.time.end >= leftGlobal;
+        return item.time.start <= rightGlobal && item.time.end >= leftGlobal;
     }
     prepareItems(items) {
         const defaultItemHeight = this.state.get('config.chart.item.height');
