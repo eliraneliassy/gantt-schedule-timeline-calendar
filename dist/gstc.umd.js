@@ -9266,39 +9266,26 @@
 	        const dates = time.allDates[time.level];
 	        if (!dates)
 	            return -1;
-	        // if (milliseconds < time.finalFrom) {
-	        //   const level: ChartCalendarLevel = this.state.get(`config.chart.calendar.levels.${time.level}`);
-	        //   const leftDate: Dayjs = date.startOf(time.period);
-	        //   console.log('generating dates', leftDate.format('YYYY-MM-DD'), time.finalFromDate.format('YYYY-MM-DD'));
-	        //   const beforeDates = this.generatePeriodDates({
-	        //     leftDate,
-	        //     rightDate: time.finalFromDate,
-	        //     period: time.period,
-	        //     level,
-	        //     levelIndex: time.level,
-	        //     time,
-	        //   });
-	        //   let px = 0;
-	        //   for (let i = 0, len = beforeDates.length; i < len; i++) {
-	        //     px += beforeDates[i].width;
-	        //   }
-	        //   const diff = (milliseconds - leftDate.valueOf()) / time.timePerPixel;
-	        //   return -(px - diff);
-	        // }
-	        // if (milliseconds > time.totalViewDurationMs) {
-	        // }
 	        let firstMatching;
 	        // find first date that is after milliseconds
 	        for (let i = 0, len = dates.length; i < len; i++) {
 	            const currentDate = dates[i];
 	            // we cannot find date between leftGlobal and rightGlobal because hide weekends may remove those
 	            if (milliseconds <= currentDate.rightGlobal) {
-	                firstMatching = dates[i];
+	                firstMatching = currentDate;
 	                break;
 	            }
 	        }
 	        if (firstMatching) {
-	            return firstMatching.leftPx + (milliseconds - firstMatching.leftGlobal) / time.timePerPixel;
+	            // because milliseconds are lower than rightGlobal it doesn'y mean that it should be higher than leftGlobal
+	            // because there could be hidden dates so we must calculate offset from rightGlobal
+	            // also if rightGlobal is higher than milliseconds and leftGlobal is also higher it means that
+	            // milliseconds (item time) is in hidden date so we will give it leftGlobal value
+	            if (milliseconds < firstMatching.leftGlobal) {
+	                // in between hidden dates
+	                return firstMatching.leftPx;
+	            }
+	            return firstMatching.rightPx - (firstMatching.rightGlobal - milliseconds) / time.timePerPixel;
 	        }
 	        else {
 	            // date is out of the current scope (view)

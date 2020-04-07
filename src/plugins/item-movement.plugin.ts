@@ -142,13 +142,12 @@ class ItemMovement {
   getItemMovingTime(item: Item, time: DataChartTime): MovingTime {
     const horizontal = this.data.movement.px.horizontal;
     const x = item.$data.position.left + horizontal;
-    const leftGlobal = Math.round(this.api.time.getTimeFromViewOffsetPx(x, time));
-    const leftDate = this.api.time.date(leftGlobal);
-    const width = this.api.time.getGlobalOffsetPxFromDates(leftDate, time) - x;
+    const leftGlobal = this.api.time.getTimeFromViewOffsetPx(x, time);
+    const rightPx = this.api.time.getViewOffsetPxFromDates(item.$data.time.endDate);
     return {
-      time: leftDate,
+      time: this.api.time.date(leftGlobal),
       position: x,
-      width,
+      width: rightPx - x,
     };
   }
 
@@ -157,7 +156,6 @@ class ItemMovement {
     let multi = this.state.multi();
     for (const item of this.data.lastMoved) {
       const start = this.getItemMovingTime(item, time);
-      console.log(start);
       let newItemTime: ItemTime;
       multi = multi
         .update(`config.chart.items.${item.id}.time`, (itemTime: ItemTime) => {
