@@ -1014,6 +1014,8 @@
             this.state.update('config.chart.item.minWidth', this.minWidth);
             this.state.update('config.chart.items.*.minWidth', this.minWidth);
             this.html = vido.html;
+            if (!this.data.content)
+                this.data.content = this.html `<div class=${lineClass}></div><div class=${lineClass}></div>`;
             this.wrapper = this.wrapper.bind(this);
             this.onRightPointerDown = this.onRightPointerDown.bind(this);
             this.onRightPointerMove = this.onRightPointerMove.bind(this);
@@ -1044,7 +1046,6 @@
             this.rightClassName = this.api.getClass('chart-timeline-items-row-item-resizing-handle');
             this.rightClassName += ' ' + this.rightClassName + '--right';
             this.spacing = this.state.get('config.chart.spacing');
-            this.data.content = this.vido.html `<div class=${lineClass}></div><div class=${lineClass}></div>`;
         }
         getSelectedItems() {
             return this.state.get(`config.plugin.Selection.selected.${ITEM}`);
