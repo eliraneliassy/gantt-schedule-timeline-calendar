@@ -10,7 +10,7 @@
 
 import { Vido, Wrapper, htmlResult, Item, DataChartTime } from '../gstc';
 import DeepState from 'deep-state-observer';
-import { Api } from '../api/api';
+import { Api, getClass } from '../api/api';
 import { lithtml } from '@neuronet.io/vido/vido';
 import { Point, ITEM } from './timeline-pointer.plugin';
 
@@ -31,6 +31,9 @@ export interface ItemInitial {
 export interface Options {
   enabled?: boolean;
   handle?: Handle;
+  content?: htmlResult;
+  bodyClassLeft?: string;
+  bodyClassRight?: string;
 }
 
 export interface PluginData extends Options {
@@ -42,16 +45,21 @@ export interface PluginData extends Options {
   movement: number;
 }
 
+const lineClass = getClass('chart-timeline-items-row-item-resizing-handle-content-line');
+
 function generateEmptyData(options: Options = {}): PluginData {
   const result = {
     enabled: true,
     handle: {
       width: 18,
-      horizontalMargin: 1,
-      verticalMargin: 1,
+      horizontalMargin: 0,
+      verticalMargin: 0,
       outside: false,
       onlyWhenSelected: true,
     },
+    content: null,
+    bodyClassLeft: 'gstc-items-resizing-left',
+    bodyClassRight: 'gstc-items-resizing-right',
     initialPosition: { x: 0, y: 0 },
     currentPosition: { x: 0, y: 0 },
     movement: 0,
@@ -75,12 +83,16 @@ class ItemResizing {
   private rightClassName: string;
   private spacing: number = 1;
   private unsubs: (() => void)[] = [];
+  private minWidth: number;
 
   constructor(vido: Vido, options: Options) {
     this.vido = vido;
     this.state = vido.state;
     this.api = vido.api;
     this.data = generateEmptyData(options);
+    this.minWidth = this.data.handle.width * 2;
+    this.state.update('config.chart.item.minWidth', this.minWidth);
+    this.state.update('config.chart.items.*.minWidth', this.minWidth);
     this.html = vido.html;
     this.wrapper = this.wrapper.bind(this);
     this.onRightPointerDown = this.onRightPointerDown.bind(this);
@@ -115,6 +127,7 @@ class ItemResizing {
     this.rightClassName = this.api.getClass('chart-timeline-items-row-item-resizing-handle');
     this.rightClassName += ' ' + this.rightClassName + '--right';
     this.spacing = this.state.get('config.chart.spacing');
+    this.data.content = this.vido.html`<div class=${lineClass}></div><div class=${lineClass}></div>`;
   }
 
   private getSelectedItems(): Item[] {
@@ -167,13 +180,15 @@ class ItemResizing {
   }
 
   private onLeftPointerDown(ev: PointerEvent) {
-    /*if (!this.data.enabled) return;
+    if (!this.data.enabled) return;
+    document.body.classList.add(this.data.bodyClassLeft);
     this.data.leftIsMoving = true;
     this.onPointerDown(ev);
-    this.updateData();*/
+    this.updateData();
   }
   private onRightPointerDown(ev: PointerEvent) {
     if (!this.data.enabled) return;
+    document.body.classList.add(this.data.bodyClassRight);
     this.data.rightIsMoving = true;
     this.onPointerDown(ev);
     this.updateData();
@@ -199,11 +214,14 @@ class ItemResizing {
       if (item.$data.position.left > item.$data.position.right) item.$data.position.left = item.$data.position.right;
       item.$data.position.actualLeft = item.$data.position.left;
       item.$data.width = item.$data.position.right - item.$data.position.left;
+      if (item.$data.width < item.minWidth) item.$data.width = item.minWidth;
       item.$data.actualWidth = item.$data.width;
       const leftGlobal = this.api.time.getTimeFromViewOffsetPx(item.$data.position.left, time);
       item.time.start = leftGlobal;
       item.$data.time.startDate = this.api.time.date(leftGlobal);
-      multi = multi.update(`config.chart.items.${item.id}`, item);
+      multi = multi
+        .update(`config.chart.items.${item.id}.time`, item.time)
+        .update(`config.chart.items.${item.id}.$data`, item.$data);
     }
     multi.done();
     this.updateData();
@@ -219,7 +237,7 @@ class ItemResizing {
     for (let i = 0, len = selected.length; i < len; i++) {
       const item = selected[i];
       item.$data.width = this.data.itemsInitial[i].width + movement;
-      if (item.$data.width < 0) item.$data.width = 0;
+      if (item.$data.width < item.minWidth) item.$data.width = item.minWidth;
       item.$data.actualWidth = item.$data.width;
       const right = item.$data.position.left + item.$data.width;
       item.$data.position.right = right;
@@ -241,12 +259,14 @@ class ItemResizing {
   }
   private onLeftPointerUp(ev: PointerEvent) {
     if (!this.data.enabled || !this.data.leftIsMoving) return;
+    document.body.classList.remove(this.data.bodyClassLeft);
     this.onPointerUp(ev);
     this.data.leftIsMoving = false;
     this.updateData();
   }
   private onRightPointerUp(ev: PointerEvent) {
     if (!this.data.enabled || !this.data.rightIsMoving) return;
+    document.body.classList.remove(this.data.bodyClassRight);
     this.onPointerUp(ev);
     this.data.rightIsMoving = false;
     this.updateData();
@@ -272,7 +292,7 @@ class ItemResizing {
       //capture: true,
     };
     return this
-      .html`${oldContent}<div detach=${detach} class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}></div>`;
+      .html`${oldContent}<div detach=${detach} class=${this.leftClassName} style=${leftStyleMap} @pointerdown=${onLeftPointerDown}>${this.data.content}</div><div detach=${detach} class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}>${this.data.content}</div>`;
   }
 
   public getWrapper(oldWrapper: Wrapper): Wrapper {

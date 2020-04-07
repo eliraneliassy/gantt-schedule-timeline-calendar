@@ -1,7 +1,8 @@
 import { Time } from './time';
 import DeepState from 'deep-state-observer';
 import dayjs from 'dayjs';
-import { Config, Row, Item, Vido } from '../gstc';
+import { Config, DataChartTime, Row, Item, Vido } from '../gstc';
+export declare function getClass(name: string): string;
 export declare function stateFromConfig(userConfig: Config): any;
 export declare const publicApi: {
     name: string;
@@ -33,10 +34,10 @@ export declare class Api {
     setVido(Vido: Vido): void;
     log(...args: any[]): void;
     mergeDeep: typeof import("@neuronet.io/vido/helpers").mergeDeep;
-    getClass(name: string): string;
+    getClass: typeof getClass;
     allActions: any[];
     getActions(name: string): any;
-    isItemInViewport(item: Item, left: number, right: number): boolean;
+    isItemInViewport(item: Item, leftGlobal: number, rightGlobal: number): boolean;
     prepareItems(items: Item[]): Item[];
     fillEmptyRowValues(rows: Row[]): Row[];
     itemsOnTheSameLevel(item1: Item, item2: Item): boolean;
@@ -56,7 +57,8 @@ export declare class Api {
     getRowsHeight(rows: any): number;
     getVisibleRows(rowsWithParentsExpanded: any): any[];
     normalizeMouseWheelEvent(event: any): WheelResult;
-    scrollToTime(toTime: number, centered?: boolean): number;
+    scrollToTime(toTime: number, centered?: boolean, time?: DataChartTime): number;
+    setScrollLeft(dataIndex: number | undefined, time?: DataChartTime): void;
     getSVGIconSrc(svg: any): string;
     destroy(): void;
 }

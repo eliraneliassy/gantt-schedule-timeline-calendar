@@ -34,6 +34,7 @@ export interface SnapEndArg extends SnapArg {
 export interface Options {
   enabled?: boolean;
   className?: string;
+  bodyClass?: string;
   onStart?: (items: Item[]) => void;
   onMove?: (items: Item[]) => void;
   onEnd?: (items: Item[]) => void;
@@ -69,6 +70,7 @@ function prepareOptions(options: Options): Options {
   return {
     enabled: true,
     className: '',
+    bodyClass: 'gstc-items-moving',
     ...options,
   };
 }
@@ -191,7 +193,12 @@ class ItemMovement {
   }
 
   onStart() {
+    document.body.classList.add(this.data.bodyClass);
     this.data.lastPosition = { ...this.selection.currentPosition };
+  }
+
+  onEnd() {
+    document.body.classList.remove(this.data.bodyClass);
   }
 
   onSelectionChange(data: SelectionPluginData) {
@@ -211,6 +218,8 @@ class ItemMovement {
 
     if (this.data.state === 'up' && this.selection.pointerState === 'down') {
       this.onStart();
+    } else if ((this.data.state === 'down' || this.data.state === 'move') && this.selection.pointerState === 'up') {
+      this.onEnd();
     }
 
     this.data.moving = [...this.selection.selected[ITEM]];

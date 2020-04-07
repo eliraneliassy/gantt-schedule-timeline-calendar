@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { ScrollTypeHorizontal, Vido } from '../gstc';
+import { ScrollTypeHorizontal, Vido, Scroll } from '../gstc';
 import DeepState from 'deep-state-observer';
 import { Api } from '../api/api';
 
@@ -19,10 +19,12 @@ export interface Point {
 
 export interface Options {
   enabled: boolean;
+  bodyClassName: string;
 }
 
 const defaultOptions = {
   enabled: true,
+  bodyClassName: 'gstc-calendar-scrolling',
 };
 
 export function Plugin(options: Options = defaultOptions) {
@@ -33,7 +35,6 @@ export function Plugin(options: Options = defaultOptions) {
     private moving = false;
     private initialPoint: Point;
     private initialDataIndex: Point = { x: 0, y: 0 };
-    private lastPos = 0;
 
     constructor(element: HTMLElement) {
       this.pointerDown = this.pointerDown.bind(this);
@@ -57,14 +58,16 @@ export function Plugin(options: Options = defaultOptions) {
 
     private pointerDown(ev: PointerEvent) {
       if (!enabled) return;
+      document.body.classList.add(options.bodyClassName);
       this.moving = true;
       this.resetInitialPoint(ev);
-      const scroll = state.get('config.scroll');
+      const scroll: Scroll = state.get('config.scroll');
       this.initialDataIndex = { x: scroll.horizontal.dataIndex || 0, y: scroll.vertical.dataIndex || 0 };
     }
 
     private pointerUp(ev: PointerEvent) {
       if (!enabled) return;
+      document.body.classList.remove(options.bodyClassName);
       if (this.moving) {
         this.moving = false;
       }

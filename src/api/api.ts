@@ -12,11 +12,30 @@ import { Time } from './time';
 import State from 'deep-state-observer';
 import DeepState from 'deep-state-observer';
 import dayjs from 'dayjs';
-import { Config, Period, DataChartTime, ScrollTypeHorizontal, Row, Item, Vido, Items } from '../gstc';
+import {
+  Config,
+  Period,
+  DataChartTime,
+  ScrollTypeHorizontal,
+  Row,
+  Item,
+  Vido,
+  Items,
+  DefaultItem,
+  DataChartTimeLevelDate,
+} from '../gstc';
 import helpers from '@neuronet.io/vido/helpers';
 const mergeDeep = helpers.mergeDeep;
 
 const lib = 'gantt-schedule-timeline-calendar';
+
+export function getClass(name: string) {
+  let simple = `${lib}__${name}`;
+  if (name === lib) {
+    simple = lib;
+  }
+  return simple;
+}
 
 function mergeActions(userConfig: Config, defaultConfig: Config) {
   const defaultConfigActions = mergeDeep({}, defaultConfig.actions);
@@ -85,7 +104,7 @@ export class Api {
 
   constructor(state: DeepState) {
     this.state = state;
-    this.time = new Time(this.state);
+    this.time = new Time(this.state, this);
     if (this.debug) {
       // @ts-ignore
       window.state = state;
@@ -105,15 +124,7 @@ export class Api {
   }
 
   mergeDeep = mergeDeep;
-
-  getClass(name: string) {
-    let simple = `${lib}__${name}`;
-    if (name === this.name) {
-      simple = this.name;
-    }
-    return simple;
-  }
-
+  getClass = getClass;
   allActions = [];
 
   getActions(name: string) {
@@ -125,18 +136,13 @@ export class Api {
     return actions.slice();
   }
 
-  isItemInViewport(item: Item, left: number, right: number) {
-    return (
-      (item.time.start >= left && item.time.start < right) ||
-      (item.time.end >= left && item.time.end < right) ||
-      (item.time.start <= left && item.time.end >= right)
-    );
+  isItemInViewport(item: Item, leftGlobal: number, rightGlobal: number) {
+    return item.time.start <= rightGlobal || item.time.end >= leftGlobal;
   }
 
   prepareItems(items: Item[]) {
     const defaultItemHeight = this.state.get('config.chart.item.height');
     const itemsObj: Items = this.state.get('config.chart.items');
-    const linked = {};
     for (const item of items) {
       // linked items should have links to each others
       if (item.linkedWith && item.linkedWith.length) {
@@ -149,6 +155,7 @@ export class Api {
       item.time.start = +item.time.start;
       item.time.end = +item.time.end;
       item.id = String(item.id);
+      const defaultItem: DefaultItem = this.state.get('config.chart.item');
       if (typeof item.height !== 'number') item.height = defaultItemHeight;
       if (!item.$data)
         item.$data = {
@@ -163,8 +170,8 @@ export class Api {
             top: item.top || 0,
             actualTop: item.top || 0,
           },
-          width: 0,
-          actualWidth: 0,
+          width: item.minWidth ? item.minWidth : defaultItem.minWidth,
+          actualWidth: item.minWidth ? item.minWidth : defaultItem.minWidth,
           detached: false,
         };
       if (!item.$data.time)
@@ -175,8 +182,9 @@ export class Api {
       item.$data.actualHeight = item.height;
       if (typeof item.top !== 'number') item.top = 0;
       if (!item.gap) item.gap = {};
-      if (typeof item.gap.top !== 'number') item.gap.top = this.state.get('config.chart.item.gap.top');
-      if (typeof item.gap.bottom !== 'number') item.gap.bottom = this.state.get('config.chart.item.gap.bottom');
+      if (typeof item.gap.top !== 'number') item.gap.top = defaultItem.gap.top;
+      if (typeof item.gap.bottom !== 'number') item.gap.bottom = defaultItem.gap.bottom;
+      if (typeof item.minWidth !== 'number') item.minWidth = defaultItem.minWidth;
       item.$data.outerHeight = item.$data.actualHeight + item.gap.top + item.gap.bottom;
       item.$data.position.actualTop = item.$data.position.top + item.gap.top;
     }
@@ -440,8 +448,7 @@ export class Api {
     return { x, y, z, event };
   }
 
-  scrollToTime(toTime: number, centered = true): number {
-    const time: DataChartTime = this.state.get('$data.chart.time');
+  scrollToTime(toTime: number, centered = true, time: DataChartTime = this.state.get('$data.chart.time')): number {
     let pos = 0;
     this.state.update('config.scroll.horizontal', (scrollHorizontal: ScrollTypeHorizontal) => {
       let leftGlobal = toTime;
@@ -468,6 +475,33 @@ export class Api {
       return scrollHorizontal;
     });
     return pos;
+  }
+
+  setScrollLeft(dataIndex: number | undefined, time: DataChartTime = this.state.get('$data.chart.time')) {
+    if (dataIndex === undefined) {
+      dataIndex = 0;
+    }
+    const allDates = time.allDates[time.level];
+    if (!allDates) return;
+    const date: DataChartTimeLevelDate = allDates[dataIndex];
+    if (!date) return;
+    const horizontal: ScrollTypeHorizontal = this.state.get('config.scroll.horizontal');
+    if (horizontal.data && horizontal.data.leftGlobal === date.leftGlobal) return;
+    this.state.update(
+      'config.scroll.horizontal',
+      (scrollHorizontal: ScrollTypeHorizontal) => {
+        scrollHorizontal.data = date;
+        const time = this.state.get('$data.chart.time');
+        scrollHorizontal.posPx = this.time.calculateScrollPosPxFromTime(
+          scrollHorizontal.data.leftGlobal,
+          time,
+          scrollHorizontal
+        );
+        scrollHorizontal.dataIndex = dataIndex;
+        return scrollHorizontal;
+      },
+      { queue: true }
+    );
   }
 
   getSVGIconSrc(svg) {

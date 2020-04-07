@@ -1,4 +1,4 @@
-import { Vido } from '../gstc';
+import { Vido, htmlResult } from '../gstc';
 import { Point } from './timeline-pointer.plugin';
 export interface Handle {
     width?: number;
@@ -15,6 +15,9 @@ export interface ItemInitial {
 export interface Options {
     enabled?: boolean;
     handle?: Handle;
+    content?: htmlResult;
+    bodyClassLeft?: string;
+    bodyClassRight?: string;
 }
 export interface PluginData extends Options {
     leftIsMoving: boolean;

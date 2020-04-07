@@ -9,6 +9,7 @@
  */
 const defaultOptions = {
     enabled: true,
+    bodyClassName: 'gstc-calendar-scrolling',
 };
 function Plugin(options = defaultOptions) {
     let vido, api, state;
@@ -17,7 +18,6 @@ function Plugin(options = defaultOptions) {
         constructor(element) {
             this.moving = false;
             this.initialDataIndex = { x: 0, y: 0 };
-            this.lastPos = 0;
             this.pointerDown = this.pointerDown.bind(this);
             this.pointerUp = this.pointerUp.bind(this);
             this.pointerMove = vido.schedule(this.pointerMove.bind(this));
@@ -37,6 +37,7 @@ function Plugin(options = defaultOptions) {
         pointerDown(ev) {
             if (!enabled)
                 return;
+            document.body.classList.add(options.bodyClassName);
             this.moving = true;
             this.resetInitialPoint(ev);
             const scroll = state.get('config.scroll');
@@ -45,6 +46,7 @@ function Plugin(options = defaultOptions) {
         pointerUp(ev) {
             if (!enabled)
                 return;
+            document.body.classList.remove(options.bodyClassName);
             if (this.moving) {
                 this.moving = false;
             }

@@ -94,7 +94,13 @@ export default function ChartTimelineGrid(vido: Vido, props) {
   }
   onDestroy(
     state.subscribeAll(
-      ['$data.list.visibleRows;', `$data.chart.time.levels`, '$data.innerHeight', '$data.chart.dimensions.width'],
+      [
+        '$data.list.visibleRows;',
+        '$data.list.visibleRowsHeight',
+        `$data.chart.time.levels`,
+        '$data.innerHeight',
+        '$data.chart.dimensions.width',
+      ],
       generateCells,
       {
         bulk: true,

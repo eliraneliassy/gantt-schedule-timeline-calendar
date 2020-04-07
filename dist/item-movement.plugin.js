@@ -25,7 +25,7 @@
    * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
    */
   function prepareOptions(options) {
-      return Object.assign({ enabled: true, className: '' }, options);
+      return Object.assign({ enabled: true, className: '', bodyClass: 'gstc-items-moving' }, options);
   }
   const pluginPath = 'config.plugin.ItemMovement';
   function gemerateEmptyPluginData(options) {
@@ -124,7 +124,11 @@
           this.data.state = this.selection.pointerState;
       }
       onStart() {
+          document.body.classList.add(this.data.bodyClass);
           this.data.lastPosition = Object.assign({}, this.selection.currentPosition);
+      }
+      onEnd() {
+          document.body.classList.remove(this.data.bodyClass);
       }
       onSelectionChange(data) {
           if (!this.data.enabled)
@@ -143,6 +147,9 @@
           }
           if (this.data.state === 'up' && this.selection.pointerState === 'down') {
               this.onStart();
+          }
+          else if ((this.data.state === 'down' || this.data.state === 'move') && this.selection.pointerState === 'up') {
+              this.onEnd();
           }
           this.data.moving = [...this.selection.selected[ITEM]];
           if (this.data.moving.length)

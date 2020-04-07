@@ -75,6 +75,7 @@ export interface Item {
     height?: number;
     top?: number;
     gap?: ItemGap;
+    minWidth?: number;
     style?: CSSProps;
     classNames?: string[];
     isHTML?: boolean;
@@ -100,7 +101,7 @@ export interface RowWithCells {
 export declare type VoidFunction = () => void;
 export declare type PluginInitialization = (vido: unknown) => void | VoidFunction;
 export declare type Plugin = <T>(options: T) => PluginInitialization;
-export declare type htmlResult = lithtml.TemplateResult | lithtml.SVGTemplateResult | undefined;
+export declare type htmlResult = lithtml.TemplateResult | lithtml.SVGTemplateResult | undefined | null;
 export declare type RenderFunction = (templateProps: unknown) => htmlResult;
 export declare type Component = (vido: unknown, props: unknown) => RenderFunction;
 export interface Components {
@@ -357,6 +358,7 @@ export interface DefaultItem {
     gap?: ItemGap;
     height?: number;
     top?: number;
+    minWidth?: number;
 }
 export interface Chart {
     time?: ChartTime;
@@ -476,6 +478,8 @@ export interface Reason {
     name: string;
     oldValue?: unknown;
     newValue?: unknown;
+    from?: number;
+    to?: number;
 }
 export interface GSTCOptions {
     state: DeepState;

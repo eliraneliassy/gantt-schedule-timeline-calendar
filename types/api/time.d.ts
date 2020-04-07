@@ -1,5 +1,7 @@
 import dayjs, { Dayjs } from 'dayjs';
-import { DataChartTime, DataChartTimeLevelDate, ChartTimeDate, ScrollTypeHorizontal, Period, ChartCalendarLevel, ChartCalendarFormat } from '../gstc';
+import { DataChartTime, DataChartTimeLevelDate, ChartTimeDate, ScrollTypeHorizontal, Period, ChartCalendarLevel, ChartCalendarFormat, Reason } from '../gstc';
+import DeepState from 'deep-state-observer';
+import { Api } from './api';
 export interface CurrentDate {
     timestamp: number;
     hour: Dayjs;
@@ -12,13 +14,14 @@ export declare class Time {
     private locale;
     private utcMode;
     private state;
+    private api;
     dayjs: typeof dayjs;
     currentDate: CurrentDate;
-    constructor(state: any);
+    constructor(state: DeepState, api: Api);
     private resetCurrentDate;
     date(time?: number | string | Date | undefined): dayjs.Dayjs;
     private addAdditionalSpace;
-    recalculateFromTo(time: DataChartTime): DataChartTime;
+    recalculateFromTo(time: DataChartTime, reason: Reason): DataChartTime;
     getCenter(time: DataChartTime): number;
     getGlobalOffsetPxFromDates(date: Dayjs, time?: DataChartTime): number;
     getViewOffsetPxFromDates(date: Dayjs, limitToView?: boolean, time?: DataChartTime): number;

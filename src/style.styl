@@ -15,6 +15,15 @@ $font-color-4 = hsla(210, 5%, 38%, 70%)
 
 $item-content-padding = 5px
 
+body.gstc-items-resizing-left
+  cursor: w-resize !important
+body.gstc-items-resizing-right
+  cursor: e-resize !important
+body.gstc-items-moving
+  cursor: grab !important
+body.gstc-calendar-scrolling
+  cursor: grab !important
+
 .gantt-schedule-timeline-calendar
   display: flex
   overflow: hidden
@@ -43,6 +52,7 @@ $item-content-padding = 5px
     overflow: hidden
     position: relative
     border-radius: 10px
+    cursor: grab
     &--vertical
       flex-shrink: 0
       position: absolute
@@ -380,6 +390,8 @@ $item-content-padding = 5px
             color: white
             line-height: 22px
             display: flex
+            &--selected > &-label
+              margin-left: 18px
             &--left-cut
               border-top-left-radius: 0px
               border-bottom-left-radius: 0px
@@ -398,11 +410,12 @@ $item-content-padding = 5px
               overflow: hidden
               text-overflow: ellipsis
               white-space: nowrap
-              margin-left: 4px
+              margin-left: 10px
             &--selecting
               box-shadow: 0px 0px 2px 2px rgba(0,119, 192, 0.5)
             &--selected
               box-shadow: 0px 0px 2px 2px rgba(0,119, 192, 1)
+              cursor: grab
             &--moving
               touch-action: none
               opacity: 0.5
@@ -411,22 +424,28 @@ $item-content-padding = 5px
               overflow: hidden
               z-index: 100
               pointer-events: all
+              display: flex
+              background-blend-mode: overlay
+              background: rgba(0,0,0,0.06)
+              &-content-line
+                width: 1px;
+                height: 40%;
+                background: rgba(255, 255, 255, 0.4);
+                box-shadow: -1px -1px 0px rgba(0,0,0,0.05)
+                background-blend-mode: overlay
+                border-radius: 1px;
+                margin: auto 1px;
+                margin-left: 1px;
               &--right
-                background: radial-gradient(ellipse at left, rgba(255,255,255,0) 10%, rgba(255,255,255,0) 21%, rgba(255,255,255,0.7) 50%)
-                // background: radial-gradient(ellipse at left, rgba(255,255,255,0) 19%, rgba(255,255,255,0.85) 46%,rgba(255,255,255,0.85) 56%)
-                background-size: 100% 400%
-                background-position: left center
                 border-top-right-radius: 20px
                 border-bottom-right-radius: 20px
                 cursor: e-resize
+                padding-left: 5px
               &--left
-                background: radial-gradient(ellipse at right, rgba(255,255,255,0) 10%, rgba(255,255,255,0) 21%, rgba(255,255,255,0.7) 50%)
-                // background: radial-gradient(ellipse at right, rgba(255,255,255,0) 19%, rgba(255,255,255,0.85) 46%,rgba(255,255,255,0.85) 56%)
-                background-size: 100% 400%
-                background-position: right center
                 border-top-left-radius: 20px
                 border-bottom-left-radius: 20px
                 cursor: w-resize
+                padding-left: 7px
           &-item-dependency
             &-line
               position: absolute

@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Row, Vido } from '../../../../gstc';
+import { Row, Vido } from '../../../gstc';
 export interface Props {
   row: Row;
 }

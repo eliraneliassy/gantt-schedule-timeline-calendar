@@ -17,6 +17,7 @@ export interface SnapEndArg extends SnapArg {
 export interface Options {
     enabled?: boolean;
     className?: string;
+    bodyClass?: string;
     onStart?: (items: Item[]) => void;
     onMove?: (items: Item[]) => void;
     onEnd?: (items: Item[]) => void;

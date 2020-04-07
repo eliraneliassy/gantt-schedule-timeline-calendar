@@ -78,27 +78,6 @@ export default function ScrollBar(vido: Vido, props: Props) {
     return fullSize;
   }
 
-  function setScrollLeft(dataIndex: number | undefined, queue = false) {
-    if (dataIndex === undefined) {
-      dataIndex = 0;
-    }
-    const date: DataChartTimeLevelDate = allDates[dataIndex];
-    if (!date) return;
-    const horizontal: ScrollTypeHorizontal = state.get('config.scroll.horizontal');
-    if (horizontal.data && horizontal.data.leftGlobal === date.leftGlobal) return;
-    state.update('config.scroll.horizontal', (scrollHorizontal: ScrollTypeHorizontal) => {
-      scrollHorizontal.data = date;
-      const time = state.get('$data.chart.time');
-      scrollHorizontal.posPx = api.time.calculateScrollPosPxFromTime(
-        scrollHorizontal.data.leftGlobal,
-        time,
-        scrollHorizontal
-      );
-      scrollHorizontal.dataIndex = dataIndex;
-      return scrollHorizontal;
-    });
-  }
-
   function setScrollTop(dataIndex: number | undefined) {
     if (dataIndex === undefined) {
       dataIndex = 0;
@@ -136,7 +115,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
             dataIndex = dates.length - lastPageCount;
           }
           if (dataIndex !== lastDataIndex) {
-            setScrollLeft(dataIndex);
+            api.setScrollLeft(dataIndex);
           }
           lastDataIndex = dataIndex;
         }
@@ -358,7 +337,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
         if (!dataIndex) dataIndex = 0;
         this.dataIndex = dataIndex;
         if (props.type === 'horizontal') {
-          setScrollLeft(dataIndex);
+          api.setScrollLeft(dataIndex);
         } else {
           setScrollTop(dataIndex);
         }

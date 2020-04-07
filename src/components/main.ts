@@ -321,7 +321,7 @@ export default function Main(vido: Vido, props = {}) {
     time.leftGlobal = time.leftGlobalDate.valueOf();
     time.rightGlobalDate = api.time.date(time.rightGlobal).endOf(time.period);
     time.rightGlobal = time.rightGlobalDate.valueOf();
-    if (updateCenter) {
+    /*if (updateCenter) {
       const diffPeriod = Math.floor(time.rightGlobalDate.diff(time.leftGlobalDate, time.period, true) / 2);
       let amount = 0,
         period = 'day';
@@ -352,7 +352,7 @@ export default function Main(vido: Vido, props = {}) {
     } else {
       time.centerGlobal = oldTime.centerGlobal;
       time.centerGlobalDate = oldTime.centerGlobalDate;
-    }
+    }*/
     return time;
   }
 
@@ -585,7 +585,16 @@ export default function Main(vido: Vido, props = {}) {
       time.timePerPixel = time.totalViewDurationMs / chartWidth;
       time.zoom = Math.log(time.timePerPixel) / Math.log(2);
       guessPeriod(time, calendar.levels);
-      if (oldTime.zoom !== time.zoom || time.allDates.length === 0 || reason.name === 'forceUpdate') {
+      if (
+        oldTime.zoom !== time.zoom ||
+        time.allDates.length === 0 ||
+        reason.name === 'forceUpdate' ||
+        reason.name === 'items'
+      ) {
+        if (reason.name === 'items') {
+          time.from = reason.from;
+          time.to = reason.to;
+        }
         scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
         calculateTotalViewDuration(time);
         const all = time.allDates[time.level];
@@ -597,8 +606,17 @@ export default function Main(vido: Vido, props = {}) {
       time.rightGlobalDate = api.time.date(time.rightGlobal);
     } else {
       time.timePerPixel = Math.pow(2, time.zoom);
-      time = api.time.recalculateFromTo(time);
-      if (oldTime.zoom !== time.zoom || time.allDates.length === 0 || reason.name === 'forceUpdate') {
+      time = api.time.recalculateFromTo(time, reason);
+      if (
+        oldTime.zoom !== time.zoom ||
+        time.allDates.length === 0 ||
+        reason.name === 'forceUpdate' ||
+        reason.name === 'items'
+      ) {
+        if (reason.name === 'items') {
+          time.from = reason.from;
+          time.to = reason.to;
+        }
         scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
         calculateTotalViewDuration(time);
         const all = time.allDates[time.level];
@@ -755,13 +773,18 @@ export default function Main(vido: Vido, props = {}) {
   );
 
   onDestroy(
-    state.subscribe(
-      'config.chart.items.*.time',
-      (items) => {
-        recalculateTimes({ name: 'items' });
-      },
-      { bulk: true }
-    )
+    state.subscribe('config.chart.items.:itemId.time', (bulk, eventInfo) => {
+      const time: DataChartTime = state.get('$data.chart.time');
+      const item: Item = state.get(`config.chart.items.${eventInfo.params.itemId}`);
+      if (!item) return;
+      if (item.time.start < time.from || item.time.end > time.to) {
+        let from = time.from,
+          to = time.to;
+        if (item.time.start < time.from) from = item.time.start;
+        if (item.time.end > time.to) to = item.time.end;
+        recalculateTimes({ name: 'items', from, to });
+      }
+    })
   );
 
   try {

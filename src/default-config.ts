@@ -11,11 +11,11 @@ import Main from './components/main';
 import ScrollBar from './components/scroll-bar';
 import List from './components/list/list';
 import ListColumn from './components/list/column/column';
-import ListColumnHeader from './components/list/column/header/column-header';
-import ListColumnHeaderResizer from './components/list/column/header/column-header-resizer';
-import ListColumnRow from './components/list/column/row/row';
-import ListColumnRowExpander from './components/list/column/row/row-expander';
-import ListColumnRowExpanderToggle from './components/list/column/row/row-expander-toggle';
+import ListColumnHeader from './components/list/column/column-header';
+import ListColumnHeaderResizer from './components/list/column/column-header-resizer';
+import ListColumnRow from './components/list/column/column-row';
+import ListColumnRowExpander from './components/list/column/column-row-expander';
+import ListColumnRowExpanderToggle from './components/list/column/column-row-expander-toggle';
 import ListToggle from './components/list/list-toggle';
 import Chart from './components/chart/chart';
 import ChartCalendar from './components/chart/calendar/calendar';
@@ -206,7 +206,7 @@ function defaultConfig(): Config {
     },
     scroll: {
       horizontal: {
-        size: 14,
+        size: 20,
         minInnerSize: 40,
         data: null,
         posPx: 0,
@@ -214,7 +214,7 @@ function defaultConfig(): Config {
         area: 0,
       },
       vertical: {
-        size: 14,
+        size: 20,
         minInnerSize: 40,
         data: null,
         posPx: 0,
@@ -445,6 +445,7 @@ function defaultConfig(): Config {
         },
         top: 0,
         height: 40 - 8,
+        minWidth: 10,
       },
       items: {},
       spacing: 1,

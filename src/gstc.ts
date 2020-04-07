@@ -100,6 +100,7 @@ export interface Item {
   height?: number;
   top?: number;
   gap?: ItemGap;
+  minWidth?: number;
   style?: CSSProps;
   classNames?: string[];
   isHTML?: boolean;
@@ -132,7 +133,7 @@ export type PluginInitialization = (vido: unknown) => void | VoidFunction;
 
 export type Plugin = <T>(options: T) => PluginInitialization;
 
-export type htmlResult = lithtml.TemplateResult | lithtml.SVGTemplateResult | undefined;
+export type htmlResult = lithtml.TemplateResult | lithtml.SVGTemplateResult | undefined | null;
 
 export type RenderFunction = (templateProps: unknown) => htmlResult;
 
@@ -434,6 +435,7 @@ export interface DefaultItem {
   gap?: ItemGap;
   height?: number;
   top?: number;
+  minWidth?: number;
 }
 
 export interface Chart {
@@ -572,6 +574,8 @@ export interface Reason {
   name: string;
   oldValue?: unknown;
   newValue?: unknown;
+  from?: number;
+  to?: number;
 }
 
 export interface GSTCOptions {

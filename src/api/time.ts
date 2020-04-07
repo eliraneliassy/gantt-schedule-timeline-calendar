@@ -18,7 +18,10 @@ import {
   Period,
   ChartCalendarLevel,
   ChartCalendarFormat,
+  Reason,
 } from '../gstc';
+import DeepState from 'deep-state-observer';
+import { Api } from './api';
 
 export interface CurrentDate {
   timestamp: number;
@@ -32,13 +35,15 @@ export interface CurrentDate {
 export class Time {
   private locale: Locale;
   private utcMode = false;
-  private state: any;
+  private state: DeepState;
+  private api: Api;
   public dayjs: typeof dayjs;
   public currentDate: CurrentDate;
 
-  constructor(state) {
-    this.dayjs = dayjs;
+  constructor(state: DeepState, api: Api) {
     this.state = state;
+    this.api = api;
+    this.dayjs = dayjs;
     this.locale = state.get('config.locale');
     this.utcMode = state.get('config.utcMode');
     this.resetCurrentDate();
@@ -79,11 +84,13 @@ export class Time {
     return time;
   }
 
-  public recalculateFromTo(time: DataChartTime) {
+  public recalculateFromTo(time: DataChartTime, reason: Reason) {
     const period = time.period;
     time = { ...time };
     time.from = +time.from;
     time.to = +time.to;
+    time.fromDate = this.date(time.from);
+    time.toDate = this.date(time.to);
 
     let from = Number.MAX_SAFE_INTEGER,
       to = 0;
@@ -111,7 +118,7 @@ export class Time {
     }
     time.finalFrom = time.fromDate.startOf(period).valueOf();
     time.finalTo = time.toDate.startOf(period).valueOf();
-    time = this.addAdditionalSpace(time);
+    if (reason.name !== 'forceUpdate' && reason.name !== 'items') time = this.addAdditionalSpace(time);
     return time;
   }
 
@@ -123,27 +130,27 @@ export class Time {
     const milliseconds = date.valueOf();
     const dates = time.allDates[time.level];
     if (!dates) return -1;
-    /*if (milliseconds < time.finalFrom) {
-      const level: ChartCalendarLevel = this.state.get(`config.chart.calendar.levels.${time.level}`);
-      const leftDate: Dayjs = date.startOf(time.period);
-      console.log('generating dates', leftDate.format('YYYY-MM-DD'), time.finalFromDate.format('YYYY-MM-DD'));
-      const beforeDates = this.generatePeriodDates({
-        leftDate,
-        rightDate: time.finalFromDate,
-        period: time.period,
-        level,
-        levelIndex: time.level,
-        time,
-      });
-      let px = 0;
-      for (let i = 0, len = beforeDates.length; i < len; i++) {
-        px += beforeDates[i].width;
-      }
-      const diff = (milliseconds - leftDate.valueOf()) / time.timePerPixel;
-      return -(px - diff);
-    }
-    if (milliseconds > time.totalViewDurationMs) {
-    }*/
+    // if (milliseconds < time.finalFrom) {
+    //   const level: ChartCalendarLevel = this.state.get(`config.chart.calendar.levels.${time.level}`);
+    //   const leftDate: Dayjs = date.startOf(time.period);
+    //   console.log('generating dates', leftDate.format('YYYY-MM-DD'), time.finalFromDate.format('YYYY-MM-DD'));
+    //   const beforeDates = this.generatePeriodDates({
+    //     leftDate,
+    //     rightDate: time.finalFromDate,
+    //     period: time.period,
+    //     level,
+    //     levelIndex: time.level,
+    //     time,
+    //   });
+    //   let px = 0;
+    //   for (let i = 0, len = beforeDates.length; i < len; i++) {
+    //     px += beforeDates[i].width;
+    //   }
+    //   const diff = (milliseconds - leftDate.valueOf()) / time.timePerPixel;
+    //   return -(px - diff);
+    // }
+    // if (milliseconds > time.totalViewDurationMs) {
+    // }
     let firstMatching: ChartTimeDate;
     // find first date that is after milliseconds
     for (let i = 0, len = dates.length; i < len; i++) {
@@ -193,7 +200,7 @@ export class Time {
     if (finalOffset < 0) {
       // we need to generate some dates before and update leftPx to negative values
       let date: ChartTimeDate;
-      let leftDate = time.leftGlobalDate.subtract(1, time.period);
+      let leftDate = time.finalFromDate.subtract(1, time.period);
       let left = 0;
       // I think that 1000 is enough to find any date and doesn't get stuck at infinite loop
       for (let i = 0; i < 1000; i++) {
@@ -207,6 +214,13 @@ export class Time {
         })[0];
         left -= date.width;
         if (left <= finalOffset) {
+          this.state.update('config.chart.time', (time: DataChartTime) => {
+            time.finalFrom = date.leftGlobal;
+            time.forceUpdate = true;
+            return time;
+          });
+          time = this.state.get('$data.chart.time') as DataChartTime;
+          this.api.setScrollLeft(0, time);
           return date.leftGlobal + Math.round((Math.abs(finalOffset) - Math.abs(date.leftPx)) * time.timePerPixel);
         }
         leftDate = leftDate.subtract(1, time.period).startOf(time.period);
@@ -214,7 +228,7 @@ export class Time {
     } else if (finalOffset > time.totalViewDurationPx) {
       // we need to generate some dates after and update leftPx
       let date: ChartTimeDate;
-      let leftDate = time.rightGlobalDate;
+      let leftDate = time.finalToDate;
       let left = time.rightPx;
       // I think that 1000 is enough to find any date and doesn't get stuck at infinite loop
       for (let i = 0; i < 1000; i++) {
@@ -228,6 +242,13 @@ export class Time {
         })[0];
         left += date.width;
         if (left >= finalOffset) {
+          this.state.update('config.chart.time', (time: DataChartTime) => {
+            time.finalTo = date.rightGlobal;
+            time.forceUpdate = true;
+            return time;
+          });
+          time = this.state.get('$data.chart.time') as DataChartTime;
+          this.api.setScrollLeft(time.allDates[time.level].length - 1, time);
           return date.leftGlobal + Math.round((Math.abs(finalOffset) - Math.abs(date.leftPx)) * time.timePerPixel);
         }
         leftDate = leftDate.add(1, time.period).startOf(time.period);

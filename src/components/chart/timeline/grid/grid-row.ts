@@ -50,7 +50,10 @@ export default function ChartTimelineGridRow(vido: Vido, props: RowWithCells) {
     })
   );
 
-  const GridCellComponent = state.get('config.components.ChartTimelineGridRowCell');
+  let GridCellComponent;
+  onDestroy(
+    state.subscribe('config.components.ChartTimelineGridRowCell', (component) => (GridCellComponent = component))
+  );
 
   const componentActions = api.getActions(componentName);
   let className;
