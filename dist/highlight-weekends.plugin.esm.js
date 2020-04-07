@@ -237,3 +237,4 @@ function Plugin(options = {}) {
 }
 
 export { Plugin };
+//# sourceMappingURL=highlight-weekends.plugin.esm.js.map

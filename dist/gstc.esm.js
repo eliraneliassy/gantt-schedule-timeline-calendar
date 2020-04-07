@@ -9384,6 +9384,7 @@ class Time {
         for (let i = 0, len = dates.length; i < len; i++) {
             let date = dates[i];
             if (date.leftPx >= finalOffset) {
+                date = dates[i - 1];
                 return date.leftGlobal + Math.round((finalOffset - date.leftPx) * time.timePerPixel);
             }
         }

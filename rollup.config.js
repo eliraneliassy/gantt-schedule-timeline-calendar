@@ -44,7 +44,7 @@ const devFiles = [
     input: 'src/gstc.ts',
     output: {
       sourcemap: true,
-      file: 'dist/gstc.js',
+      file: 'dist/gstc.umd.js',
       format: 'umd',
       name: 'GSTC',
     },
@@ -78,8 +78,24 @@ const devFiles = [
     input: 'src/plugins/timeline-pointer.plugin.ts',
     output: {
       sourcemap: true,
-      file: 'dist/timeline-pointer.plugin.js',
+      file: 'dist/timeline-pointer.plugin.umd.js',
       format: 'umd',
+      name: 'TimelinePointer',
+    },
+    plugins: [
+      typescript({ target: 'es6' }),
+      resolve({
+        browser: true,
+      }),
+      commonjs({ extensions: ['.js', '.ts'] }),
+    ],
+  },
+  {
+    input: 'src/plugins/timeline-pointer.plugin.ts',
+    output: {
+      sourcemap: true,
+      file: 'dist/timeline-pointer.plugin.esm.js',
+      format: 'esm',
       name: 'TimelinePointer',
     },
     plugins: [
@@ -94,8 +110,24 @@ const devFiles = [
     input: 'src/plugins/selection.plugin.ts',
     output: {
       sourcemap: true,
-      file: 'dist/selection.plugin.js',
+      file: 'dist/selection.plugin.umd.js',
       format: 'umd',
+      name: 'Selection',
+    },
+    plugins: [
+      typescript({ target: 'es6' }),
+      resolve({
+        browser: true,
+      }),
+      commonjs({ extensions: ['.js', '.ts'] }),
+    ],
+  },
+  {
+    input: 'src/plugins/selection.plugin.ts',
+    output: {
+      sourcemap: true,
+      file: 'dist/selection.plugin.esm.js',
+      format: 'esm',
       name: 'Selection',
     },
     plugins: [
@@ -110,8 +142,24 @@ const devFiles = [
     input: 'src/plugins/item-movement.plugin.ts',
     output: {
       sourcemap: true,
-      file: 'dist/item-movement.plugin.js',
+      file: 'dist/item-movement.plugin.umd.js',
       format: 'umd',
+      name: 'ItemMovement',
+    },
+    plugins: [
+      typescript({ target: 'es6' }),
+      resolve({
+        browser: true,
+      }),
+      commonjs({ extensions: ['.js', '.ts'] }),
+    ],
+  },
+  {
+    input: 'src/plugins/item-movement.plugin.ts',
+    output: {
+      sourcemap: true,
+      file: 'dist/item-movement.plugin.esm.js',
+      format: 'esm',
       name: 'ItemMovement',
     },
     plugins: [
@@ -126,7 +174,7 @@ const devFiles = [
     input: 'src/plugins/item-resizing.plugin.ts',
     output: {
       sourcemap: true,
-      file: 'dist/item-resizing.plugin.js',
+      file: 'dist/item-resizing.plugin.umd.js',
       format: 'umd',
       name: 'ItemResizing',
     },
@@ -139,12 +187,12 @@ const devFiles = [
     ],
   },
   {
-    input: 'src/plugins/item-hold.plugin.ts',
+    input: 'src/plugins/item-resizing.plugin.ts',
     output: {
       sourcemap: true,
-      file: 'dist/item-hold.plugin.js',
-      format: 'umd',
-      name: 'ItemHold',
+      file: 'dist/item-resizing.plugin.esm.js',
+      format: 'esm',
+      name: 'ItemResizing',
     },
     plugins: [
       typescript({ target: 'es6' }),
@@ -158,8 +206,24 @@ const devFiles = [
     input: 'src/plugins/calendar-scroll.plugin.ts',
     output: {
       sourcemap: true,
-      file: 'dist/calendar-scroll.plugin.js',
+      file: 'dist/calendar-scroll.plugin.umd.js',
       format: 'umd',
+      name: 'CalendarScroll',
+    },
+    plugins: [
+      typescript({ target: 'es6' }),
+      resolve({
+        browser: true,
+      }),
+      commonjs({ extensions: ['.js', '.ts'] }),
+    ],
+  },
+  {
+    input: 'src/plugins/calendar-scroll.plugin.ts',
+    output: {
+      sourcemap: true,
+      file: 'dist/calendar-scroll.plugin.esm.js',
+      format: 'esm',
       name: 'CalendarScroll',
     },
     plugins: [
@@ -174,8 +238,24 @@ const devFiles = [
     input: 'src/plugins/highlight-weekends.plugin.ts',
     output: {
       sourcemap: true,
-      file: 'dist/highlight-weekends.plugin.js',
+      file: 'dist/highlight-weekends.plugin.umd.js',
       format: 'umd',
+      name: 'HighlightWeekends',
+    },
+    plugins: [
+      typescript({ target: 'es6' }),
+      resolve({
+        browser: true,
+      }),
+      commonjs({ extensions: ['.js', '.ts'] }),
+    ],
+  },
+  {
+    input: 'src/plugins/highlight-weekends.plugin.ts',
+    output: {
+      sourcemap: true,
+      file: 'dist/highlight-weekends.plugin.esm.js',
+      format: 'esm',
       name: 'HighlightWeekends',
     },
     plugins: [
@@ -206,7 +286,7 @@ const devFiles = [
     input: 'src/plugins/plugins.ts',
     output: {
       sourcemap: true,
-      file: 'dist/plugins.js',
+      file: 'dist/plugins.umd.js',
       format: 'umd',
       name: 'plugins',
     },
@@ -230,7 +310,7 @@ const prodFiles = Array.prototype.concat(devFiles, [
     input: 'src/gstc.ts',
     output: {
       sourcemap: false,
-      file: 'dist/gstc.min.js',
+      file: 'dist/gstc.umd.min.js',
       format: 'umd',
       name: 'GSTC',
     },
@@ -272,22 +352,6 @@ const prodFiles = Array.prototype.concat(devFiles, [
     input: 'src/plugins/timeline-pointer.plugin.ts',
     output: {
       sourcemap: false,
-      file: 'dist/timeline-pointer.plugin.esm.js',
-      format: 'esm',
-      name: 'TimelinePointer',
-    },
-    plugins: [
-      typescript({ target: 'es6' }),
-      resolve({
-        browser: true,
-      }),
-      commonjs({ extensions: ['.js', '.ts'] }),
-    ],
-  },
-  {
-    input: 'src/plugins/timeline-pointer.plugin.ts',
-    output: {
-      sourcemap: false,
       file: 'dist/timeline-pointer.plugin.esm.min.js',
       format: 'esm',
       name: 'TimelinePointer',
@@ -309,7 +373,7 @@ const prodFiles = Array.prototype.concat(devFiles, [
     input: 'src/plugins/timeline-pointer.plugin.ts',
     output: {
       sourcemap: false,
-      file: 'dist/timeline-pointer.plugin.min.js',
+      file: 'dist/timeline-pointer.plugin.umd.min.js',
       format: 'umd',
       name: 'TimelinePointer',
     },
@@ -327,22 +391,6 @@ const prodFiles = Array.prototype.concat(devFiles, [
     ],
   },
 
-  {
-    input: 'src/plugins/item-movement.plugin.ts',
-    output: {
-      sourcemap: false,
-      file: 'dist/item-movement.plugin.esm.js',
-      format: 'esm',
-      name: 'ItemMovement',
-    },
-    plugins: [
-      typescript({ target: 'es6' }),
-      resolve({
-        browser: true,
-      }),
-      commonjs({ extensions: ['.js', '.ts'] }),
-    ],
-  },
   {
     input: 'src/plugins/item-movement.plugin.ts',
     output: {
@@ -368,7 +416,7 @@ const prodFiles = Array.prototype.concat(devFiles, [
     input: 'src/plugins/item-movement.plugin.ts',
     output: {
       sourcemap: false,
-      file: 'dist/item-movement.plugin.min.js',
+      file: 'dist/item-movement.plugin.umd.min.js',
       format: 'umd',
       name: 'ItemMovement',
     },
@@ -386,22 +434,6 @@ const prodFiles = Array.prototype.concat(devFiles, [
     ],
   },
 
-  {
-    input: 'src/plugins/item-resizing.plugin.ts',
-    output: {
-      sourcemap: false,
-      file: 'dist/item-resizing.plugin.esm.js',
-      format: 'esm',
-      name: 'ItemResizing',
-    },
-    plugins: [
-      typescript({ target: 'es6' }),
-      resolve({
-        browser: true,
-      }),
-      commonjs({ extensions: ['.js', '.ts'] }),
-    ],
-  },
   {
     input: 'src/plugins/item-resizing.plugin.ts',
     output: {
@@ -427,7 +459,7 @@ const prodFiles = Array.prototype.concat(devFiles, [
     input: 'src/plugins/item-resizing.plugin.ts',
     output: {
       sourcemap: false,
-      file: 'dist/item-resizing.plugin.min.js',
+      file: 'dist/item-resizing.plugin.umd.min.js',
       format: 'umd',
       name: 'ItemResizing',
     },
@@ -445,81 +477,6 @@ const prodFiles = Array.prototype.concat(devFiles, [
     ],
   },
 
-  {
-    input: 'src/plugins/item-hold.plugin.ts',
-    output: {
-      sourcemap: false,
-      file: 'dist/item-hold.plugin.esm.js',
-      format: 'esm',
-      name: 'ItemHold',
-    },
-    plugins: [
-      typescript({ target: 'es6' }),
-      resolve({
-        browser: true,
-      }),
-      commonjs({ extensions: ['.js', '.ts'] }),
-    ],
-  },
-  {
-    input: 'src/plugins/item-hold.plugin.ts',
-    output: {
-      sourcemap: false,
-      file: 'dist/item-hold.plugin.esm.min.js',
-      format: 'esm',
-      name: 'ItemHold',
-    },
-    plugins: [
-      typescript({ target: 'es6' }),
-      resolve({
-        browser: true,
-      }),
-      commonjs({ extensions: ['.js', '.ts'] }),
-      terser({
-        //keep_classnames: true,
-        //keep_fnames: true,
-        output: { comments: false },
-      }),
-    ],
-  },
-  {
-    input: 'src/plugins/item-hold.plugin.ts',
-    output: {
-      sourcemap: false,
-      file: 'dist/item-hold.plugin.min.js',
-      format: 'umd',
-      name: 'ItemHold',
-    },
-    plugins: [
-      typescript({ target: 'es6' }),
-      resolve({
-        browser: true,
-      }),
-      commonjs({ extensions: ['.js', '.ts'] }),
-      terser({
-        //keep_classnames: true,
-        //keep_fnames: true,
-        output: { comments: false },
-      }),
-    ],
-  },
-
-  {
-    input: 'src/plugins/selection.plugin.ts',
-    output: {
-      sourcemap: false,
-      file: 'dist/selection.plugin.esm.js',
-      format: 'esm',
-      name: 'Selection',
-    },
-    plugins: [
-      typescript({ target: 'es6' }),
-      resolve({
-        browser: true,
-      }),
-      commonjs({ extensions: ['.js', '.ts'] }),
-    ],
-  },
   {
     input: 'src/plugins/selection.plugin.ts',
     output: {
@@ -545,7 +502,7 @@ const prodFiles = Array.prototype.concat(devFiles, [
     input: 'src/plugins/selection.plugin.ts',
     output: {
       sourcemap: false,
-      file: 'dist/selection.plugin.min.js',
+      file: 'dist/selection.plugin.umd.min.js',
       format: 'umd',
       name: 'Selection',
     },
@@ -563,22 +520,6 @@ const prodFiles = Array.prototype.concat(devFiles, [
     ],
   },
 
-  {
-    input: 'src/plugins/calendar-scroll.plugin.ts',
-    output: {
-      sourcemap: false,
-      file: 'dist/calendar-scroll.plugin.esm.js',
-      format: 'esm',
-      name: 'CalendarScroll',
-    },
-    plugins: [
-      typescript({ target: 'es6' }),
-      resolve({
-        browser: true,
-      }),
-      commonjs({ extensions: ['.js', '.ts'] }),
-    ],
-  },
   {
     input: 'src/plugins/calendar-scroll.plugin.ts',
     output: {
@@ -604,7 +545,7 @@ const prodFiles = Array.prototype.concat(devFiles, [
     input: 'src/plugins/calendar-scroll.plugin.ts',
     output: {
       sourcemap: false,
-      file: 'dist/calendar-scroll.plugin.min.js',
+      file: 'dist/calendar-scroll.plugin.umd.min.js',
       format: 'umd',
       name: 'CalendarScroll',
     },
@@ -622,22 +563,6 @@ const prodFiles = Array.prototype.concat(devFiles, [
     ],
   },
 
-  {
-    input: 'src/plugins/highlight-weekends.plugin.ts',
-    output: {
-      sourcemap: false,
-      file: 'dist/highlight-weekends.plugin.esm.js',
-      format: 'esm',
-      name: 'HighlightWeekends',
-    },
-    plugins: [
-      typescript({ target: 'es6' }),
-      resolve({
-        browser: true,
-      }),
-      commonjs({ extensions: ['.js', '.ts'] }),
-    ],
-  },
   {
     input: 'src/plugins/highlight-weekends.plugin.ts',
     output: {
@@ -663,7 +588,7 @@ const prodFiles = Array.prototype.concat(devFiles, [
     input: 'src/plugins/highlight-weekends.plugin.ts',
     output: {
       sourcemap: false,
-      file: 'dist/highlight-weekends.plugin.min.js',
+      file: 'dist/highlight-weekends.plugin.umd.min.js',
       format: 'umd',
       name: 'HighlightWeekends',
     },
@@ -706,7 +631,7 @@ const prodFiles = Array.prototype.concat(devFiles, [
     input: 'src/plugins/plugins.ts',
     output: {
       sourcemap: false,
-      file: 'dist/plugins.min.js',
+      file: 'dist/plugins.umd.min.js',
       format: 'umd',
       name: 'Plugins',
     },

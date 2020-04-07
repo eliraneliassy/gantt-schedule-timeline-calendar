@@ -9390,6 +9390,7 @@
 	        for (let i = 0, len = dates.length; i < len; i++) {
 	            let date = dates[i];
 	            if (date.leftPx >= finalOffset) {
+	                date = dates[i - 1];
 	                return date.leftGlobal + Math.round((finalOffset - date.leftPx) * time.timePerPixel);
 	            }
 	        }
@@ -11036,4 +11037,4 @@
 	return GSTC;
 
 })));
-//# sourceMappingURL=gstc.js.map
+//# sourceMappingURL=gstc.umd.js.map

@@ -159,4 +159,4 @@
   Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
-//# sourceMappingURL=timeline-pointer.plugin.js.map
+//# sourceMappingURL=timeline-pointer.plugin.umd.js.map

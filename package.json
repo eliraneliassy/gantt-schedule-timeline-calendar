@@ -2,10 +2,10 @@
   "name": "gantt-schedule-timeline-calendar",
   "version": "3.0.0-0",
   "description": "Gantt, Schedule, Timeline, Calendar components all in one!",
-  "main": "dist/index.umd.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/gstc.umd.js",
+  "module": "dist/gstc.esm.js",
   "scripts": {
-    "dev": "run-p autotypes autobuild start:dev",
+    "dev": "run-p start:dev autotypes autobuild",
     "build": "run-p types build-dist",
     "build-dist": "rollup -c",
     "autobuild": "rollup -c -w",

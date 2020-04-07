@@ -1,3 +1,5 @@
+// vars
+
 $bg-dark-1 = hsl(192, 15%, 98%)
 $bg-dark-2 = hsl(210, 20%, 98%)
 $bg-dark-3 = hsl(192, 15%, 94%)
@@ -15,14 +17,22 @@ $font-color-4 = hsla(210, 5%, 38%, 70%)
 
 $item-content-padding = 5px
 
+// plugins
+
+body.gstc-item-resizing .gantt-schedule-timeline-calendar__chart-timeline-items-row-item--selected .gantt-schedule-timeline-calendar__chart-timeline-items-row-item-label
+  margin-left: 18px
 body.gstc-items-resizing-left
   cursor: w-resize !important
 body.gstc-items-resizing-right
   cursor: e-resize !important
+
 body.gstc-items-moving
-  cursor: grab !important
+  cursor: grabbing !important
+
 body.gstc-calendar-scrolling
-  cursor: grab !important
+  cursor: grabbing !important
+
+// main
 
 .gantt-schedule-timeline-calendar
   display: flex
@@ -390,8 +400,6 @@ body.gstc-calendar-scrolling
             color: white
             line-height: 22px
             display: flex
-            &--selected > &-label
-              margin-left: 18px
             &--left-cut
               border-top-left-radius: 0px
               border-bottom-left-radius: 0px

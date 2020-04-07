@@ -123,4 +123,4 @@
   Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
-//# sourceMappingURL=calendar-scroll.plugin.js.map
+//# sourceMappingURL=calendar-scroll.plugin.umd.js.map

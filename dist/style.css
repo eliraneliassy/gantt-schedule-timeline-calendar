@@ -1,3 +1,6 @@
+body.gstc-item-resizing .gantt-schedule-timeline-calendar__chart-timeline-items-row-item--selected .gantt-schedule-timeline-calendar__chart-timeline-items-row-item-label {
+  margin-left: 18px;
+}
 body.gstc-items-resizing-left {
   cursor: w-resize !important;
 }
@@ -5,10 +8,10 @@ body.gstc-items-resizing-right {
   cursor: e-resize !important;
 }
 body.gstc-items-moving {
-  cursor: grab !important;
+  cursor: grabbing !important;
 }
 body.gstc-calendar-scrolling {
-  cursor: grab !important;
+  cursor: grabbing !important;
 }
 .gantt-schedule-timeline-calendar {
   display: flex;
@@ -450,9 +453,6 @@ body.gstc-calendar-scrolling {
   color: #fff;
   line-height: 22px;
   display: flex;
-}
-.gantt-schedule-timeline-calendar__chart-timeline-items-row-item--selected > .gantt-schedule-timeline-calendar__chart-timeline-items-row-item-label {
-  margin-left: 18px;
 }
 .gantt-schedule-timeline-calendar__chart-timeline-items-row-item--left-cut {
   border-top-left-radius: 0px;

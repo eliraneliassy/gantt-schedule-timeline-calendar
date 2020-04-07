@@ -256,7 +256,7 @@
    * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
    */
   function prepareOptions(options) {
-      return Object.assign({ enabled: true, className: '', bodyClass: 'gstc-items-moving' }, options);
+      return Object.assign({ enabled: true, className: '', bodyClass: 'gstc-item-movement', bodyClassMoving: 'gstc-items-moving' }, options);
   }
   const pluginPath = 'config.plugin.ItemMovement';
   function gemerateEmptyPluginData(options) {
@@ -279,7 +279,15 @@
           this.vido = vido;
           this.api = vido.api;
           this.state = vido.state;
-          this.onDestroy.push(this.state.subscribe(pluginPath, (data) => (this.data = data)));
+          this.onDestroy.push(this.state.subscribe(pluginPath, (data) => {
+              this.data = data;
+              if (!data.enabled) {
+                  document.body.classList.remove(this.data.bodyClass);
+              }
+              else {
+                  document.body.classList.add(this.data.bodyClass);
+              }
+          }));
           if (!this.data.className)
               this.data.className = this.api.getClass('chart-timeline-items-row-item--moving');
           this.onSelectionChange = this.onSelectionChange.bind(this);
@@ -295,9 +303,12 @@
           const horizontal = this.data.movement.px.horizontal;
           const x = item.$data.position.left + horizontal;
           const leftGlobal = Math.round(this.api.time.getTimeFromViewOffsetPx(x, time));
+          const leftDate = this.api.time.date(leftGlobal);
+          const width = this.api.time.getGlobalOffsetPxFromDates(leftDate, time) - x;
           return {
-              time: this.api.time.date(leftGlobal),
+              time: leftDate,
               position: x,
+              width,
           };
       }
       moveItems() {
@@ -305,6 +316,7 @@
           let multi = this.state.multi();
           for (const item of this.data.lastMoved) {
               const start = this.getItemMovingTime(item, time);
+              console.log(start);
               let newItemTime;
               multi = multi
                   .update(`config.chart.items.${item.id}.time`, (itemTime) => {
@@ -320,6 +332,7 @@
                   itemData.time.endDate = this.api.time.date(newItemTime.end);
                   itemData.position.left = start.position;
                   itemData.position.actualLeft = this.api.time.limitOffsetPxToView(start.position);
+                  itemData.width = start.width;
                   itemData.position.right = itemData.position.left + itemData.width;
                   itemData.position.actualRight = this.api.time.limitOffsetPxToView(itemData.position.right);
                   itemData.actualWidth = itemData.position.actualRight - itemData.position.actualLeft;
@@ -355,11 +368,11 @@
           this.data.state = this.selection.pointerState;
       }
       onStart() {
-          document.body.classList.add(this.data.bodyClass);
+          document.body.classList.add(this.data.bodyClassMoving);
           this.data.lastPosition = Object.assign({}, this.selection.currentPosition);
       }
       onEnd() {
-          document.body.classList.remove(this.data.bodyClass);
+          document.body.classList.remove(this.data.bodyClassMoving);
       }
       onSelectionChange(data) {
           if (!this.data.enabled)
@@ -1388,7 +1401,7 @@
               verticalMargin: 0,
               outside: false,
               onlyWhenSelected: true,
-          }, content: null, bodyClassLeft: 'gstc-items-resizing-left', bodyClassRight: 'gstc-items-resizing-right', initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, movement: 0, itemsInitial: [], leftIsMoving: false, rightIsMoving: false }, options);
+          }, content: null, bodyClass: 'gstc-item-resizing', bodyClassLeft: 'gstc-items-resizing-left', bodyClassRight: 'gstc-items-resizing-right', initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, movement: 0, itemsInitial: [], leftIsMoving: false, rightIsMoving: false }, options);
       if (options.handle)
           result.handle = Object.assign(Object.assign({}, result.handle), options.handle);
       return result;
@@ -1415,7 +1428,16 @@
           this.onLeftPointerMove = this.onLeftPointerMove.bind(this);
           this.onLeftPointerUp = this.onLeftPointerUp.bind(this);
           this.updateData();
-          this.unsubs.push(this.state.subscribe('config.plugin.ItemResizing', (data) => (this.data = data)));
+          document.body.classList.add(this.data.bodyClass);
+          this.unsubs.push(this.state.subscribe('config.plugin.ItemResizing', (data) => {
+              if (!data.enabled) {
+                  document.body.classList.remove(this.data.bodyClass);
+              }
+              else if (data.enabled) {
+                  document.body.classList.add(this.data.bodyClass);
+              }
+              this.data = data;
+          }));
           document.addEventListener('pointermove', this.onLeftPointerMove);
           document.addEventListener('pointerup', this.onLeftPointerUp);
           document.addEventListener('pointermove', this.onRightPointerMove);
@@ -1594,10 +1616,10 @@
           const rightStyleMap = this.getRightStyleMap(item, visible);
           const leftStyleMap = this.getLeftStyleMap(item, visible);
           const onLeftPointerDown = {
-              handleEvent: this.onLeftPointerDown,
+              handleEvent: (ev) => this.onLeftPointerDown(ev),
           };
           const onRightPointerDown = {
-              handleEvent: this.onRightPointerDown,
+              handleEvent: (ev) => this.onRightPointerDown(ev),
           };
           return this
               .html `${oldContent}<div detach=${detach} class=${this.leftClassName} style=${leftStyleMap} @pointerdown=${onLeftPointerDown}>${this.data.content}</div><div detach=${detach} class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}>${this.data.content}</div>`;
@@ -2186,4 +2208,4 @@
   return plugins;
 
 })));
-//# sourceMappingURL=plugins.js.map
+//# sourceMappingURL=plugins.umd.js.map

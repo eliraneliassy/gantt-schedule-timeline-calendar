@@ -113,3 +113,4 @@ function Plugin(options = defaultOptions) {
 }
 
 export { Plugin };
+//# sourceMappingURL=calendar-scroll.plugin.esm.js.map

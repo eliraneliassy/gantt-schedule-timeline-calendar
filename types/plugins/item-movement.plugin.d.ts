@@ -18,6 +18,7 @@ export interface Options {
     enabled?: boolean;
     className?: string;
     bodyClass?: string;
+    bodyClassMoving?: string;
     onStart?: (items: Item[]) => void;
     onMove?: (items: Item[]) => void;
     onEnd?: (items: Item[]) => void;
@@ -43,6 +44,7 @@ export interface PluginData extends Options {
 export interface MovingTime {
     time: Dayjs;
     position: number;
+    width: number;
 }
 export declare function Plugin(options?: Options): (vidoInstance: Vido) => void;
 //# sourceMappingURL=item-movement.plugin.d.ts.map

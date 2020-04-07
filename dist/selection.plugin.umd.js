@@ -218,4 +218,4 @@
   Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
-//# sourceMappingURL=selection.plugin.js.map
+//# sourceMappingURL=selection.plugin.umd.js.map

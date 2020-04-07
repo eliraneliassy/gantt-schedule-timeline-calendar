@@ -25,7 +25,7 @@
    * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
    */
   function prepareOptions(options) {
-      return Object.assign({ enabled: true, className: '', bodyClass: 'gstc-items-moving' }, options);
+      return Object.assign({ enabled: true, className: '', bodyClass: 'gstc-item-movement', bodyClassMoving: 'gstc-items-moving' }, options);
   }
   const pluginPath = 'config.plugin.ItemMovement';
   function gemerateEmptyPluginData(options) {
@@ -48,7 +48,15 @@
           this.vido = vido;
           this.api = vido.api;
           this.state = vido.state;
-          this.onDestroy.push(this.state.subscribe(pluginPath, (data) => (this.data = data)));
+          this.onDestroy.push(this.state.subscribe(pluginPath, (data) => {
+              this.data = data;
+              if (!data.enabled) {
+                  document.body.classList.remove(this.data.bodyClass);
+              }
+              else {
+                  document.body.classList.add(this.data.bodyClass);
+              }
+          }));
           if (!this.data.className)
               this.data.className = this.api.getClass('chart-timeline-items-row-item--moving');
           this.onSelectionChange = this.onSelectionChange.bind(this);
@@ -64,9 +72,12 @@
           const horizontal = this.data.movement.px.horizontal;
           const x = item.$data.position.left + horizontal;
           const leftGlobal = Math.round(this.api.time.getTimeFromViewOffsetPx(x, time));
+          const leftDate = this.api.time.date(leftGlobal);
+          const width = this.api.time.getGlobalOffsetPxFromDates(leftDate, time) - x;
           return {
-              time: this.api.time.date(leftGlobal),
+              time: leftDate,
               position: x,
+              width,
           };
       }
       moveItems() {
@@ -74,6 +85,7 @@
           let multi = this.state.multi();
           for (const item of this.data.lastMoved) {
               const start = this.getItemMovingTime(item, time);
+              console.log(start);
               let newItemTime;
               multi = multi
                   .update(`config.chart.items.${item.id}.time`, (itemTime) => {
@@ -89,6 +101,7 @@
                   itemData.time.endDate = this.api.time.date(newItemTime.end);
                   itemData.position.left = start.position;
                   itemData.position.actualLeft = this.api.time.limitOffsetPxToView(start.position);
+                  itemData.width = start.width;
                   itemData.position.right = itemData.position.left + itemData.width;
                   itemData.position.actualRight = this.api.time.limitOffsetPxToView(itemData.position.right);
                   itemData.actualWidth = itemData.position.actualRight - itemData.position.actualLeft;
@@ -124,11 +137,11 @@
           this.data.state = this.selection.pointerState;
       }
       onStart() {
-          document.body.classList.add(this.data.bodyClass);
+          document.body.classList.add(this.data.bodyClassMoving);
           this.data.lastPosition = Object.assign({}, this.selection.currentPosition);
       }
       onEnd() {
-          document.body.classList.remove(this.data.bodyClass);
+          document.body.classList.remove(this.data.bodyClassMoving);
       }
       onSelectionChange(data) {
           if (!this.data.enabled)
@@ -175,4 +188,4 @@
   Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
-//# sourceMappingURL=item-movement.plugin.js.map
+//# sourceMappingURL=item-movement.plugin.umd.js.map

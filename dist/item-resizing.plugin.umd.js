@@ -997,7 +997,7 @@
                 verticalMargin: 0,
                 outside: false,
                 onlyWhenSelected: true,
-            }, content: null, bodyClassLeft: 'gstc-items-resizing-left', bodyClassRight: 'gstc-items-resizing-right', initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, movement: 0, itemsInitial: [], leftIsMoving: false, rightIsMoving: false }, options);
+            }, content: null, bodyClass: 'gstc-item-resizing', bodyClassLeft: 'gstc-items-resizing-left', bodyClassRight: 'gstc-items-resizing-right', initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, movement: 0, itemsInitial: [], leftIsMoving: false, rightIsMoving: false }, options);
         if (options.handle)
             result.handle = Object.assign(Object.assign({}, result.handle), options.handle);
         return result;
@@ -1024,7 +1024,16 @@
             this.onLeftPointerMove = this.onLeftPointerMove.bind(this);
             this.onLeftPointerUp = this.onLeftPointerUp.bind(this);
             this.updateData();
-            this.unsubs.push(this.state.subscribe('config.plugin.ItemResizing', (data) => (this.data = data)));
+            document.body.classList.add(this.data.bodyClass);
+            this.unsubs.push(this.state.subscribe('config.plugin.ItemResizing', (data) => {
+                if (!data.enabled) {
+                    document.body.classList.remove(this.data.bodyClass);
+                }
+                else if (data.enabled) {
+                    document.body.classList.add(this.data.bodyClass);
+                }
+                this.data = data;
+            }));
             document.addEventListener('pointermove', this.onLeftPointerMove);
             document.addEventListener('pointerup', this.onLeftPointerUp);
             document.addEventListener('pointermove', this.onRightPointerMove);
@@ -1203,10 +1212,10 @@
             const rightStyleMap = this.getRightStyleMap(item, visible);
             const leftStyleMap = this.getLeftStyleMap(item, visible);
             const onLeftPointerDown = {
-                handleEvent: this.onLeftPointerDown,
+                handleEvent: (ev) => this.onLeftPointerDown(ev),
             };
             const onRightPointerDown = {
-                handleEvent: this.onRightPointerDown,
+                handleEvent: (ev) => this.onRightPointerDown(ev),
             };
             return this
                 .html `${oldContent}<div detach=${detach} class=${this.leftClassName} style=${leftStyleMap} @pointerdown=${onLeftPointerDown}>${this.data.content}</div><div detach=${detach} class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}>${this.data.content}</div>`;
@@ -1233,4 +1242,4 @@
     Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
-//# sourceMappingURL=item-resizing.plugin.js.map
+//# sourceMappingURL=item-resizing.plugin.umd.js.map

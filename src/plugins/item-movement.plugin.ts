@@ -35,6 +35,7 @@ export interface Options {
   enabled?: boolean;
   className?: string;
   bodyClass?: string;
+  bodyClassMoving?: string;
   onStart?: (items: Item[]) => void;
   onMove?: (items: Item[]) => void;
   onEnd?: (items: Item[]) => void;
@@ -64,13 +65,15 @@ export interface PluginData extends Options {
 export interface MovingTime {
   time: Dayjs;
   position: number;
+  width: number;
 }
 
 function prepareOptions(options: Options): Options {
   return {
     enabled: true,
     className: '',
-    bodyClass: 'gstc-items-moving',
+    bodyClass: 'gstc-item-movement',
+    bodyClassMoving: 'gstc-items-moving',
     ...options,
   };
 }
@@ -113,7 +116,16 @@ class ItemMovement {
     this.vido = vido;
     this.api = vido.api;
     this.state = vido.state;
-    this.onDestroy.push(this.state.subscribe(pluginPath, (data) => (this.data = data)));
+    this.onDestroy.push(
+      this.state.subscribe(pluginPath, (data) => {
+        this.data = data;
+        if (!data.enabled) {
+          document.body.classList.remove(this.data.bodyClass);
+        } else {
+          document.body.classList.add(this.data.bodyClass);
+        }
+      })
+    );
     if (!this.data.className) this.data.className = this.api.getClass('chart-timeline-items-row-item--moving');
     this.onSelectionChange = this.onSelectionChange.bind(this);
     this.onDestroy.push(this.state.subscribe('config.plugin.Selection', this.onSelectionChange));
@@ -131,9 +143,12 @@ class ItemMovement {
     const horizontal = this.data.movement.px.horizontal;
     const x = item.$data.position.left + horizontal;
     const leftGlobal = Math.round(this.api.time.getTimeFromViewOffsetPx(x, time));
+    const leftDate = this.api.time.date(leftGlobal);
+    const width = this.api.time.getGlobalOffsetPxFromDates(leftDate, time) - x;
     return {
-      time: this.api.time.date(leftGlobal),
+      time: leftDate,
       position: x,
+      width,
     };
   }
 
@@ -142,6 +157,7 @@ class ItemMovement {
     let multi = this.state.multi();
     for (const item of this.data.lastMoved) {
       const start = this.getItemMovingTime(item, time);
+      console.log(start);
       let newItemTime: ItemTime;
       multi = multi
         .update(`config.chart.items.${item.id}.time`, (itemTime: ItemTime) => {
@@ -157,6 +173,7 @@ class ItemMovement {
           itemData.time.endDate = this.api.time.date(newItemTime.end);
           itemData.position.left = start.position;
           itemData.position.actualLeft = this.api.time.limitOffsetPxToView(start.position);
+          itemData.width = start.width;
           itemData.position.right = itemData.position.left + itemData.width;
           itemData.position.actualRight = this.api.time.limitOffsetPxToView(itemData.position.right);
           itemData.actualWidth = itemData.position.actualRight - itemData.position.actualLeft;
@@ -193,12 +210,12 @@ class ItemMovement {
   }
 
   onStart() {
-    document.body.classList.add(this.data.bodyClass);
+    document.body.classList.add(this.data.bodyClassMoving);
     this.data.lastPosition = { ...this.selection.currentPosition };
   }
 
   onEnd() {
-    document.body.classList.remove(this.data.bodyClass);
+    document.body.classList.remove(this.data.bodyClassMoving);
   }
 
   onSelectionChange(data: SelectionPluginData) {

@@ -32,6 +32,7 @@ export interface Options {
   enabled?: boolean;
   handle?: Handle;
   content?: htmlResult;
+  bodyClass?: string;
   bodyClassLeft?: string;
   bodyClassRight?: string;
 }
@@ -58,6 +59,7 @@ function generateEmptyData(options: Options = {}): PluginData {
       onlyWhenSelected: true,
     },
     content: null,
+    bodyClass: 'gstc-item-resizing',
     bodyClassLeft: 'gstc-items-resizing-left',
     bodyClassRight: 'gstc-items-resizing-right',
     initialPosition: { x: 0, y: 0 },
@@ -103,7 +105,17 @@ class ItemResizing {
     this.onLeftPointerMove = this.onLeftPointerMove.bind(this);
     this.onLeftPointerUp = this.onLeftPointerUp.bind(this);
     this.updateData();
-    this.unsubs.push(this.state.subscribe('config.plugin.ItemResizing', (data) => (this.data = data)));
+    document.body.classList.add(this.data.bodyClass);
+    this.unsubs.push(
+      this.state.subscribe('config.plugin.ItemResizing', (data) => {
+        if (!data.enabled) {
+          document.body.classList.remove(this.data.bodyClass);
+        } else if (data.enabled) {
+          document.body.classList.add(this.data.bodyClass);
+        }
+        this.data = data;
+      })
+    );
     document.addEventListener('pointermove', this.onLeftPointerMove);
     document.addEventListener('pointerup', this.onLeftPointerUp);
     document.addEventListener('pointermove', this.onRightPointerMove);
@@ -284,11 +296,11 @@ class ItemResizing {
     const rightStyleMap = this.getRightStyleMap(item, visible);
     const leftStyleMap = this.getLeftStyleMap(item, visible);
     const onLeftPointerDown = {
-      handleEvent: this.onLeftPointerDown,
+      handleEvent: (ev) => this.onLeftPointerDown(ev),
       //capture: true,
     };
     const onRightPointerDown = {
-      handleEvent: this.onRightPointerDown,
+      handleEvent: (ev) => this.onRightPointerDown(ev),
       //capture: true,
     };
     return this

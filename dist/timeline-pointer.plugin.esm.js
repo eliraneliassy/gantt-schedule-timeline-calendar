@@ -147,3 +147,4 @@ function Plugin(options = { enabled: true }) {
 }
 
 export { CELL, ITEM, Plugin };
+//# sourceMappingURL=timeline-pointer.plugin.esm.js.map

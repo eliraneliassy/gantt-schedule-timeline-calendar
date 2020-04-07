@@ -208,3 +208,4 @@ function Plugin(options = {}) {
 }
 
 export { Plugin };
+//# sourceMappingURL=selection.plugin.esm.js.map

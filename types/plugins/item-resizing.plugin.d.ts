@@ -16,6 +16,7 @@ export interface Options {
     enabled?: boolean;
     handle?: Handle;
     content?: htmlResult;
+    bodyClass?: string;
     bodyClassLeft?: string;
     bodyClassRight?: string;
 }

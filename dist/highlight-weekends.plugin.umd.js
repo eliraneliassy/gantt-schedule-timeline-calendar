@@ -247,4 +247,4 @@
     Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
-//# sourceMappingURL=highlight-weekends.plugin.js.map
+//# sourceMappingURL=highlight-weekends.plugin.umd.js.map
