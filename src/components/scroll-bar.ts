@@ -40,35 +40,16 @@ export default function ScrollBar(vido: Vido, props: Props) {
   let maxPos = 0;
   let allDates = [];
   let rows: Row[] = [];
-  let rowsOffsets = [];
-  let rowsPercents = [];
   let innerSize = 0,
     invSize = 0,
     invSizeInner = 0,
     sub = 0;
 
-  function generateRowsOffsets() {
-    const len = rows.length;
-    rowsOffsets = [];
-    rowsPercents = [];
-    if (!len) return;
-    let top = 0;
-    for (let i = 0; i < len; i++) {
-      const row = rows[i];
-      rowsOffsets.push(top);
-      top += row.$data.outerHeight;
-    }
-    const verticalHeight = state.get('config.scroll.vertical.area');
-    for (const offsetTop of rowsOffsets) {
-      rowsPercents.push(offsetTop / verticalHeight);
-    }
-  }
-
   function getFullSize(): number {
     let fullSize = 0;
     if (props.type === 'vertical') {
-      if (rowsOffsets.length) {
-        return rowsOffsets[rowsOffsets.length - 1] + rows[rows.length - 1].height;
+      if (rows.length) {
+        return rows[rows.length - 1].top + rows[rows.length - 1].$data.outerHeight;
       }
       return fullSize;
     }
@@ -76,24 +57,6 @@ export default function ScrollBar(vido: Vido, props: Props) {
       return allDates[allDates.length - 1].rightPx;
     }
     return fullSize;
-  }
-
-  function setScrollTop(dataIndex: number | undefined) {
-    if (dataIndex === undefined) {
-      dataIndex = 0;
-    }
-    const vertical: ScrollTypeVertical = state.get('config.scroll.vertical');
-    if (!rows[dataIndex]) {
-      console.error(`no row ${dataIndex}`, rows);
-      return;
-    }
-    if (vertical.data && vertical.data.id === rows[dataIndex].id) return;
-    state.update('config.scroll.vertical', (scrollVertical: ScrollTypeVertical) => {
-      scrollVertical.data = rows[dataIndex];
-      scrollVertical.posPx = rowsPercents[dataIndex] * (scrollVertical.maxPosPx - scrollVertical.innerSize);
-      scrollVertical.dataIndex = dataIndex;
-      return scrollVertical;
-    });
   }
 
   if (props.type === 'horizontal') {
@@ -174,17 +137,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
             allDates = [];
           }
         } else {
-          const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
-          if (rowsWithParentsExpanded) {
-            rows = rowsWithParentsExpanded;
-          } else {
-            rows = [];
-          }
-          if (rows.length) {
-            generateRowsOffsets();
-          } else {
-            rowsOffsets = [];
-          }
+          rows = state.get('$data.list.rowsWithParentsExpanded') || [];
         }
 
         const fullSize = getFullSize();
@@ -222,8 +175,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
         }
         update();
         working = false;
-      },
-      { queue: true }
+      }
     )
   );
 
@@ -254,11 +206,13 @@ export default function ScrollBar(vido: Vido, props: Props) {
     cumulation = 0;
     lastData = 0;
     dataIndex = 0;
+    bodyClassName: string;
     unsub: () => void;
 
     constructor(element) {
       super();
       state.update(`$data.elements.scroll-bar-inner--${props.type}`, element);
+      this.bodyClassName = state.get('config.scroll.bodyClassName');
       this.pointerDown = this.pointerDown.bind(this);
       this.pointerUp = this.pointerUp.bind(this);
       const pointerMove = this.pointerMove.bind(this);
@@ -294,6 +248,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
     pointerDown(ev) {
       ev.preventDefault();
       ev.stopPropagation();
+      document.body.classList.add(this.bodyClassName);
       this.moving = true;
       this.initialPos = props.type === 'horizontal' ? ev.screenX : ev.screenY;
       classNameInnerActive = ' ' + api.getClass(componentName) + '-inner--active';
@@ -305,6 +260,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
       if (this.moving) {
         ev.preventDefault();
         ev.stopPropagation();
+        document.body.classList.remove(this.bodyClassName);
       }
       this.moving = false;
       this.cumulation = 0;
@@ -329,8 +285,8 @@ export default function ScrollBar(vido: Vido, props: Props) {
             if (date.leftPercent >= percent) break;
           }
         } else {
-          for (let len = rowsPercents.length; dataIndex < len; dataIndex++) {
-            const rowPercent = rowsPercents[dataIndex];
+          for (let len = rows.length; dataIndex < len; dataIndex++) {
+            const rowPercent = rows[dataIndex].$data.topPercent;
             if (rowPercent >= percent) break;
           }
         }
@@ -339,7 +295,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
         if (props.type === 'horizontal') {
           api.setScrollLeft(dataIndex);
         } else {
-          setScrollTop(dataIndex);
+          api.setScrollTop(dataIndex);
         }
         if (dataIndex !== this.lastData) {
           this.cumulation = 0;

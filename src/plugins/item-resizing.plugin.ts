@@ -213,6 +213,7 @@ class ItemResizing {
     this.data.currentPosition.y = ev.screenY;
     this.data.movement = this.data.currentPosition.x - this.data.initialPosition.x;
   }
+
   private onLeftPointerMove(ev: PointerEvent) {
     if (!this.data.enabled || !this.data.leftIsMoving) return;
     this.onPointerMove(ev);

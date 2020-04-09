@@ -23,6 +23,7 @@ import {
   Items,
   DefaultItem,
   DataChartTimeLevelDate,
+  ScrollTypeVertical,
 } from '../gstc';
 import helpers from '@neuronet.io/vido/helpers';
 const mergeDeep = helpers.mergeDeep;
@@ -63,7 +64,7 @@ export function stateFromConfig(userConfig: Config) {
   const state = { config: mergeDeep({}, defaultConfig, userConfig) };
   state.config.actions = actions;
   // @ts-ignore
-  return (this.state = new State(state, { delimeter: '.' }));
+  return (this.state = new State(state, { delimeter: '.', maxSimultaneousJobs: 1000 }));
 }
 
 export const publicApi = {
@@ -170,8 +171,8 @@ export class Api {
             top: item.top || 0,
             actualTop: item.top || 0,
           },
-          width: item.minWidth ? item.minWidth : defaultItem.minWidth,
-          actualWidth: item.minWidth ? item.minWidth : defaultItem.minWidth,
+          width: -1,
+          actualWidth: -1,
           detached: false,
         };
       if (!item.$data.time)
@@ -199,6 +200,7 @@ export class Api {
       row.$data = {
         parents: [],
         children: [],
+        topPercent: 0,
         items: [],
         actualHeight: 0,
         outerHeight: 0,
@@ -277,9 +279,12 @@ export class Api {
 
   recalculateRowsHeights(rows: Row[]): number {
     let top = 0;
+    const verticalHeight: number = this.state.get('config.scroll.vertical.area');
+    if (!verticalHeight) return 0;
     for (const row of rows) {
       this.recalculateRowHeight(row);
       row.top = top;
+      row.$data.topPercent = top / verticalHeight;
       top += row.$data.outerHeight;
     }
     return top;
@@ -377,7 +382,7 @@ export class Api {
     return rowsWithParentsExpanded;
   }
 
-  getRowsHeight(rows) {
+  getRowsHeight(rows: Row[]): number {
     let height = 0;
     for (const row of rows) {
       if (row) height += row.height;
@@ -385,12 +390,7 @@ export class Api {
     return height;
   }
 
-  /**
-   * Get visible rows - get rows that are inside current viewport (height)
-   *
-   * @param {array} rowsWithParentsExpanded rows that have parent expanded- they are visible
-   */
-  getVisibleRows(rowsWithParentsExpanded) {
+  getVisibleRows(rowsWithParentsExpanded: Row[]): Row[] {
     if (rowsWithParentsExpanded.length === 0) return [];
     const visibleRows = [];
     let topRow = this.state.get('config.scroll.vertical.data');
@@ -415,19 +415,10 @@ export class Api {
     return visibleRows;
   }
 
-  /**
-   * Normalize mouse wheel event to get proper scroll metrics
-   *
-   * @param {Event} event mouse wheel event
-   */
-  normalizeMouseWheelEvent(event): WheelResult {
-    // @ts-ignore
+  normalizeMouseWheelEvent(event: MouseWheelEvent): WheelResult {
     let x = event.deltaX || 0;
-    // @ts-ignore
     let y = event.deltaY || 0;
-    // @ts-ignore
     let z = event.deltaZ || 0;
-    // @ts-ignore
     const mode = event.deltaMode;
     const lineHeight = this.state.get('config.list.rowHeight');
     let scale = 1;
@@ -477,9 +468,18 @@ export class Api {
     return pos;
   }
 
-  setScrollLeft(dataIndex: number | undefined, time: DataChartTime = this.state.get('$data.chart.time')) {
+  setScrollLeft(
+    dataIndex: number | undefined,
+    time: DataChartTime = this.state.get('$data.chart.time'),
+    multi = undefined
+  ) {
     if (dataIndex === undefined) {
       dataIndex = 0;
+    }
+    let hadMulti = true;
+    if (multi === undefined) {
+      hadMulti = false;
+      multi = this.state.multi();
     }
     const allDates = time.allDates[time.level];
     if (!allDates) return;
@@ -487,21 +487,43 @@ export class Api {
     if (!date) return;
     const horizontal: ScrollTypeHorizontal = this.state.get('config.scroll.horizontal');
     if (horizontal.data && horizontal.data.leftGlobal === date.leftGlobal) return;
-    this.state.update(
-      'config.scroll.horizontal',
-      (scrollHorizontal: ScrollTypeHorizontal) => {
-        scrollHorizontal.data = date;
-        const time = this.state.get('$data.chart.time');
-        scrollHorizontal.posPx = this.time.calculateScrollPosPxFromTime(
-          scrollHorizontal.data.leftGlobal,
-          time,
-          scrollHorizontal
-        );
-        scrollHorizontal.dataIndex = dataIndex;
-        return scrollHorizontal;
-      },
-      { queue: true }
-    );
+    multi.update('config.scroll.horizontal', (scrollHorizontal: ScrollTypeHorizontal) => {
+      scrollHorizontal.data = date;
+      const time = this.state.get('$data.chart.time');
+      scrollHorizontal.posPx = this.time.calculateScrollPosPxFromTime(
+        scrollHorizontal.data.leftGlobal,
+        time,
+        scrollHorizontal
+      );
+      scrollHorizontal.dataIndex = dataIndex;
+      return scrollHorizontal;
+    });
+    if (hadMulti) return multi;
+    multi.done();
+  }
+
+  getScrollLeft(): ScrollTypeHorizontal {
+    return this.state.get('config.scroll.horizontal');
+  }
+
+  setScrollTop(dataIndex: number | undefined) {
+    if (dataIndex === undefined) {
+      dataIndex = 0;
+    }
+    const vertical: ScrollTypeVertical = this.state.get('config.scroll.vertical');
+    const rows: Row[] = this.state.get('$data.list.rowsWithParentsExpanded');
+    if (!rows[dataIndex]) return;
+    if (vertical.data && vertical.data.id === rows[dataIndex].id) return;
+    this.state.update('config.scroll.vertical', (scrollVertical: ScrollTypeVertical) => {
+      scrollVertical.data = rows[dataIndex];
+      scrollVertical.posPx = rows[dataIndex].$data.topPercent * (scrollVertical.maxPosPx - scrollVertical.innerSize);
+      scrollVertical.dataIndex = dataIndex;
+      return scrollVertical;
+    });
+  }
+
+  getScrollTop(): ScrollTypeVertical {
+    return this.state.get('config.scroll.vertical');
   }
 
   getSVGIconSrc(svg) {

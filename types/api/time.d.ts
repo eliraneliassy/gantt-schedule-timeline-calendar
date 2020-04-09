@@ -31,13 +31,14 @@ export declare class Time {
     getTimeFromViewOffsetPx(offsetPx: number, time: DataChartTime): number;
     calculateScrollPosPxFromTime(milliseconds: number, time: DataChartTime | undefined, scroll: ScrollTypeHorizontal | undefined): number;
     getCurrentFormatForLevel(level: ChartCalendarLevel, time: DataChartTime): ChartCalendarFormat;
-    generatePeriodDates({ leftDate, rightDate, period, level, levelIndex, time, }: {
+    generatePeriodDates({ leftDate, rightDate, period, level, levelIndex, time, callOnLevelDates, }: {
         leftDate: Dayjs;
         rightDate: Dayjs;
         period: Period;
         level: ChartCalendarLevel;
         levelIndex: number;
         time: DataChartTime;
+        callOnLevelDates?: boolean;
     }): DataChartTimeLevelDate[];
     getDatesDiffPx(fromTime: Dayjs, toTime: Dayjs, time: DataChartTime): number;
 }

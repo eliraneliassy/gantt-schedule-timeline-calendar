@@ -9,7 +9,7 @@
  */
 const defaultOptions = {
     enabled: true,
-    bodyClassName: 'gstc-calendar-scrolling',
+    bodyClassName: 'gstc-scrolling',
 };
 function Plugin(options = defaultOptions) {
     let vido, api, state;

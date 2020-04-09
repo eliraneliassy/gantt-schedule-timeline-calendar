@@ -21,15 +21,15 @@ $item-content-padding = 5px
 
 body.gstc-item-resizing .gantt-schedule-timeline-calendar__chart-timeline-items-row-item--selected .gantt-schedule-timeline-calendar__chart-timeline-items-row-item-label
   margin-left: 18px
-body.gstc-items-resizing-left
+body.gstc-items-resizing-left *
   cursor: w-resize !important
-body.gstc-items-resizing-right
+body.gstc-items-resizing-right *
   cursor: e-resize !important
 
-body.gstc-items-moving
+body.gstc-items-moving *
   cursor: grabbing !important
 
-body.gstc-calendar-scrolling
+body.gstc-scrolling *
   cursor: grabbing !important
 
 // main
@@ -419,6 +419,8 @@ body.gstc-calendar-scrolling
               text-overflow: ellipsis
               white-space: nowrap
               margin-left: 10px
+              -webkit-mask-image: linear-gradient(to right, black 0%, black 75%, transparent 90%)
+              mask-image: linear-gradient(to right, black 0%, black 75%, transparent 90%)
             &--selecting
               box-shadow: 0px 0px 2px 2px rgba(0,119, 192, 0.5)
             &--selected

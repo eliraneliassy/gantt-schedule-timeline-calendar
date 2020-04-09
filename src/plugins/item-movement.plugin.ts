@@ -9,7 +9,7 @@
  */
 
 import { PluginData as SelectionPluginData } from './selection.plugin';
-import { Item, DataChartTime, Scroll, DataChartDimensions, ItemTime, Vido, ItemData } from '../gstc';
+import { Item, DataChartTime, Scroll, DataChartDimensions, ItemTime, Vido, ItemData, ItemDataTime } from '../gstc';
 import { ITEM, Point } from './timeline-pointer.plugin';
 import { Dayjs } from 'dayjs';
 import { Api } from '../api/api';
@@ -141,7 +141,8 @@ class ItemMovement {
 
   getItemMovingTime(item: Item, time: DataChartTime): MovingTime {
     const horizontal = this.data.movement.px.horizontal;
-    const x = item.$data.position.left + horizontal;
+    const positionLeft = this.api.time.getViewOffsetPxFromDates(item.$data.time.startDate, false, time);
+    const x = positionLeft + horizontal;
     const leftGlobal = this.api.time.getTimeFromViewOffsetPx(x, time);
     const rightPx = this.api.time.getViewOffsetPxFromDates(item.$data.time.endDate);
     return {
@@ -156,26 +157,18 @@ class ItemMovement {
     let multi = this.state.multi();
     for (const item of this.data.lastMoved) {
       const start = this.getItemMovingTime(item, time);
-      let newItemTime: ItemTime;
       multi = multi
         .update(`config.chart.items.${item.id}.time`, (itemTime: ItemTime) => {
           const newStartTime = start.time.valueOf();
           const diff = newStartTime - itemTime.start;
           itemTime.start = newStartTime;
           itemTime.end += diff;
-          newItemTime = { ...itemTime };
           return itemTime;
         })
-        .update(`config.chart.items.${item.id}.$data`, (itemData: ItemData) => {
-          itemData.time.startDate = start.time;
-          itemData.time.endDate = this.api.time.date(newItemTime.end);
-          itemData.position.left = start.position;
-          itemData.position.actualLeft = this.api.time.limitOffsetPxToView(start.position);
-          itemData.width = start.width;
-          itemData.actualWidth = itemData.position.actualRight - itemData.position.actualLeft;
-          itemData.position.right = itemData.position.left + itemData.width;
-          itemData.position.actualRight = this.api.time.limitOffsetPxToView(itemData.position.right);
-          return itemData;
+        .update(`config.chart.items.${item.id}.$data.time`, (dataTime: ItemDataTime) => {
+          dataTime.startDate = this.api.time.date(item.time.start);
+          dataTime.endDate = this.api.time.date(item.time.end);
+          return dataTime;
         });
     }
     multi.done();

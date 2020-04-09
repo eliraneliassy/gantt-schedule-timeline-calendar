@@ -71,7 +71,7 @@ export default function ChartTimelineItemsRowItem(vido: Vido, props: Props) {
     }
     itemLeftPx = props.item.$data.position.actualLeft;
     itemWidthPx = props.item.$data.actualWidth;
-    if (itemWidthPx <= 0) {
+    if (props.item.time.end <= time.leftGlobal || props.item.time.start >= time.rightGlobal || itemWidthPx <= 0) {
       shouldDetach = true;
       props.item.$data.detached = true;
       return;

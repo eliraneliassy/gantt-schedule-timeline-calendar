@@ -73,6 +73,7 @@ export class Time {
 
   private addAdditionalSpace(time: DataChartTime) {
     if (time.additionalSpaces && time.additionalSpaces[time.period]) {
+      time.additionalSpaceAdded = true;
       const add = time.additionalSpaces[time.period];
       if (add.before) {
         time.finalFrom = this.date(time.from).subtract(add.before, add.period).valueOf();
@@ -90,8 +91,7 @@ export class Time {
     time.from = +time.from;
     time.to = +time.to;
     time.fromDate = this.date(time.from);
-    time.toDate = this.date(time.to);
-
+    time.toDate = this.date(time.to).endOf(period);
     let from = Number.MAX_SAFE_INTEGER,
       to = 0;
     const items = this.state.get('config.chart.items');
@@ -113,12 +113,12 @@ export class Time {
           time.to = this.date(to).endOf(period).valueOf();
         }
         time.fromDate = this.date(time.from);
-        time.toDate = this.date(time.to);
+        time.toDate = this.date(time.to).endOf(period);
       }
     }
     time.finalFrom = time.fromDate.startOf(period).valueOf();
-    time.finalTo = time.toDate.startOf(period).valueOf();
-    if (reason.name !== 'forceUpdate' && reason.name !== 'items') time = this.addAdditionalSpace(time);
+    time.finalTo = time.toDate.endOf(period).valueOf();
+    if (reason.name !== 'items') time = this.addAdditionalSpace(time);
     return time;
   }
 
@@ -198,24 +198,22 @@ export class Time {
           time,
           level: this.state.get(`config.chart.calendar.levels.${time.level}`),
           levelIndex: time.level,
+          callOnLevelDates: false,
         })[0];
         left -= date.width;
         if (left <= finalOffset) {
-          this.state.update('config.chart.time', (time: DataChartTime) => {
-            time.finalFrom = date.leftGlobal;
-            time.forceUpdate = true;
-            return time;
-          });
+          let multi = this.state.multi();
+          multi = multi.update('config.chart.time.finalFrom', date.leftGlobal);
           time = this.state.get('$data.chart.time') as DataChartTime;
-          this.api.setScrollLeft(0, time);
-          return date.leftGlobal + Math.round((Math.abs(finalOffset) - Math.abs(date.leftPx)) * time.timePerPixel);
+          return date.leftGlobal + (finalOffset - left) * time.timePerPixel;
         }
         leftDate = leftDate.subtract(1, time.period).startOf(time.period);
       }
     } else if (finalOffset > time.totalViewDurationPx) {
       // we need to generate some dates after and update leftPx
       let date: ChartTimeDate;
-      let leftDate = time.finalToDate;
+      let previosDate: ChartTimeDate;
+      let leftDate = time.finalToDate.startOf('day').add(1, 'day');
       let left = time.rightPx;
       // I think that 1000 is enough to find any date and doesn't get stuck at infinite loop
       for (let i = 0; i < 1000; i++) {
@@ -226,26 +224,22 @@ export class Time {
           time,
           level: this.state.get(`config.chart.calendar.levels.${time.level}`),
           levelIndex: time.level,
+          callOnLevelDates: false,
         })[0];
         left += date.width;
         if (left >= finalOffset) {
-          this.state.update('config.chart.time', (time: DataChartTime) => {
-            time.finalTo = date.rightGlobal;
-            time.forceUpdate = true;
-            return time;
-          });
-          time = this.state.get('$data.chart.time') as DataChartTime;
-          this.api.setScrollLeft(time.allDates[time.level].length - 1, time);
-          return date.leftGlobal + Math.round((Math.abs(finalOffset) - Math.abs(date.leftPx)) * time.timePerPixel);
+          if (previosDate) date = previosDate;
+          this.state.update('config.chart.time.finalTo', date.rightGlobal);
+          return date.rightGlobal - (left - finalOffset) * time.timePerPixel;
         }
         leftDate = leftDate.add(1, time.period).startOf(time.period);
+        previosDate = date;
       }
     }
     for (let i = 0, len = dates.length; i < len; i++) {
       let date = dates[i];
-      if (date.leftPx >= finalOffset) {
-        date = dates[i - 1];
-        return date.leftGlobal + Math.round((finalOffset - date.leftPx) * time.timePerPixel);
+      if (date.rightPx >= finalOffset) {
+        return date.rightGlobal - Math.round((date.rightPx - finalOffset) * time.timePerPixel);
       }
     }
     return -1;
@@ -274,6 +268,7 @@ export class Time {
     level,
     levelIndex,
     time,
+    callOnLevelDates,
   }: {
     leftDate: Dayjs;
     rightDate: Dayjs;
@@ -281,6 +276,7 @@ export class Time {
     level: ChartCalendarLevel;
     levelIndex: number;
     time: DataChartTime;
+    callOnLevelDates?: boolean;
   }): DataChartTimeLevelDate[] {
     if (!time.timePerPixel) return [];
     let leftPx = 0;
@@ -311,8 +307,10 @@ export class Time {
       leftDate = leftDate.add(1, period); // 'startOf' will cause bug here on summertime change
     }
     const format = this.getCurrentFormatForLevel(level, time);
-    for (let i = 0, len = time.onLevelDates.length; i < len; i++) {
-      dates = time.onLevelDates[i]({ dates, format, time, level, levelIndex });
+    if (callOnLevelDates) {
+      for (let i = 0, len = time.onLevelDates.length; i < len; i++) {
+        dates = time.onLevelDates[i]({ dates, format, time, level, levelIndex });
+      }
     }
     return dates;
   }
@@ -344,6 +342,7 @@ export class Time {
         level,
         levelIndex,
         time,
+        callOnLevelDates: false,
       });
       dates = beforeDates;
     }
@@ -361,6 +360,7 @@ export class Time {
         level,
         levelIndex,
         time,
+        callOnLevelDates: false,
       });
       dates = [...dates, ...afterDates];
     }

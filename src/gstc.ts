@@ -22,6 +22,7 @@ export type Vido = vido<DeepState, Api>;
 export interface RowData {
   actualHeight: number;
   outerHeight: number;
+  topPercent: number;
   parents: string[];
   children: string[];
   items: Item[];
@@ -265,6 +266,7 @@ export interface ScrollTypeVertical extends ScrollType {
 }
 
 export interface Scroll {
+  bodyClassName?: string;
   horizontal?: ScrollTypeHorizontal;
   vertical?: ScrollTypeVertical;
 }
@@ -371,6 +373,7 @@ export interface DataChartTime {
   onCurrentViewLevelDates?: ChartTimeOnLevelDates[];
   allDates?: ChartTimeDates[];
   forceUpdate?: boolean;
+  additionalSpaceAdded: boolean;
 }
 
 export interface ChartCalendarFormatArguments {
@@ -646,6 +649,7 @@ function GSTC(options: GSTCOptions): GSTCResult {
         finalTo: null,
         finalFromDate: null,
         finalToDate: null,
+        additionalSpaceAdded: false,
       },
     },
     elements: {},

@@ -1,7 +1,7 @@
 import { Time } from './time';
 import DeepState from 'deep-state-observer';
 import dayjs from 'dayjs';
-import { Config, DataChartTime, Row, Item, Vido } from '../gstc';
+import { Config, DataChartTime, ScrollTypeHorizontal, Row, Item, Vido, ScrollTypeVertical } from '../gstc';
 export declare function getClass(name: string): string;
 export declare function stateFromConfig(userConfig: Config): any;
 export declare const publicApi: {
@@ -54,11 +54,14 @@ export declare class Api {
     getRowsFromMap(flatTreeMap: any, rows: any): any;
     getRowsFromIds(ids: any, rows: any): any[];
     getRowsWithParentsExpanded(flatTreeMap: any, flatTreeMapById: any, rows: any): any[];
-    getRowsHeight(rows: any): number;
-    getVisibleRows(rowsWithParentsExpanded: any): any[];
-    normalizeMouseWheelEvent(event: any): WheelResult;
+    getRowsHeight(rows: Row[]): number;
+    getVisibleRows(rowsWithParentsExpanded: Row[]): Row[];
+    normalizeMouseWheelEvent(event: MouseWheelEvent): WheelResult;
     scrollToTime(toTime: number, centered?: boolean, time?: DataChartTime): number;
-    setScrollLeft(dataIndex: number | undefined, time?: DataChartTime): void;
+    setScrollLeft(dataIndex: number | undefined, time?: DataChartTime, multi?: any): any;
+    getScrollLeft(): ScrollTypeHorizontal;
+    setScrollTop(dataIndex: number | undefined): void;
+    getScrollTop(): ScrollTypeVertical;
     getSVGIconSrc(svg: any): string;
     destroy(): void;
 }

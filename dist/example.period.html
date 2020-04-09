@@ -38,12 +38,12 @@
       <button onclick="recenter()">recenter</button>
     </div>
     <div id="app"></div>
-    <script src="./timeline-pointer.plugin.js"></script>
-    <script src="./selection.plugin.js"></script>
-    <script src="./item-movement.plugin.js"></script>
-    <script src="./calendar-scroll.plugin.js"></script>
-    <script src="./highlight-weekends.plugin.js"></script>
-    <script src="./gstc.js"></script>
+    <script src="./timeline-pointer.plugin.umd.js"></script>
+    <script src="./selection.plugin.umd.js"></script>
+    <script src="./item-movement.plugin.umd.js"></script>
+    <script src="./calendar-scroll.plugin.umd.js"></script>
+    <script src="./highlight-weekends.plugin.umd.js"></script>
+    <script src="./gstc.umd.js"></script>
     <script>
       const iterations = 10000;
 
@@ -173,13 +173,13 @@
           items,
           time: {
             period: 'day',
-            /*additionalSpaces: {
+            additionalSpaces: {
               hour: { before: 24, after: 24, period: 'hour' },
-              day: { before: 1, after: 1, period: 'month' },
+              day: { before: 10, after: 10, period: 'day' },
               week: { before: 1, after: 1, period: 'year' },
               month: { before: 6, after: 6, period: 'year' },
-              year: { before: 12, after: 12, period: 'year' }
-            }*/
+              year: { before: 12, after: 12, period: 'year' },
+            },
           },
         },
         /*actions: {

@@ -24,7 +24,7 @@ export interface Options {
 
 const defaultOptions = {
   enabled: true,
-  bodyClassName: 'gstc-calendar-scrolling',
+  bodyClassName: 'gstc-scrolling',
 };
 
 export function Plugin(options: Options = defaultOptions) {

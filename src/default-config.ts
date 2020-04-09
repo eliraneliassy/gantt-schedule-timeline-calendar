@@ -205,6 +205,7 @@ function defaultConfig(): Config {
       },
     },
     scroll: {
+      bodyClassName: 'gstc-scrolling',
       horizontal: {
         size: 20,
         minInnerSize: 40,
