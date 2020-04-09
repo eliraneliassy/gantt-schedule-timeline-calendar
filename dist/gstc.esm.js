@@ -5976,9 +5976,9 @@ function Main(vido, props = {}) {
     }
     const generatePeriodDates = (formatting, time, level, levelIndex) => {
         const period = formatting.period;
-        let finalFrom = time.finalFrom;
-        let leftDate = api.time.date(finalFrom).startOf(period);
-        const rightDate = api.time.date(time.finalTo).endOf(period);
+        let from = time.from;
+        let leftDate = api.time.date(from).startOf(period);
+        const rightDate = api.time.date(time.to).endOf(period);
         const dates = api.time.generatePeriodDates({
             leftDate,
             rightDate,
@@ -5986,6 +5986,7 @@ function Main(vido, props = {}) {
             levelIndex,
             period,
             time,
+            callOnDate: false,
             callOnLevelDates: true,
         });
         const className = api.getClass('chart-calendar-date');
@@ -6013,10 +6014,10 @@ function Main(vido, props = {}) {
         state.update('$data.loadedEventTriggered', true);
     }
     function limitGlobalAndSetCenter(time, updateCenter = true, oldTime, reason) {
-        if (time.leftGlobal < time.finalFrom)
-            time.leftGlobal = time.finalFrom;
-        if (time.rightGlobal > time.finalTo)
-            time.rightGlobal = time.finalTo;
+        if (time.leftGlobal < time.from)
+            time.leftGlobal = time.from;
+        if (time.rightGlobal > time.to)
+            time.rightGlobal = time.to;
         time.leftGlobalDate = api.time.date(time.leftGlobal).startOf(time.period);
         time.leftGlobal = time.leftGlobalDate.valueOf();
         time.rightGlobalDate = api.time.date(time.rightGlobal).endOf(time.period);
@@ -6236,9 +6237,7 @@ function Main(vido, props = {}) {
         let scrollWidth = 0;
         // source of everything = time.timePerPixel
         if (time.calculatedZoomMode && chartWidth) {
-            time.finalFrom = time.from;
-            time.finalTo = time.to;
-            time.totalViewDurationMs = api.time.date(time.finalTo).diff(time.finalFrom, 'millisecond');
+            time.totalViewDurationMs = api.time.date(time.to).diff(time.from, 'millisecond');
             time.timePerPixel = time.totalViewDurationMs / chartWidth;
             time.zoom = Math.log(time.timePerPixel) / Math.log(2);
             guessPeriod(time, calendar.levels);
@@ -6249,7 +6248,8 @@ function Main(vido, props = {}) {
                 scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
                 calculateTotalViewDuration(time);
                 const all = time.allDates[time.level];
-                time.finalTo = all[all.length - 1].leftGlobal;
+                time.to = all[all.length - 1].rightGlobal;
+                time.toDate = api.time.date(time.to);
             }
             time.leftGlobal = time.from;
             time.leftGlobalDate = api.time.date(time.leftGlobal);
@@ -6272,7 +6272,8 @@ function Main(vido, props = {}) {
                 scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
                 calculateTotalViewDuration(time);
                 const all = time.allDates[time.level];
-                time.finalTo = all[all.length - 1].leftGlobal;
+                time.to = all[all.length - 1].rightGlobal;
+                time.toDate = api.time.date(time.to);
             }
             else {
                 time.totalViewDurationPx = oldTime.totalViewDurationPx;
@@ -6285,8 +6286,6 @@ function Main(vido, props = {}) {
         else {
             time.scrollWidth = oldTime.scrollWidth;
         }
-        time.finalFromDate = api.time.date(time.finalFrom);
-        time.finalToDate = api.time.date(time.finalTo);
         const allMainDates = time.allDates[mainLevelIndex];
         let updateCenter = false;
         if (!time.calculatedZoomMode) {
@@ -6324,8 +6323,8 @@ function Main(vido, props = {}) {
             }
         }
         limitGlobalAndSetCenter(time, updateCenter);
-        time.leftInner = time.leftGlobal - time.finalFrom;
-        time.rightInner = time.rightGlobal - time.finalFrom;
+        time.leftInner = time.leftGlobal - time.from;
+        time.rightInner = time.rightGlobal - time.from;
         updateLevels(time, calendar.levels);
         time.leftPx = 0;
         time.rightPx = chartWidth;
@@ -6346,15 +6345,12 @@ function Main(vido, props = {}) {
             configTime.rightGlobal = time.rightGlobal;
             configTime.from = time.from;
             configTime.to = time.to;
-            configTime.finalFrom = time.finalFrom;
-            configTime.finalTo = time.finalTo;
             // @ts-ignore
             configTime.allDates = time.allDates;
+            // @ts-ignore
+            configTime.additionalSpaceAdded = time.additionalSpaceAdded;
             return configTime;
         });
-        if ((reason.name === 'items' || reason.name === 'forceUpdate') && horizontalScroll.dataIndex === 0) {
-            multi = api.setScrollLeft(0, time, multi);
-        }
         multi = updateVisibleItems(time, multi);
         multi.done();
         update().then(() => {
@@ -6423,8 +6419,8 @@ function Main(vido, props = {}) {
         const item = state.get(`config.chart.items.${eventInfo.params.itemId}`);
         if (!item)
             return;
-        if (item.time.start < time.finalFrom || item.time.end > time.finalTo) {
-            let from = time.finalFrom, to = time.finalTo;
+        if (item.time.start < time.from || item.time.end > time.to) {
+            let from = time.from, to = time.to;
             if (item.time.start < time.from)
                 from = item.time.start;
             if (item.time.end > time.to)
@@ -6590,7 +6586,6 @@ function ScrollBar(vido, props) {
         return fullSize;
     }
     if (props.type === 'horizontal') {
-        let lastDataIndex = 0;
         onDestroy(state.subscribe('$data.chart.time', () => {
             const time = state.get('$data.chart.time');
             if (!time.leftGlobalDate)
@@ -6607,24 +6602,9 @@ function ScrollBar(vido, props) {
                 if (dataIndex > dates.length - lastPageCount) {
                     dataIndex = dates.length - lastPageCount;
                 }
-                if (dataIndex !== lastDataIndex) {
-                    api.setScrollLeft(dataIndex);
-                }
-                lastDataIndex = dataIndex;
+                api.setScrollLeft(dataIndex, time);
             }
         }));
-    }
-    const cache = {
-        maxPosPx: 0,
-        innerSize: 0,
-        sub: 0,
-        scrollArea: 0,
-    };
-    function shouldUpdate(maxPosPx, innerSize, sub, scrollArea) {
-        return (cache.maxPosPx !== maxPosPx ||
-            cache.innerSize !== innerSize ||
-            cache.sub !== sub ||
-            cache.scrollArea !== scrollArea);
     }
     let working = false;
     onDestroy(state.subscribeAll(props.type === 'horizontal'
@@ -6687,19 +6667,16 @@ function ScrollBar(vido, props) {
         }
         styleMapInner.style[invSizeProp] = innerSize + 'px';
         maxPos = Math.round(invSize - sub);
-        if (shouldUpdate(maxPos, innerSize, sub, invSize)) {
-            cache.maxPosPx = maxPos;
-            cache.innerSize = innerSize;
-            cache.sub = sub;
-            cache.scrollArea = invSize;
-            state.update(`config.scroll.${props.type}`, (scroll) => {
-                scroll.maxPosPx = maxPos;
-                scroll.innerSize = innerSize;
-                scroll.sub = sub;
-                scroll.scrollArea = invSize;
-                return scroll;
-            });
-        }
+        state.update(`config.scroll.${props.type}`, (scroll) => {
+            scroll.maxPosPx = maxPos;
+            scroll.innerSize = innerSize;
+            scroll.sub = sub;
+            scroll.scrollArea = invSize;
+            return scroll;
+        });
+        /*} else {
+          console.log('not updating');
+        }*/
         update();
         working = false;
     }));
@@ -8882,8 +8859,6 @@ function defaultConfig() {
                 period: 'day',
                 from: 0,
                 to: 0,
-                finalFrom: 0,
-                finalTo: 0,
                 zoom: 20,
                 leftGlobal: 0,
                 centerGlobal: 0,
@@ -8892,7 +8867,9 @@ function defaultConfig() {
                 calculatedZoomMode: false,
                 onLevelDates: [],
                 onCurrentViewLevelDates: [],
+                onDate: [],
                 allDates: [],
+                additionalSpaceAdded: false,
             },
             calendar: {
                 expand: true,
@@ -9173,15 +9150,18 @@ class Time {
         return time ? _dayjs(time).locale(this.locale.name) : _dayjs().locale(this.locale.name);
     }
     addAdditionalSpace(time) {
-        if (time.additionalSpaces && time.additionalSpaces[time.period]) {
+        if (!time.additionalSpaceAdded && time.additionalSpaces && time.additionalSpaces[time.period]) {
+            // @ts-ignore
             time.additionalSpaceAdded = true;
             const add = time.additionalSpaces[time.period];
             if (add.before) {
-                time.finalFrom = this.date(time.from).subtract(add.before, add.period).valueOf();
+                time.from = this.date(time.from).subtract(add.before, add.period).valueOf();
             }
             if (add.after) {
-                time.finalTo = this.date(time.to).add(add.after, add.period).valueOf();
+                time.to = this.date(time.to).add(add.after, add.period).valueOf();
             }
+            // @ts-ignore
+            time.additionalSpaceAdded = true;
         }
         return time;
     }
@@ -9215,14 +9195,17 @@ class Time {
                 time.toDate = this.date(time.to).endOf(period);
             }
         }
-        time.finalFrom = time.fromDate.startOf(period).valueOf();
-        time.finalTo = time.toDate.endOf(period).valueOf();
-        if (reason.name !== 'items')
+        time.from = time.fromDate.startOf(period).valueOf();
+        time.to = time.toDate.endOf(period).valueOf();
+        if (!time.additionalSpaceAdded) {
             time = this.addAdditionalSpace(time);
+            // @ts-ignore
+            time.additionalSpaceAdded = true;
+        }
         return time;
     }
     getCenter(time) {
-        return time.leftGlobal + (time.rightGlobal - time.leftGlobal) / 2;
+        return time.leftGlobal + Math.round((time.rightGlobal - time.leftGlobal) / 2);
     }
     getGlobalOffsetPxFromDates(date, time = this.state.get('$data.chart.time')) {
         const milliseconds = date.valueOf();
@@ -9252,9 +9235,11 @@ class Time {
         }
         else {
             // date is out of the current scope (view)
-            if (date.valueOf() < time.leftGlobal)
+            const value = date.valueOf();
+            if (value <= time.leftGlobal)
                 return 0;
-            return time.width;
+            if (value >= time.rightGlobal)
+                return time.totalViewDurationPx;
         }
     }
     getViewOffsetPxFromDates(date, limitToView = true, time = this.state.get('$data.chart.time')) {
@@ -9282,25 +9267,29 @@ class Time {
         if (finalOffset < 0) {
             // we need to generate some dates before and update leftPx to negative values
             let date;
-            let leftDate = time.finalFromDate.subtract(1, time.period);
+            let leftDate = time.fromDate.subtract(1, time.period);
             let left = 0;
             // I think that 1000 is enough to find any date and doesn't get stuck at infinite loop
             for (let i = 0; i < 1000; i++) {
-                date = this.generatePeriodDates({
+                const dates = this.generatePeriodDates({
                     leftDate,
                     rightDate: leftDate.add(1, time.period),
                     period: time.period,
                     time,
                     level: this.state.get(`config.chart.calendar.levels.${time.level}`),
                     levelIndex: time.level,
+                    callOnDate: true,
                     callOnLevelDates: false,
-                })[0];
-                left -= date.width;
-                if (left <= finalOffset) {
-                    let multi = this.state.multi();
-                    multi = multi.update('config.chart.time.finalFrom', date.leftGlobal);
-                    time = this.state.get('$data.chart.time');
-                    return date.leftGlobal + (finalOffset - left) * time.timePerPixel;
+                });
+                if (dates.length) {
+                    date = dates[0];
+                    left -= date.width;
+                    if (left <= finalOffset) {
+                        let multi = this.state.multi();
+                        multi = multi.update('config.chart.time.finalFrom', date.leftGlobal);
+                        time = this.state.get('$data.chart.time');
+                        return date.leftGlobal + (finalOffset - left) * time.timePerPixel;
+                    }
                 }
                 leftDate = leftDate.subtract(1, time.period).startOf(time.period);
             }
@@ -9309,25 +9298,29 @@ class Time {
             // we need to generate some dates after and update leftPx
             let date;
             let previosDate;
-            let leftDate = time.finalToDate.startOf('day').add(1, 'day');
+            let leftDate = time.toDate.startOf('day').add(1, 'day');
             let left = time.rightPx;
             // I think that 1000 is enough to find any date and doesn't get stuck at infinite loop
             for (let i = 0; i < 1000; i++) {
-                date = this.generatePeriodDates({
+                const dates = this.generatePeriodDates({
                     leftDate,
                     rightDate: leftDate.add(1, time.period),
                     period: time.period,
                     time,
                     level: this.state.get(`config.chart.calendar.levels.${time.level}`),
                     levelIndex: time.level,
+                    callOnDate: true,
                     callOnLevelDates: false,
-                })[0];
-                left += date.width;
-                if (left >= finalOffset) {
-                    if (previosDate)
-                        date = previosDate;
-                    this.state.update('config.chart.time.finalTo', date.rightGlobal);
-                    return date.rightGlobal - (left - finalOffset) * time.timePerPixel;
+                });
+                if (dates.length) {
+                    date = dates[0];
+                    left += date.width;
+                    if (left >= finalOffset) {
+                        if (previosDate)
+                            date = previosDate;
+                        this.state.update('config.chart.time.finalTo', date.rightGlobal);
+                        return date.rightGlobal - (left - finalOffset) * time.timePerPixel;
+                    }
                 }
                 leftDate = leftDate.add(1, time.period).startOf(time.period);
                 previosDate = date;
@@ -9354,7 +9347,7 @@ class Time {
     getCurrentFormatForLevel(level, time) {
         return level.formats.find((format) => +time.zoom <= +format.zoomTo);
     }
-    generatePeriodDates({ leftDate, rightDate, period, level, levelIndex, time, callOnLevelDates, }) {
+    generatePeriodDates({ leftDate, rightDate, period, level, levelIndex, time, callOnDate, callOnLevelDates, }) {
         if (!time.timePerPixel)
             return [];
         let leftPx = 0;
@@ -9385,6 +9378,13 @@ class Time {
             leftDate = leftDate.add(1, period); // 'startOf' will cause bug here on summertime change
         }
         const format = this.getCurrentFormatForLevel(level, time);
+        if (callOnDate) {
+            for (let i = 0, len = time.onDate.length; i < len; i++) {
+                dates = dates
+                    .map((date) => time.onDate[i]({ date, format, time, level, levelIndex }))
+                    .filter((date) => date !== null);
+            }
+        }
         if (callOnLevelDates) {
             for (let i = 0, len = time.onLevelDates.length; i < len; i++) {
                 dates = time.onLevelDates[i]({ dates, format, time, level, levelIndex });
@@ -9420,6 +9420,7 @@ class Time {
                 level,
                 levelIndex,
                 time,
+                callOnDate: true,
                 callOnLevelDates: false,
             });
             dates = beforeDates;
@@ -9438,6 +9439,7 @@ class Time {
                 level,
                 levelIndex,
                 time,
+                callOnDate: true,
                 callOnLevelDates: false,
             });
             dates = [...dates, ...afterDates];
@@ -9999,17 +10001,16 @@ class DeepState {
     runQueuedListeners() {
         if (this.subscribeQueue.length === 0)
             return;
-        const queue = [...this.subscribeQueue];
-        for (let i = 0, len = queue.length; i < len; i++) {
-            const remove = queue[i]();
-            if (remove) {
-                const index = this.subscribeQueue.indexOf(queue[i]);
-                if (index > -1) {
-                    this.subscribeQueue.splice(index, 1);
-                }
+        if (this.jobsRunning === 0) {
+            const queue = [...this.subscribeQueue];
+            for (let i = 0, len = queue.length; i < len; i++) {
+                queue[i]();
             }
+            this.subscribeQueue.length = 0;
         }
-        Promise.resolve().then(() => this.runQueuedListeners());
+        else {
+            Promise.resolve().then(() => this.runQueuedListeners());
+        }
     }
     notifyListeners(listeners, exclude = [], returnNotified = true) {
         const alreadyNotified = [];
@@ -10021,11 +10022,7 @@ class DeepState {
                 const time = this.debugTime(singleListener);
                 if (singleListener.listener.options.queue && this.jobsRunning) {
                     this.subscribeQueue.push(() => {
-                        if (!this.jobsRunning) {
-                            singleListener.listener.fn(singleListener.value(), singleListener.eventInfo);
-                            return true;
-                        }
-                        return false;
+                        singleListener.listener.fn(singleListener.value(), singleListener.eventInfo);
                     });
                 }
                 else {
@@ -10321,12 +10318,10 @@ class DeepState {
             this.notifyNestedListeners(updatePath, newValue, options, "update", alreadyNotified);
         }
         this.executeWaitingListeners(updatePath);
-        this.jobsRunning--;
     }
     updateNotifyOnly(updatePath, newValue, options) {
         this.notifyOnly(updatePath, newValue, options);
         this.executeWaitingListeners(updatePath);
-        this.jobsRunning--;
     }
     update(updatePath, fn, options = defaultUpdateOptions, multi = false) {
         const jobsRunning = this.jobsRunning;
@@ -10368,6 +10363,7 @@ class DeepState {
             return newValue;
         }
         if (options.only.length) {
+            this.jobsRunning--;
             if (multi) {
                 return () => this.updateNotifyOnly(updatePath, newValue, options);
             }
@@ -10375,9 +10371,11 @@ class DeepState {
             return newValue;
         }
         if (multi) {
+            this.jobsRunning--;
             return () => this.updateNotify(updatePath, newValue, options);
         }
         this.updateNotify(updatePath, newValue, options);
+        this.jobsRunning--;
         return newValue;
     }
     multi() {
@@ -10864,11 +10862,8 @@ class Api {
         const date = allDates[dataIndex];
         if (!date)
             return;
-        const horizontal = this.state.get('config.scroll.horizontal');
-        if (horizontal.data && horizontal.data.leftGlobal === date.leftGlobal)
-            return;
         multi.update('config.scroll.horizontal', (scrollHorizontal) => {
-            scrollHorizontal.data = date;
+            scrollHorizontal.data = Object.assign({}, date);
             const time = this.state.get('$data.chart.time');
             scrollHorizontal.posPx = this.time.calculateScrollPosPxFromTime(scrollHorizontal.data.leftGlobal, time, scrollHorizontal);
             scrollHorizontal.dataIndex = dataIndex;
@@ -10888,8 +10883,6 @@ class Api {
         const vertical = this.state.get('config.scroll.vertical');
         const rows = this.state.get('$data.list.rowsWithParentsExpanded');
         if (!rows[dataIndex])
-            return;
-        if (vertical.data && vertical.data.id === rows[dataIndex].id)
             return;
         this.state.update('config.scroll.vertical', (scrollVertical) => {
             scrollVertical.data = rows[dataIndex];
@@ -10982,10 +10975,6 @@ function GSTC(options) {
                 to: 0,
                 fromDate: null,
                 toDate: null,
-                finalFrom: null,
-                finalTo: null,
-                finalFromDate: null,
-                finalToDate: null,
                 additionalSpaceAdded: false,
             },
         },

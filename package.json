@@ -25,7 +25,7 @@
     "@neuronet.io/vido": "^2.6.10",
     "@rollup/pluginutils": "^3.0.8",
     "dayjs": "^1.8.23",
-    "deep-state-observer": "^3.8.5",
+    "deep-state-observer": "^3.8.10",
     "pepjs": "^0.5.2",
     "resize-observer-polyfill": "^1.5.1"
   },

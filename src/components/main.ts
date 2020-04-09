@@ -293,9 +293,9 @@ export default function Main(vido: Vido, props = {}) {
     levelIndex: number
   ): DataChartTimeLevel => {
     const period = formatting.period;
-    let finalFrom = time.finalFrom;
-    let leftDate = api.time.date(finalFrom).startOf(period);
-    const rightDate = api.time.date(time.finalTo).endOf(period);
+    let from = time.from;
+    let leftDate = api.time.date(from).startOf(period);
+    const rightDate = api.time.date(time.to).endOf(period);
     const dates = api.time.generatePeriodDates({
       leftDate,
       rightDate,
@@ -303,6 +303,7 @@ export default function Main(vido: Vido, props = {}) {
       levelIndex,
       period,
       time,
+      callOnDate: false,
       callOnLevelDates: true,
     });
     const className = api.getClass('chart-calendar-date');
@@ -331,8 +332,8 @@ export default function Main(vido: Vido, props = {}) {
   }
 
   function limitGlobalAndSetCenter(time: DataChartTime, updateCenter = true, oldTime: DataChartTime, reason) {
-    if (time.leftGlobal < time.finalFrom) time.leftGlobal = time.finalFrom;
-    if (time.rightGlobal > time.finalTo) time.rightGlobal = time.finalTo;
+    if (time.leftGlobal < time.from) time.leftGlobal = time.from;
+    if (time.rightGlobal > time.to) time.rightGlobal = time.to;
     time.leftGlobalDate = api.time.date(time.leftGlobal).startOf(time.period);
     time.leftGlobal = time.leftGlobalDate.valueOf();
     time.rightGlobalDate = api.time.date(time.rightGlobal).endOf(time.period);
@@ -574,9 +575,7 @@ export default function Main(vido: Vido, props = {}) {
 
     // source of everything = time.timePerPixel
     if (time.calculatedZoomMode && chartWidth) {
-      time.finalFrom = time.from;
-      time.finalTo = time.to;
-      time.totalViewDurationMs = api.time.date(time.finalTo).diff(time.finalFrom, 'millisecond');
+      time.totalViewDurationMs = api.time.date(time.to).diff(time.from, 'millisecond');
       time.timePerPixel = time.totalViewDurationMs / chartWidth;
       time.zoom = Math.log(time.timePerPixel) / Math.log(2);
       guessPeriod(time, calendar.levels);
@@ -589,7 +588,8 @@ export default function Main(vido: Vido, props = {}) {
         scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
         calculateTotalViewDuration(time);
         const all = time.allDates[time.level];
-        time.finalTo = all[all.length - 1].leftGlobal;
+        time.to = all[all.length - 1].rightGlobal;
+        time.toDate = api.time.date(time.to);
       }
       time.leftGlobal = time.from;
       time.leftGlobalDate = api.time.date(time.leftGlobal);
@@ -613,7 +613,8 @@ export default function Main(vido: Vido, props = {}) {
         scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
         calculateTotalViewDuration(time);
         const all = time.allDates[time.level];
-        time.finalTo = all[all.length - 1].leftGlobal;
+        time.to = all[all.length - 1].rightGlobal;
+        time.toDate = api.time.date(time.to);
       } else {
         time.totalViewDurationPx = oldTime.totalViewDurationPx;
         time.totalViewDurationMs = oldTime.totalViewDurationMs;
@@ -625,9 +626,6 @@ export default function Main(vido: Vido, props = {}) {
     } else {
       time.scrollWidth = oldTime.scrollWidth;
     }
-
-    time.finalFromDate = api.time.date(time.finalFrom);
-    time.finalToDate = api.time.date(time.finalTo);
 
     const allMainDates = time.allDates[mainLevelIndex];
 
@@ -669,8 +667,8 @@ export default function Main(vido: Vido, props = {}) {
 
     limitGlobalAndSetCenter(time, updateCenter, oldTime, reason);
 
-    time.leftInner = time.leftGlobal - time.finalFrom;
-    time.rightInner = time.rightGlobal - time.finalFrom;
+    time.leftInner = time.leftGlobal - time.from;
+    time.rightInner = time.rightGlobal - time.from;
 
     updateLevels(time, calendar.levels);
     time.leftPx = 0;
@@ -693,15 +691,12 @@ export default function Main(vido: Vido, props = {}) {
         configTime.rightGlobal = time.rightGlobal;
         configTime.from = time.from;
         configTime.to = time.to;
-        configTime.finalFrom = time.finalFrom;
-        configTime.finalTo = time.finalTo;
         // @ts-ignore
         configTime.allDates = time.allDates;
+        // @ts-ignore
+        configTime.additionalSpaceAdded = time.additionalSpaceAdded;
         return configTime;
       });
-    if ((reason.name === 'items' || reason.name === 'forceUpdate') && horizontalScroll.dataIndex === 0) {
-      multi = api.setScrollLeft(0, time, multi);
-    }
     multi = updateVisibleItems(time, multi);
     multi.done();
 
@@ -776,9 +771,9 @@ export default function Main(vido: Vido, props = {}) {
       const time: DataChartTime = state.get('$data.chart.time');
       const item: Item = state.get(`config.chart.items.${eventInfo.params.itemId}`);
       if (!item) return;
-      if (item.time.start < time.finalFrom || item.time.end > time.finalTo) {
-        let from = time.finalFrom,
-          to = time.finalTo;
+      if (item.time.start < time.from || item.time.end > time.to) {
+        let from = time.from,
+          to = time.to;
         if (item.time.start < time.from) from = item.time.start;
         if (item.time.end > time.to) to = item.time.end;
         recalculateTimes({ name: 'items', from, to });

@@ -485,10 +485,8 @@ export class Api {
     if (!allDates) return;
     const date: DataChartTimeLevelDate = allDates[dataIndex];
     if (!date) return;
-    const horizontal: ScrollTypeHorizontal = this.state.get('config.scroll.horizontal');
-    if (horizontal.data && horizontal.data.leftGlobal === date.leftGlobal) return;
     multi.update('config.scroll.horizontal', (scrollHorizontal: ScrollTypeHorizontal) => {
-      scrollHorizontal.data = date;
+      scrollHorizontal.data = { ...date };
       const time = this.state.get('$data.chart.time');
       scrollHorizontal.posPx = this.time.calculateScrollPosPxFromTime(
         scrollHorizontal.data.leftGlobal,
@@ -513,7 +511,6 @@ export class Api {
     const vertical: ScrollTypeVertical = this.state.get('config.scroll.vertical');
     const rows: Row[] = this.state.get('$data.list.rowsWithParentsExpanded');
     if (!rows[dataIndex]) return;
-    if (vertical.data && vertical.data.id === rows[dataIndex].id) return;
     this.state.update('config.scroll.vertical', (scrollVertical: ScrollTypeVertical) => {
       scrollVertical.data = rows[dataIndex];
       scrollVertical.posPx = rows[dataIndex].$data.topPercent * (scrollVertical.maxPosPx - scrollVertical.innerSize);

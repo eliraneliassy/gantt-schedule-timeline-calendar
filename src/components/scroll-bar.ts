@@ -60,7 +60,6 @@ export default function ScrollBar(vido: Vido, props: Props) {
   }
 
   if (props.type === 'horizontal') {
-    let lastDataIndex = 0;
     onDestroy(
       state.subscribe('$data.chart.time', () => {
         const time = state.get('$data.chart.time');
@@ -77,10 +76,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
           if (dataIndex > dates.length - lastPageCount) {
             dataIndex = dates.length - lastPageCount;
           }
-          if (dataIndex !== lastDataIndex) {
-            api.setScrollLeft(dataIndex);
-          }
-          lastDataIndex = dataIndex;
+          api.setScrollLeft(dataIndex, time);
         }
       })
     );
@@ -160,19 +156,21 @@ export default function ScrollBar(vido: Vido, props: Props) {
 
         styleMapInner.style[invSizeProp] = innerSize + 'px';
         maxPos = Math.round(invSize - sub);
-        if (shouldUpdate(maxPos, innerSize, sub, invSize)) {
-          cache.maxPosPx = maxPos;
-          cache.innerSize = innerSize;
-          cache.sub = sub;
-          cache.scrollArea = invSize;
-          state.update(`config.scroll.${props.type}`, (scroll: ScrollType) => {
-            scroll.maxPosPx = maxPos;
-            scroll.innerSize = innerSize;
-            scroll.sub = sub;
-            scroll.scrollArea = invSize;
-            return scroll;
-          });
-        }
+        //if (shouldUpdate(maxPos, innerSize, sub, invSize)) {
+        cache.maxPosPx = maxPos;
+        cache.innerSize = innerSize;
+        cache.sub = sub;
+        cache.scrollArea = invSize;
+        state.update(`config.scroll.${props.type}`, (scroll: ScrollType) => {
+          scroll.maxPosPx = maxPos;
+          scroll.innerSize = innerSize;
+          scroll.sub = sub;
+          scroll.scrollArea = invSize;
+          return scroll;
+        });
+        /*} else {
+          console.log('not updating');
+        }*/
         update();
         working = false;
       }

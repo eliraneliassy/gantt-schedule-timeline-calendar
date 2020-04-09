@@ -306,7 +306,11 @@ class ItemResizing {
       //capture: true,
     };
     return this
+      .html`${oldContent}<div detach=${detach} class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}>${this.data.content}</div>`;
+    /*
+    return this
       .html`${oldContent}<div detach=${detach} class=${this.leftClassName} style=${leftStyleMap} @pointerdown=${onLeftPointerDown}>${this.data.content}</div><div detach=${detach} class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}>${this.data.content}</div>`;
+      */
   }
 
   public getWrapper(oldWrapper: Wrapper): Wrapper {

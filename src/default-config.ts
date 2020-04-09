@@ -228,8 +228,6 @@ function defaultConfig(): Config {
         period: 'day',
         from: 0,
         to: 0,
-        finalFrom: 0,
-        finalTo: 0,
         zoom: 20,
         leftGlobal: 0,
         centerGlobal: 0,
@@ -238,7 +236,9 @@ function defaultConfig(): Config {
         calculatedZoomMode: false,
         onLevelDates: [],
         onCurrentViewLevelDates: [],
+        onDate: [],
         allDates: [],
+        additionalSpaceAdded: false,
       },
       calendar: {
         expand: true,

@@ -216,24 +216,28 @@ export interface Scroll {
 export interface ChartTimeDate extends DataChartTimeLevelDate {
 }
 export declare type ChartTimeDates = ChartTimeDate[];
-export declare type ChartTimeOnLevelDatesArgs = {
+export declare type ChartTimeOnLevelDatesArg = {
     dates: DataChartTimeLevel;
     time: DataChartTime;
     format: ChartCalendarFormat;
     level: ChartCalendarLevel;
     levelIndex: number;
 };
-export declare type ChartTimeOnLevelDates = (arg: ChartTimeOnLevelDatesArgs) => DataChartTimeLevel;
+export declare type ChartTimeOnLevelDates = (arg: ChartTimeOnLevelDatesArg) => DataChartTimeLevel;
+export declare type ChartTimeOnDateArg = {
+    date: ChartTimeDate;
+    time: DataChartTime;
+    format: ChartCalendarFormat;
+    level: ChartCalendarLevel;
+    levelIndex: number;
+};
+export declare type ChartTimeOnDate = (arg: ChartTimeOnDateArg) => ChartTimeDate | null;
 export interface ChartTime {
     period?: Period;
     from?: number;
     readonly fromDate?: Dayjs;
     to?: number;
     readonly toDate?: Dayjs;
-    finalFrom?: number;
-    readonly finalFromDate?: Dayjs;
-    finalTo?: number;
-    readonly finalToDate?: Dayjs;
     zoom?: number;
     leftGlobal: number;
     readonly leftGlobalDate?: Dayjs;
@@ -247,8 +251,10 @@ export interface ChartTime {
     calculatedZoomMode?: boolean;
     onLevelDates?: ChartTimeOnLevelDates[];
     onCurrentViewLevelDates?: ChartTimeOnLevelDates[];
+    onDate?: ChartTimeOnDate[];
     readonly allDates?: ChartTimeDates[];
     forceUpdate?: boolean;
+    readonly additionalSpaceAdded?: boolean;
 }
 export interface DataChartTimeLevelDateCurrentView {
     leftPx: number;
@@ -273,7 +279,7 @@ export interface DataChartTimeLevelDate {
     rightPercent?: number;
 }
 export declare type DataChartTimeLevel = DataChartTimeLevelDate[];
-export interface DataChartTime {
+export interface DataChartTime extends ChartTime {
     period: Period;
     leftGlobal: number;
     leftGlobalDate: Dayjs;
@@ -286,10 +292,6 @@ export interface DataChartTime {
     fromDate: Dayjs;
     to: number;
     toDate: Dayjs;
-    finalFrom: number;
-    finalFromDate: Dayjs;
-    finalTo: number;
-    finalToDate: Dayjs;
     totalViewDurationMs: number;
     totalViewDurationPx: number;
     leftInner: number;
@@ -308,7 +310,6 @@ export interface DataChartTime {
     onCurrentViewLevelDates?: ChartTimeOnLevelDates[];
     allDates?: ChartTimeDates[];
     forceUpdate?: boolean;
-    additionalSpaceAdded: boolean;
 }
 export interface ChartCalendarFormatArguments {
     timeStart: Dayjs;
