@@ -1812,6 +1812,11 @@
                   this.isItemHorizontallyInsideArea(itemData, areaLocal)) {
                   if (!selected.find((selectedItem) => selectedItem.id === item.id))
                       selected.push(item);
+                  const linked = this.collectLinkedItems(item, [item]);
+                  for (const linkedItem of linked) {
+                      if (!selected.find((selectedItem) => selectedItem.id === linkedItem.id))
+                          selected.push(linkedItem);
+                  }
               }
           }
           return selected;
