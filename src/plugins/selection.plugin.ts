@@ -23,12 +23,16 @@ import DeepState from 'deep-state-observer';
 import { Api } from '../api/api';
 import { StyleMap, lithtml } from '@neuronet.io/vido/vido';
 
+export type ModKey = 'shift' | 'ctrl' | 'alt' | '';
+
 export interface Options {
   enabled?: boolean;
   cells?: boolean;
   items?: boolean;
   rows?: boolean;
   showOverlay?: boolean;
+  selectKey?: ModKey;
+  multiKey?: ModKey;
   canSelect?: (type, state, all) => any[];
   canDeselect?: (type, state, all) => any[];
 }
@@ -101,6 +105,8 @@ function generateEmptyData(options: Options): PluginData {
     showOverlay: true,
     isSelecting: false,
     pointerState: 'up',
+    selectKey: '',
+    multiKey: 'shift',
     targetType: '',
     initialPosition: { x: 0, y: 0 },
     currentPosition: { x: 0, y: 0 },
@@ -167,6 +173,24 @@ class SelectionPlugin {
     this.vido.update(); // draw selection area overlay
   }
 
+  private modKeyPressed(modKey: ModKey, ev: PointerEvent): boolean {
+    switch (modKey) {
+      case 'shift':
+        return ev.shiftKey;
+      case 'alt':
+        return ev.altKey;
+      case 'ctrl':
+        return ev.ctrlKey;
+    }
+  }
+
+  private canSelect(): boolean {
+    let result = this.data.enabled;
+    const down = this.poitnerData.events.down;
+    if (down && this.data.selectKey) result = result && this.modKeyPressed(this.data.selectKey, down);
+    return result;
+  }
+
   private getSelectionAreaLocal(): Area {
     const area = { x: 0, y: 0, width: 0, height: 0 };
     const initial = { ...this.poitnerData.initialPosition };
@@ -215,7 +239,8 @@ class SelectionPlugin {
     if (this.data.selected[ITEM].find((selectedItem) => selectedItem.id === item.id)) {
       selected = this.data.selected[ITEM];
     } else {
-      if (this.poitnerData.events.down.ctrlKey) {
+      const move = this.poitnerData.events.move;
+      if (this.data.multiKey && this.modKeyPressed(this.data.multiKey, move)) {
         selected = [...new Set([...this.data.selected[ITEM], ...this.collectLinkedItems(item, [item])]).values()];
       } else {
         selected = this.collectLinkedItems(item, [item]);
@@ -250,7 +275,9 @@ class SelectionPlugin {
 
   private getItemsUnderSelectionArea(areaLocal: Area): Item[] {
     const visibleItems: Item[] = this.state.get('$data.chart.visibleItems');
-    let selected = this.poitnerData.events.down.ctrlKey ? [...this.data.selected[ITEM]] : [];
+    const move = this.poitnerData.events.move;
+    const multi = move && this.data.multiKey && this.modKeyPressed(this.data.multiKey, move);
+    let selected = multi ? [...this.data.selected[ITEM]] : [];
     for (const item of visibleItems) {
       const itemData = item.$data;
       if (
@@ -264,6 +291,7 @@ class SelectionPlugin {
   }
 
   private selectCellsAndItems() {
+    if (!this.canSelect()) return;
     this.data.isSelecting = true;
     this.data.selectionAreaLocal = this.getSelectionAreaLocal();
     this.data.selectionAreaGlobal = this.translateAreaLocalToGlobal(this.data.selectionAreaLocal);
@@ -288,6 +316,7 @@ class SelectionPlugin {
     this.data.selectionAreaLocal = this.getSelectionAreaLocal();
     this.data.currentPosition = this.poitnerData.currentPosition;
     this.data.initialPosition = this.poitnerData.initialPosition;
+    if (!this.canSelect()) return;
     const item: Item = this.poitnerData.targetData;
     this.data.selected[ITEM] = this.getSelected(item);
     let multi = this.state.multi();
@@ -315,7 +344,7 @@ class SelectionPlugin {
   private wrapper(input: htmlResult, props?: any) {
     const oldContent = this.oldWrapper(input, props);
     let shouldDetach = true;
-    if (this.data.enabled && this.data.isSelecting && this.data.showOverlay) {
+    if (this.canSelect() && this.data.isSelecting && this.data.showOverlay) {
       this.wrapperStyleMap.style.display = 'block';
       this.wrapperStyleMap.style.left = this.data.selectionAreaLocal.x + 'px';
       this.wrapperStyleMap.style.top = this.data.selectionAreaLocal.y + 'px';

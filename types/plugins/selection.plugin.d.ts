@@ -1,11 +1,14 @@
 import { ITEM, ITEM_TYPE, CELL, CELL_TYPE, Point, PointerState } from './timeline-pointer.plugin';
 import { Item, Cell, Vido } from '../gstc';
+export declare type ModKey = 'shift' | 'ctrl' | 'alt' | '';
 export interface Options {
     enabled?: boolean;
     cells?: boolean;
     items?: boolean;
     rows?: boolean;
     showOverlay?: boolean;
+    selectKey?: ModKey;
+    multiKey?: ModKey;
     canSelect?: (type: any, state: any, all: any) => any[];
     canDeselect?: (type: any, state: any, all: any) => any[];
 }

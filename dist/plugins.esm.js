@@ -1661,7 +1661,7 @@ function prepareOptions$1(options) {
 }
 const pluginPath$1 = 'config.plugin.Selection';
 function generateEmptyData$1(options) {
-    return Object.assign({ enabled: true, showOverlay: true, isSelecting: false, pointerState: 'up', targetType: '', initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, selectionAreaLocal: { x: 0, y: 0, width: 0, height: 0 }, selectionAreaGlobal: { x: 0, y: 0, width: 0, height: 0 }, selecting: {
+    return Object.assign({ enabled: true, showOverlay: true, isSelecting: false, pointerState: 'up', selectKey: '', multiKey: 'shift', targetType: '', initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, selectionAreaLocal: { x: 0, y: 0, width: 0, height: 0 }, selectionAreaGlobal: { x: 0, y: 0, width: 0, height: 0 }, selecting: {
             [ITEM]: [],
             [CELL]: [],
         }, selected: {
@@ -1699,6 +1699,23 @@ class SelectionPlugin {
     updateData() {
         this.state.update(pluginPath$1, Object.assign({}, this.data));
         this.vido.update(); // draw selection area overlay
+    }
+    modKeyPressed(modKey, ev) {
+        switch (modKey) {
+            case 'shift':
+                return ev.shiftKey;
+            case 'alt':
+                return ev.altKey;
+            case 'ctrl':
+                return ev.ctrlKey;
+        }
+    }
+    canSelect() {
+        let result = this.data.enabled;
+        const down = this.poitnerData.events.down;
+        if (down && this.data.selectKey)
+            result = result && this.modKeyPressed(this.data.selectKey, down);
+        return result;
     }
     getSelectionAreaLocal() {
         const area = { x: 0, y: 0, width: 0, height: 0 };
@@ -1748,7 +1765,8 @@ class SelectionPlugin {
             selected = this.data.selected[ITEM];
         }
         else {
-            if (this.poitnerData.events.down.ctrlKey) {
+            const move = this.poitnerData.events.move;
+            if (this.data.multiKey && this.modKeyPressed(this.data.multiKey, move)) {
                 selected = [...new Set([...this.data.selected[ITEM], ...this.collectLinkedItems(item, [item])]).values()];
             }
             else {
@@ -1779,7 +1797,9 @@ class SelectionPlugin {
     }
     getItemsUnderSelectionArea(areaLocal) {
         const visibleItems = this.state.get('$data.chart.visibleItems');
-        let selected = this.poitnerData.events.down.ctrlKey ? [...this.data.selected[ITEM]] : [];
+        const move = this.poitnerData.events.move;
+        const multi = move && this.data.multiKey && this.modKeyPressed(this.data.multiKey, move);
+        let selected = multi ? [...this.data.selected[ITEM]] : [];
         for (const item of visibleItems) {
             const itemData = item.$data;
             if (this.isItemVerticallyInsideArea(itemData, areaLocal) &&
@@ -1791,6 +1811,8 @@ class SelectionPlugin {
         return selected;
     }
     selectCellsAndItems() {
+        if (!this.canSelect())
+            return;
         this.data.isSelecting = true;
         this.data.selectionAreaLocal = this.getSelectionAreaLocal();
         this.data.selectionAreaGlobal = this.translateAreaLocalToGlobal(this.data.selectionAreaLocal);
@@ -1814,6 +1836,8 @@ class SelectionPlugin {
         this.data.selectionAreaLocal = this.getSelectionAreaLocal();
         this.data.currentPosition = this.poitnerData.currentPosition;
         this.data.initialPosition = this.poitnerData.initialPosition;
+        if (!this.canSelect())
+            return;
         const item = this.poitnerData.targetData;
         this.data.selected[ITEM] = this.getSelected(item);
         let multi = this.state.multi();
@@ -1841,7 +1865,7 @@ class SelectionPlugin {
     wrapper(input, props) {
         const oldContent = this.oldWrapper(input, props);
         let shouldDetach = true;
-        if (this.data.enabled && this.data.isSelecting && this.data.showOverlay) {
+        if (this.canSelect() && this.data.isSelecting && this.data.showOverlay) {
             this.wrapperStyleMap.style.display = 'block';
             this.wrapperStyleMap.style.left = this.data.selectionAreaLocal.x + 'px';
             this.wrapperStyleMap.style.top = this.data.selectionAreaLocal.y + 'px';
