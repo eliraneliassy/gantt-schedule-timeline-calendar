@@ -5879,11 +5879,11 @@ function Main(vido, props = {}) {
         const configRows = state.get('config.list.rows');
         const rowsWithParentsExpanded = api.getRowsFromIds(api.getRowsWithParentsExpanded(state.get('$data.flatTreeMap'), state.get('$data.flatTreeMapById'), configRows), configRows);
         rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
-        state
-            .multi()
-            .update('$data.list.rowsHeight', rowsHeight)
-            .update('$data.list.rowsWithParentsExpanded', rowsWithParentsExpanded)
-            .done();
+        state.update('$data.list', (list) => {
+            list.rowsHeight = rowsHeight;
+            list.rowsWithParentsExpanded = rowsWithParentsExpanded;
+            return list;
+        });
         update();
     }
     onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;', 'config.list.rows.*.height', 'config.scroll.vertical.area'], prepareExpanded, { bulk: true }));
@@ -10933,6 +10933,8 @@ function GSTC(options) {
         list: {
             visibleRows: [],
             visibleRowsHeight: 0,
+            rowsWithParentsExpanded: [],
+            rowsHeight: 0,
             width: 0,
         },
         dimensions: {

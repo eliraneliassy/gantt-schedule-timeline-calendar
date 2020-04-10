@@ -27,6 +27,7 @@ import {
   ItemData,
   Vido,
   Reason,
+  DataList,
 } from '../gstc';
 
 import { OpUnitType } from 'dayjs';
@@ -158,11 +159,11 @@ export default function Main(vido: Vido, props = {}) {
       configRows
     );
     rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
-    state
-      .multi()
-      .update('$data.list.rowsHeight', rowsHeight)
-      .update('$data.list.rowsWithParentsExpanded', rowsWithParentsExpanded)
-      .done();
+    state.update('$data.list', (list: DataList) => {
+      list.rowsHeight = rowsHeight;
+      list.rowsWithParentsExpanded = rowsWithParentsExpanded;
+      return list;
+    });
     update();
   }
   onDestroy(

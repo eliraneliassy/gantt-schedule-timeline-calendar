@@ -540,6 +540,8 @@ export interface DataList {
   width: number;
   visibleRows: Row[];
   visibleRowsHeight: number;
+  rowsWithParentsExpanded: Row[];
+  rowsHeight: number;
 }
 
 export interface Dimensions {
@@ -606,6 +608,8 @@ function GSTC(options: GSTCOptions): GSTCResult {
     list: {
       visibleRows: [],
       visibleRowsHeight: 0,
+      rowsWithParentsExpanded: [],
+      rowsHeight: 0,
       width: 0,
     },
     dimensions: {

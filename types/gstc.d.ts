@@ -449,6 +449,8 @@ export interface DataList {
     width: number;
     visibleRows: Row[];
     visibleRowsHeight: number;
+    rowsWithParentsExpanded: Row[];
+    rowsHeight: number;
 }
 export interface Dimensions {
     width: number;
