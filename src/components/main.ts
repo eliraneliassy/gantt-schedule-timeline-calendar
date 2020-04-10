@@ -173,7 +173,6 @@ export default function Main(vido: Vido, props = {}) {
       ],
       () => {
         rowsHeight = api.recalculateRowsHeights(state.get('$data.list.rowsWithParentsExpanded'));
-        console.log('new height', rowsHeight);
         state.update('$data.list.rowsHeight', rowsHeight);
       },
       { bulk: true }

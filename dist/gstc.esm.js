@@ -5889,7 +5889,6 @@ function Main(vido, props = {}) {
         'config.list.rows.*.height',
     ], () => {
         rowsHeight = api.recalculateRowsHeights(state.get('$data.list.rowsWithParentsExpanded'));
-        console.log('new height', rowsHeight);
         state.update('$data.list.rowsHeight', rowsHeight);
     }, { bulk: true }));
     let lastRowsHeight = 0;
