@@ -158,33 +158,39 @@ export default function Main(vido: Vido, props = {}) {
       api.getRowsWithParentsExpanded(state.get('$data.flatTreeMap'), state.get('$data.flatTreeMapById'), configRows),
       configRows
     );
-    rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
-    state.update('$data.list', (list: DataList) => {
-      list.rowsHeight = rowsHeight;
-      list.rowsWithParentsExpanded = rowsWithParentsExpanded;
-      return list;
-    });
+    state.update('$data.list.rowsWithParentsExpanded', rowsWithParentsExpanded);
     update();
   }
+  onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;'], prepareExpanded, { bulk: true }));
+
   onDestroy(
     state.subscribeAll(
-      ['config.list.rows.*.expanded', '$data.treeMap;', 'config.list.rows.*.height', 'config.scroll.vertical.area'],
-      prepareExpanded,
+      [
+        '$data.list.rowsWithParetnsExpanded;',
+        'config.chart.items.*.height',
+        'config.chart.items.*.rowId',
+        'config.list.rows.*.height',
+      ],
+      () => {
+        rowsHeight = api.recalculateRowsHeights(state.get('$data.list.rowsWithParentsExpanded'));
+        console.log('new height', rowsHeight);
+        state.update('$data.list.rowsHeight', rowsHeight);
+      },
       { bulk: true }
     )
   );
 
+  let lastRowsHeight = 0;
   onDestroy(
-    state.subscribeAll(
-      ['config.chart.items.*.rowId', 'config.chart.items.*.height'],
-      () => {
-        state.update(
-          '$data.list.rowsHeight',
-          api.recalculateRowsHeights(state.get('$data.list.rowsWithParentsExpanded'))
-        );
-      },
-      { bulk: true }
-    )
+    state.subscribeAll(['$data.innerHeight', '$data.list.rowsHeight'], () => {
+      const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
+      const rowsHeight = state.get('$data.list.rowsHeight');
+      if (rowsHeight === lastRowsHeight) return;
+      lastRowsHeight = rowsHeight;
+      const innerHeight = state.get('$data.innerHeight');
+      const lastPageHeight = getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded);
+      state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight);
+    })
   );
 
   onDestroy(
@@ -219,20 +225,6 @@ export default function Main(vido: Vido, props = {}) {
     state.update('config.scroll.vertical.lastPageCount', count);
     return currentHeight;
   }
-
-  let working = false;
-  onDestroy(
-    state.subscribeAll(['$data.innerHeight', '$data.list.rowsHeight'], () => {
-      if (working) return;
-      working = true;
-      const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
-      const rowsHeight = state.get('$data.list.rowsHeight');
-      const innerHeight = state.get('$data.innerHeight');
-      const lastPageHeight = getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded);
-      state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight);
-      working = false;
-    })
-  );
 
   function generateVisibleRowsAndItems() {
     const visibleRows = api.getVisibleRows(state.get('$data.list.rowsWithParentsExpanded'));

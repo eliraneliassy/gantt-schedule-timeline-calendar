@@ -5884,18 +5884,31 @@
 	    function prepareExpanded() {
 	        const configRows = state.get('config.list.rows');
 	        const rowsWithParentsExpanded = api.getRowsFromIds(api.getRowsWithParentsExpanded(state.get('$data.flatTreeMap'), state.get('$data.flatTreeMapById'), configRows), configRows);
-	        rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
-	        state.update('$data.list', (list) => {
-	            list.rowsHeight = rowsHeight;
-	            list.rowsWithParentsExpanded = rowsWithParentsExpanded;
-	            return list;
-	        });
+	        state.update('$data.list.rowsWithParentsExpanded', rowsWithParentsExpanded);
 	        update();
 	    }
-	    onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;', 'config.list.rows.*.height', 'config.scroll.vertical.area'], prepareExpanded, { bulk: true }));
-	    onDestroy(state.subscribeAll(['config.chart.items.*.rowId', 'config.chart.items.*.height'], () => {
-	        state.update('$data.list.rowsHeight', api.recalculateRowsHeights(state.get('$data.list.rowsWithParentsExpanded')));
+	    onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;'], prepareExpanded, { bulk: true }));
+	    onDestroy(state.subscribeAll([
+	        '$data.list.rowsWithParetnsExpanded;',
+	        'config.chart.items.*.height',
+	        'config.chart.items.*.rowId',
+	        'config.list.rows.*.height',
+	    ], () => {
+	        rowsHeight = api.recalculateRowsHeights(state.get('$data.list.rowsWithParentsExpanded'));
+	        console.log('new height', rowsHeight);
+	        state.update('$data.list.rowsHeight', rowsHeight);
 	    }, { bulk: true }));
+	    let lastRowsHeight = 0;
+	    onDestroy(state.subscribeAll(['$data.innerHeight', '$data.list.rowsHeight'], () => {
+	        const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
+	        const rowsHeight = state.get('$data.list.rowsHeight');
+	        if (rowsHeight === lastRowsHeight)
+	            return;
+	        lastRowsHeight = rowsHeight;
+	        const innerHeight = state.get('$data.innerHeight');
+	        const lastPageHeight = getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded);
+	        state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight);
+	    }));
 	    onDestroy(state.subscribeAll(['config.chart.items.*.time', 'config.chart.items.*.$data.position'], () => {
 	        const visibleRows = state.get('$data.list.visibleRows');
 	        let height = 0;
@@ -5922,18 +5935,6 @@
 	        state.update('config.scroll.vertical.lastPageCount', count);
 	        return currentHeight;
 	    }
-	    let working = false;
-	    onDestroy(state.subscribeAll(['$data.innerHeight', '$data.list.rowsHeight'], () => {
-	        if (working)
-	            return;
-	        working = true;
-	        const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
-	        const rowsHeight = state.get('$data.list.rowsHeight');
-	        const innerHeight = state.get('$data.innerHeight');
-	        const lastPageHeight = getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded);
-	        state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight);
-	        working = false;
-	    }));
 	    function generateVisibleRowsAndItems() {
 	        const visibleRows = api.getVisibleRows(state.get('$data.list.rowsWithParentsExpanded'));
 	        const currentVisibleRows = state.get('$data.list.visibleRows');
@@ -10681,16 +10682,20 @@
 	    }
 	    recalculateRowsHeights(rows) {
 	        let top = 0;
-	        const verticalHeight = this.state.get('config.scroll.vertical.area');
-	        if (!verticalHeight)
-	            return 0;
 	        for (const row of rows) {
 	            this.recalculateRowHeight(row);
 	            row.top = top;
-	            row.$data.topPercent = top / verticalHeight;
 	            top += row.$data.outerHeight;
 	        }
 	        return top;
+	    }
+	    recalculateRowsPercents(rows, verticalAreaHeight) {
+	        let top = 0;
+	        for (const row of rows) {
+	            row.$data.topPercent = top ? top / verticalAreaHeight : 0;
+	            top += row.$data.outerHeight;
+	        }
+	        return rows;
 	    }
 	    generateParents(rows, parentName = 'parentId') {
 	        const parents = {};
@@ -10773,14 +10778,6 @@
 	            rowsWithParentsExpanded.push(rowId);
 	        }
 	        return rowsWithParentsExpanded;
-	    }
-	    getRowsHeight(rows) {
-	        let height = 0;
-	        for (const row of rows) {
-	            if (row)
-	                height += row.height;
-	        }
-	        return height;
 	    }
 	    getVisibleRows(rowsWithParentsExpanded) {
 	        if (rowsWithParentsExpanded.length === 0)

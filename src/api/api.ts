@@ -279,15 +279,21 @@ export class Api {
 
   recalculateRowsHeights(rows: Row[]): number {
     let top = 0;
-    const verticalHeight: number = this.state.get('config.scroll.vertical.area');
-    if (!verticalHeight) return 0;
     for (const row of rows) {
       this.recalculateRowHeight(row);
       row.top = top;
-      row.$data.topPercent = top / verticalHeight;
       top += row.$data.outerHeight;
     }
     return top;
+  }
+
+  recalculateRowsPercents(rows: Row[], verticalAreaHeight: number): Row[] {
+    let top = 0;
+    for (const row of rows) {
+      row.$data.topPercent = top ? top / verticalAreaHeight : 0;
+      top += row.$data.outerHeight;
+    }
+    return rows;
   }
 
   generateParents(rows, parentName = 'parentId') {
@@ -380,14 +386,6 @@ export class Api {
       rowsWithParentsExpanded.push(rowId);
     }
     return rowsWithParentsExpanded;
-  }
-
-  getRowsHeight(rows: Row[]): number {
-    let height = 0;
-    for (const row of rows) {
-      if (row) height += row.height;
-    }
-    return height;
   }
 
   getVisibleRows(rowsWithParentsExpanded: Row[]): Row[] {

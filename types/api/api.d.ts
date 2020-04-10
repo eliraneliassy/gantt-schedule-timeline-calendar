@@ -46,6 +46,7 @@ export declare class Api {
     fixOverlappedItems(rowItems: Item[]): void;
     recalculateRowHeight(row: Row): number;
     recalculateRowsHeights(rows: Row[]): number;
+    recalculateRowsPercents(rows: Row[], verticalAreaHeight: number): Row[];
     generateParents(rows: any, parentName?: string): {};
     fastTree(rowParents: any, node: any, parents?: any[]): any;
     makeTreeMap(rows: any, items: any): any;
@@ -54,7 +55,6 @@ export declare class Api {
     getRowsFromMap(flatTreeMap: any, rows: any): any;
     getRowsFromIds(ids: any, rows: any): any[];
     getRowsWithParentsExpanded(flatTreeMap: any, flatTreeMapById: any, rows: any): any[];
-    getRowsHeight(rows: Row[]): number;
     getVisibleRows(rowsWithParentsExpanded: Row[]): Row[];
     normalizeMouseWheelEvent(event: MouseWheelEvent): WheelResult;
     scrollToTime(toTime: number, centered?: boolean, time?: DataChartTime): number;
