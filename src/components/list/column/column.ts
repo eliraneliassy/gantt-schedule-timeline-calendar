@@ -142,15 +142,13 @@ export default function ListColumn(vido: Vido, props: Props) {
 
   const visibleRows = [];
   function visibleRowsChange() {
-    const val = state.get('$data.list.visibleRows');
-    const destroy = reuseComponents(
+    const val = state.get('$data.list.visibleRows') || [];
+    return reuseComponents(
       visibleRows,
-      val || [],
+      val,
       (row) => row && { columnId: props.columnId, rowId: row.id, width },
       ListColumnRowComponent
     );
-    update();
-    return destroy;
   }
   onDestroy(state.subscribeAll(['$data.list.visibleRows;', '$data.list.visibleRowsHeight'], visibleRowsChange));
 

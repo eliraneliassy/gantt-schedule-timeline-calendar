@@ -158,11 +158,11 @@ export default function Main(vido: Vido, props = {}) {
       configRows
     );
     rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
-    state.update('$data.list', (list) => {
-      list.rowsHeight = rowsHeight;
-      list.rowsWithParentsExpanded = rowsWithParentsExpanded;
-      return list;
-    });
+    state
+      .multi()
+      .update('$data.list.rowsHeight', rowsHeight)
+      .update('$data.list.rowsWithParentsExpanded', rowsWithParentsExpanded)
+      .done();
     update();
   }
   onDestroy(
