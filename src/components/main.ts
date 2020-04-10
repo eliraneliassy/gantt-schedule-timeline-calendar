@@ -220,13 +220,17 @@ export default function Main(vido: Vido, props = {}) {
     return currentHeight;
   }
 
+  let working = false;
   onDestroy(
     state.subscribeAll(['$data.innerHeight', '$data.list.rowsHeight'], () => {
+      if (working) return;
+      working = true;
       const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
       const rowsHeight = state.get('$data.list.rowsHeight');
       const innerHeight = state.get('$data.innerHeight');
       const lastPageHeight = getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded);
-      state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight, { queue: true });
+      state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight);
+      working = false;
     })
   );
 
