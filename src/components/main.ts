@@ -493,23 +493,34 @@ export default function Main(vido: Vido, props = {}) {
 
   function updateVisibleItems(time: DataChartTime = state.get('$data.chart.time'), multi = state.multi()) {
     const visibleItems: Item[] = state.get('$data.chart.visibleItems');
+    const rows: Rows = state.get('config.list.rows');
     if (!time.levels || !time.levels[time.level]) return multi;
     for (const item of visibleItems) {
+      const row = rows[item.rowId];
       const left = api.time.getViewOffsetPxFromDates(item.$data.time.startDate, false, time);
       const right = api.time.getViewOffsetPxFromDates(item.$data.time.endDate, false, time);
-      if (item.$data.position.left !== left || item.$data.position.right !== right) {
-        multi = multi.update(`config.chart.items.${item.id}.$data`, function ($data: ItemData) {
-          $data.position.left = left;
-          $data.position.actualLeft = api.time.limitOffsetPxToView(left, time);
-          $data.position.right = right;
-          $data.position.actualRight = api.time.limitOffsetPxToView(right, time);
-          $data.width = right - left - (state.get('config.chart.spacing') || 0);
-          $data.actualWidth =
-            $data.position.actualRight - $data.position.actualLeft - (state.get('config.chart.spacing') || 0);
-          $data.position.actualTop = $data.position.top + item.gap.top;
-          return $data;
-        });
-      }
+      const actualTop = item.$data.position.top + item.gap.top;
+      const viewTop = row.$data.position.viewTop + item.$data.position.actualTop;
+      const position = item.$data.position;
+      if (
+        position.left === left &&
+        position.right === right &&
+        position.actualTop === actualTop &&
+        position.viewTop === viewTop
+      )
+        continue; // prevent infinite loop
+      multi = multi.update(`config.chart.items.${item.id}.$data`, function ($data: ItemData) {
+        $data.position.left = left;
+        $data.position.actualLeft = api.time.limitOffsetPxToView(left, time);
+        $data.position.right = right;
+        $data.position.actualRight = api.time.limitOffsetPxToView(right, time);
+        $data.width = right - left - (state.get('config.chart.spacing') || 0);
+        $data.actualWidth =
+          $data.position.actualRight - $data.position.actualLeft - (state.get('config.chart.spacing') || 0);
+        $data.position.actualTop = actualTop;
+        $data.position.viewTop = viewTop;
+        return $data;
+      });
     }
     return multi;
   }
@@ -517,6 +528,7 @@ export default function Main(vido: Vido, props = {}) {
   onDestroy(
     state.subscribeAll(
       [
+        '$data.list.visibleRows',
         'config.scroll.vertical',
         'config.chart.items.*.time',
         'config.chart.items.*.$data.position',

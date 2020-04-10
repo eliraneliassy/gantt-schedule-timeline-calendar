@@ -18,7 +18,7 @@ import {
   PointerState,
 } from './timeline-pointer.plugin';
 
-import { Item, Cell, Items, Vido, htmlResult, Wrapper } from '../gstc';
+import { Item, Cell, Items, Vido, htmlResult, Wrapper, ItemDataPosition, ItemData } from '../gstc';
 import DeepState from 'deep-state-observer';
 import { Api } from '../api/api';
 import { StyleMap, lithtml } from '@neuronet.io/vido/vido';
@@ -87,7 +87,8 @@ export interface PluginData extends Options {
   pointerState: PointerState;
   initialPosition: Point;
   currentPosition: Point;
-  selectionArea: Area;
+  selectionAreaLocal: Area;
+  selectionAreaGlobal: Area;
   selected: Selection;
   selecting: Selection;
   events: PointerEvents;
@@ -103,7 +104,8 @@ function generateEmptyData(options: Options): PluginData {
     targetType: '',
     initialPosition: { x: 0, y: 0 },
     currentPosition: { x: 0, y: 0 },
-    selectionArea: { x: 0, y: 0, width: 0, height: 0 },
+    selectionAreaLocal: { x: 0, y: 0, width: 0, height: 0 },
+    selectionAreaGlobal: { x: 0, y: 0, width: 0, height: 0 },
     selecting: {
       [ITEM]: [],
       [CELL]: [],
@@ -127,7 +129,6 @@ class SelectionPlugin {
   private vido: Vido;
   private state: DeepState;
   private api: Api;
-  private options: Options;
   private unsub = [];
   private oldWrapper: Wrapper;
   private html: typeof lithtml.html;
@@ -138,7 +139,6 @@ class SelectionPlugin {
     this.vido = vido;
     this.state = vido.state;
     this.api = vido.api;
-    this.options = options;
     this.data = generateEmptyData(options);
     this.wrapperClassName = this.api.getClass('chart-selection');
     this.wrapperStyleMap = new vido.StyleMap({ display: 'none' });
@@ -167,11 +167,7 @@ class SelectionPlugin {
     this.vido.update(); // draw selection area overlay
   }
 
-  private getItemsUnderSelectionArea(): Item[] {
-    return [];
-  }
-
-  private getSelectionArea(): Area {
+  private getSelectionAreaLocal(): Area {
     const area = { x: 0, y: 0, width: 0, height: 0 };
     const initial = { ...this.poitnerData.initialPosition };
     const current = { ...this.poitnerData.currentPosition };
@@ -192,6 +188,12 @@ class SelectionPlugin {
       area.height = Math.abs(height);
     }
     return area;
+  }
+
+  private translateAreaLocalToGlobal(localArea: Area): Area {
+    const leftPx: number = this.state.get('$data.chart.time.leftPx');
+    const topPx: number = this.state.get('config.scroll.vertical.posPx');
+    return { ...localArea, x: localArea.x + leftPx, y: localArea.y + topPx };
   }
 
   private collectLinkedItems(item: Item, current: Item[] = []): Item[] {
@@ -222,20 +224,68 @@ class SelectionPlugin {
     return selected;
   }
 
-  private selectCells() {
+  private isItemVerticallyInsideArea(itemData: ItemData, area: Area): boolean {
+    if (!area.width || !area.height) return false;
+    const areaBottom = area.y + area.height;
+    const itemTop = itemData.position.viewTop;
+    const itemBottom = itemTop + itemData.actualHeight;
+    return (
+      (itemTop >= area.y && itemTop <= areaBottom) ||
+      (itemBottom >= area.y && itemBottom <= areaBottom) ||
+      (itemTop >= area.y && itemBottom <= areaBottom) ||
+      (itemTop <= area.y && itemBottom >= areaBottom)
+    );
+  }
+
+  private isItemHorizontallyInsideArea(itemData: ItemData, area: Area): boolean {
+    if (!area.width || !area.height) return false;
+    const areaRight = area.x + area.width;
+    return (
+      (itemData.position.actualLeft >= area.x && itemData.position.actualLeft <= areaRight) ||
+      (itemData.position.actualRight >= area.x && itemData.position.actualRight <= areaRight) ||
+      (itemData.position.actualLeft <= area.x && itemData.position.actualRight >= areaRight) ||
+      (itemData.position.actualLeft >= area.x && itemData.position.actualRight <= areaRight)
+    );
+  }
+
+  private getItemsUnderSelectionArea(areaLocal: Area): Item[] {
+    const visibleItems: Item[] = this.state.get('$data.chart.visibleItems');
+    let selected = this.poitnerData.events.down.ctrlKey ? [...this.data.selected[ITEM]] : [];
+    for (const item of visibleItems) {
+      const itemData = item.$data;
+      if (
+        this.isItemVerticallyInsideArea(itemData, areaLocal) &&
+        this.isItemHorizontallyInsideArea(itemData, areaLocal)
+      ) {
+        if (!selected.find((selectedItem) => selectedItem.id === item.id)) selected.push(item);
+      }
+    }
+    return selected;
+  }
+
+  private selectCellsAndItems() {
     this.data.isSelecting = true;
-    this.data.selectionArea = this.getSelectionArea();
-    const selectingItems = this.getItemsUnderSelectionArea();
-    if (selectingItems.length === 0) {
+    this.data.selectionAreaLocal = this.getSelectionAreaLocal();
+    this.data.selectionAreaGlobal = this.translateAreaLocalToGlobal(this.data.selectionAreaLocal);
+    const selectedItems = this.getItemsUnderSelectionArea(this.data.selectionAreaLocal);
+    if (selectedItems.length === 0) {
       this.state.update(`config.chart.items.*.selected`, false);
       this.data.selected[ITEM].length = 0;
+      return;
     }
-    // TODO save selecting items and cells
+    this.data.selected[ITEM] = selectedItems;
+    let multi = this.state.multi();
+    multi = multi.update(`config.chart.items.*.selected`, false);
+    for (const item of selectedItems) {
+      multi = multi.update(`config.chart.items.${item.id}.selected`, true);
+    }
+    multi.done();
+    // TODO save selected cells
   }
 
   private selectItems() {
     this.data.isSelecting = false;
-    this.data.selectionArea = this.getSelectionArea();
+    this.data.selectionAreaLocal = this.getSelectionAreaLocal();
     this.data.currentPosition = this.poitnerData.currentPosition;
     this.data.initialPosition = this.poitnerData.initialPosition;
     const item: Item = this.poitnerData.targetData;
@@ -250,7 +300,7 @@ class SelectionPlugin {
 
   private onPointerData() {
     if (this.poitnerData.isMoving && this.poitnerData.targetType === CELL) {
-      this.selectCells();
+      this.selectCellsAndItems();
     } else if (this.poitnerData.isMoving && this.poitnerData.targetType === ITEM) {
       this.selectItems();
     } else if (!this.poitnerData.isMoving) {
@@ -267,10 +317,10 @@ class SelectionPlugin {
     let shouldDetach = true;
     if (this.data.enabled && this.data.isSelecting && this.data.showOverlay) {
       this.wrapperStyleMap.style.display = 'block';
-      this.wrapperStyleMap.style.left = this.data.selectionArea.x + 'px';
-      this.wrapperStyleMap.style.top = this.data.selectionArea.y + 'px';
-      this.wrapperStyleMap.style.width = this.data.selectionArea.width + 'px';
-      this.wrapperStyleMap.style.height = this.data.selectionArea.height + 'px';
+      this.wrapperStyleMap.style.left = this.data.selectionAreaLocal.x + 'px';
+      this.wrapperStyleMap.style.top = this.data.selectionAreaLocal.y + 'px';
+      this.wrapperStyleMap.style.width = this.data.selectionAreaLocal.width + 'px';
+      this.wrapperStyleMap.style.height = this.data.selectionAreaLocal.height + 'px';
       shouldDetach = false;
     }
     const detach = new this.vido.Detach(() => shouldDetach);

@@ -6182,28 +6182,38 @@
 	    }
 	    function updateVisibleItems(time = state.get('$data.chart.time'), multi = state.multi()) {
 	        const visibleItems = state.get('$data.chart.visibleItems');
+	        const rows = state.get('config.list.rows');
 	        if (!time.levels || !time.levels[time.level])
 	            return multi;
 	        for (const item of visibleItems) {
+	            const row = rows[item.rowId];
 	            const left = api.time.getViewOffsetPxFromDates(item.$data.time.startDate, false, time);
 	            const right = api.time.getViewOffsetPxFromDates(item.$data.time.endDate, false, time);
-	            if (item.$data.position.left !== left || item.$data.position.right !== right) {
-	                multi = multi.update(`config.chart.items.${item.id}.$data`, function ($data) {
-	                    $data.position.left = left;
-	                    $data.position.actualLeft = api.time.limitOffsetPxToView(left, time);
-	                    $data.position.right = right;
-	                    $data.position.actualRight = api.time.limitOffsetPxToView(right, time);
-	                    $data.width = right - left - (state.get('config.chart.spacing') || 0);
-	                    $data.actualWidth =
-	                        $data.position.actualRight - $data.position.actualLeft - (state.get('config.chart.spacing') || 0);
-	                    $data.position.actualTop = $data.position.top + item.gap.top;
-	                    return $data;
-	                });
-	            }
+	            const actualTop = item.$data.position.top + item.gap.top;
+	            const viewTop = row.$data.position.viewTop + item.$data.position.actualTop;
+	            const position = item.$data.position;
+	            if (position.left === left &&
+	                position.right === right &&
+	                position.actualTop === actualTop &&
+	                position.viewTop === viewTop)
+	                continue; // prevent infinite loop
+	            multi = multi.update(`config.chart.items.${item.id}.$data`, function ($data) {
+	                $data.position.left = left;
+	                $data.position.actualLeft = api.time.limitOffsetPxToView(left, time);
+	                $data.position.right = right;
+	                $data.position.actualRight = api.time.limitOffsetPxToView(right, time);
+	                $data.width = right - left - (state.get('config.chart.spacing') || 0);
+	                $data.actualWidth =
+	                    $data.position.actualRight - $data.position.actualLeft - (state.get('config.chart.spacing') || 0);
+	                $data.position.actualTop = actualTop;
+	                $data.position.viewTop = viewTop;
+	                return $data;
+	            });
 	        }
 	        return multi;
 	    }
 	    onDestroy(state.subscribeAll([
+	        '$data.list.visibleRows',
 	        'config.scroll.vertical',
 	        'config.chart.items.*.time',
 	        'config.chart.items.*.$data.position',
@@ -6583,7 +6593,7 @@
 	        let fullSize = 0;
 	        if (props.type === 'vertical') {
 	            if (rows.length) {
-	                return rows[rows.length - 1].top + rows[rows.length - 1].$data.outerHeight;
+	                return rows[rows.length - 1].$data.position.top + rows[rows.length - 1].$data.outerHeight;
 	            }
 	            return fullSize;
 	        }
@@ -6765,9 +6775,9 @@
 	                const row = rows[dataIndex];
 	                if (!row)
 	                    return;
-	                if (this.lastRow && this.lastRow.$data.topPercent === row.$data.topPercent)
+	                if (this.lastRow && this.lastRow.$data.position.topPercent === row.$data.position.topPercent)
 	                    return;
-	                const pos = Math.round(row.$data.topPercent * (invSize - sub));
+	                const pos = Math.round(row.$data.position.topPercent * (invSize - sub));
 	                this.currentPos = pos;
 	                update();
 	            }
@@ -6816,7 +6826,7 @@
 	                }
 	                else {
 	                    for (let len = rows.length; dataIndex < len; dataIndex++) {
-	                        const rowPercent = rows[dataIndex].$data.topPercent;
+	                        const rowPercent = rows[dataIndex].$data.position.topPercent;
 	                        if (rowPercent >= percent)
 	                            break;
 	                    }
@@ -10586,6 +10596,7 @@
 	                        actualRight: 0,
 	                        top: item.top || 0,
 	                        actualTop: item.top || 0,
+	                        viewTop: 0,
 	                    },
 	                    width: -1,
 	                    actualWidth: -1,
@@ -10620,7 +10631,11 @@
 	            row.$data = {
 	                parents: [],
 	                children: [],
-	                topPercent: 0,
+	                position: {
+	                    top: 0,
+	                    topPercent: 0,
+	                    viewTop: 0,
+	                },
 	                items: [],
 	                actualHeight: 0,
 	                outerHeight: 0,
@@ -10632,7 +10647,7 @@
 	            if (typeof row.expanded !== 'boolean') {
 	                row.expanded = false;
 	            }
-	            row.top = top;
+	            row.$data.position.top = top;
 	            if (typeof row.gap !== 'object')
 	                row.gap = {};
 	            if (typeof row.gap.top !== 'number')
@@ -10708,7 +10723,7 @@
 	        let top = 0;
 	        for (const row of rows) {
 	            this.recalculateRowHeight(row);
-	            row.top = top;
+	            row.$data.position.top = top;
 	            top += row.$data.outerHeight;
 	        }
 	        return top;
@@ -10716,7 +10731,7 @@
 	    recalculateRowsPercents(rows, verticalAreaHeight) {
 	        let top = 0;
 	        for (const row of rows) {
-	            row.$data.topPercent = top ? top / verticalAreaHeight : 0;
+	            row.$data.position.topPercent = top ? top / verticalAreaHeight : 0;
 	            top += row.$data.outerHeight;
 	        }
 	        return rows;
@@ -10821,10 +10836,10 @@
 	            if (row === undefined)
 	                continue;
 	            if (currentRowsOffset <= innerHeight) {
-	                row.top = currentRowsOffset;
+	                row.$data.position.viewTop = currentRowsOffset;
 	                visibleRows.push(row);
 	            }
-	            currentRowsOffset += row.height;
+	            currentRowsOffset += row.$data.outerHeight;
 	            if (currentRowsOffset >= innerHeight) {
 	                break;
 	            }
@@ -10911,7 +10926,8 @@
 	            return;
 	        this.state.update('config.scroll.vertical', (scrollVertical) => {
 	            scrollVertical.data = rows[dataIndex];
-	            scrollVertical.posPx = rows[dataIndex].$data.topPercent * (scrollVertical.maxPosPx - scrollVertical.innerSize);
+	            scrollVertical.posPx =
+	                rows[dataIndex].$data.position.topPercent * (scrollVertical.maxPosPx - scrollVertical.innerSize);
 	            scrollVertical.dataIndex = dataIndex;
 	            return scrollVertical;
 	        });

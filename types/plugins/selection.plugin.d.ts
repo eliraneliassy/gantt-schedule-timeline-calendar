@@ -38,7 +38,8 @@ export interface PluginData extends Options {
     pointerState: PointerState;
     initialPosition: Point;
     currentPosition: Point;
-    selectionArea: Area;
+    selectionAreaLocal: Area;
+    selectionAreaGlobal: Area;
     selected: Selection;
     selecting: Selection;
     events: PointerEvents;

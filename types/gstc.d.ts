@@ -5,10 +5,15 @@ import { Dayjs, OpUnitType } from 'dayjs';
 import { Properties as CSSProps } from 'csstype';
 import DeepState from 'deep-state-observer';
 export declare type Vido = vido<DeepState, Api>;
+export interface RowDataPosition {
+    top: number;
+    topPercent: number;
+    viewTop: number;
+}
 export interface RowData {
     actualHeight: number;
     outerHeight: number;
-    topPercent: number;
+    position: RowDataPosition;
     parents: string[];
     children: string[];
     items: Item[];
@@ -35,7 +40,6 @@ export interface Row {
     expanded?: boolean;
     height?: number;
     $data?: RowData;
-    top?: number;
     gap?: RowGap;
     style?: RowStyle;
     classNames?: string[];
@@ -58,6 +62,7 @@ export interface ItemDataPosition {
     actualRight: number;
     top: number;
     actualTop: number;
+    viewTop: number;
 }
 export interface ItemData {
     time: ItemDataTime;

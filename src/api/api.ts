@@ -170,6 +170,7 @@ export class Api {
             actualRight: 0,
             top: item.top || 0,
             actualTop: item.top || 0,
+            viewTop: 0,
           },
           width: -1,
           actualWidth: -1,
@@ -200,7 +201,11 @@ export class Api {
       row.$data = {
         parents: [],
         children: [],
-        topPercent: 0,
+        position: {
+          top: 0,
+          topPercent: 0,
+          viewTop: 0,
+        },
         items: [],
         actualHeight: 0,
         outerHeight: 0,
@@ -212,7 +217,7 @@ export class Api {
       if (typeof row.expanded !== 'boolean') {
         row.expanded = false;
       }
-      row.top = top;
+      row.$data.position.top = top;
       if (typeof row.gap !== 'object') row.gap = {};
       if (typeof row.gap.top !== 'number') row.gap.top = 0;
       if (typeof row.gap.bottom !== 'number') row.gap.bottom = 0;
@@ -281,7 +286,7 @@ export class Api {
     let top = 0;
     for (const row of rows) {
       this.recalculateRowHeight(row);
-      row.top = top;
+      row.$data.position.top = top;
       top += row.$data.outerHeight;
     }
     return top;
@@ -290,7 +295,7 @@ export class Api {
   recalculateRowsPercents(rows: Row[], verticalAreaHeight: number): Row[] {
     let top = 0;
     for (const row of rows) {
-      row.$data.topPercent = top ? top / verticalAreaHeight : 0;
+      row.$data.position.topPercent = top ? top / verticalAreaHeight : 0;
       top += row.$data.outerHeight;
     }
     return rows;
@@ -402,10 +407,10 @@ export class Api {
       const row = rowsWithParentsExpanded[index];
       if (row === undefined) continue;
       if (currentRowsOffset <= innerHeight) {
-        row.top = currentRowsOffset;
+        row.$data.position.viewTop = currentRowsOffset;
         visibleRows.push(row);
       }
-      currentRowsOffset += row.height;
+      currentRowsOffset += row.$data.outerHeight;
       if (currentRowsOffset >= innerHeight) {
         break;
       }
@@ -500,7 +505,8 @@ export class Api {
     if (!rows[dataIndex]) return;
     this.state.update('config.scroll.vertical', (scrollVertical: ScrollTypeVertical) => {
       scrollVertical.data = rows[dataIndex];
-      scrollVertical.posPx = rows[dataIndex].$data.topPercent * (scrollVertical.maxPosPx - scrollVertical.innerSize);
+      scrollVertical.posPx =
+        rows[dataIndex].$data.position.topPercent * (scrollVertical.maxPosPx - scrollVertical.innerSize);
       scrollVertical.dataIndex = dataIndex;
       return scrollVertical;
     });

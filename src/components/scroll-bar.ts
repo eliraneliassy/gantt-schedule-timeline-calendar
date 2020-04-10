@@ -49,7 +49,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
     let fullSize = 0;
     if (props.type === 'vertical') {
       if (rows.length) {
-        return rows[rows.length - 1].top + rows[rows.length - 1].$data.outerHeight;
+        return rows[rows.length - 1].$data.position.top + rows[rows.length - 1].$data.outerHeight;
       }
       return fullSize;
     }
@@ -245,8 +245,8 @@ export default function ScrollBar(vido: Vido, props: Props) {
       } else if (props.type === 'vertical') {
         const row = rows[dataIndex];
         if (!row) return;
-        if (this.lastRow && this.lastRow.$data.topPercent === row.$data.topPercent) return;
-        const pos = Math.round(row.$data.topPercent * (invSize - sub));
+        if (this.lastRow && this.lastRow.$data.position.topPercent === row.$data.position.topPercent) return;
+        const pos = Math.round(row.$data.position.topPercent * (invSize - sub));
         this.currentPos = pos;
         update();
       }
@@ -297,7 +297,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
           }
         } else {
           for (let len = rows.length; dataIndex < len; dataIndex++) {
-            const rowPercent = rows[dataIndex].$data.topPercent;
+            const rowPercent = rows[dataIndex].$data.position.topPercent;
             if (rowPercent >= percent) break;
           }
         }
