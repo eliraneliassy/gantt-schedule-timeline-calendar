@@ -5835,11 +5835,6 @@ function Main(vido, props = {}) {
         update();
     }
     onDestroy(state.subscribe('$data.list.columns.resizer.active', resizerActiveChange));
-    /**
-     * Generate tree
-     * @param {object} bulk
-     * @param {object} eventInfo
-     */
     function generateTree(bulk, eventInfo) {
         if (state.get('$data.flatTreeMap').length && eventInfo.type === 'subscribe') {
             return;
@@ -5859,12 +5854,6 @@ function Main(vido, props = {}) {
         const treeMap = api.makeTreeMap(rows, items);
         const flatTreeMapById = api.getFlatTreeMapById(treeMap);
         const flatTreeMap = api.flattenTreeMap(treeMap);
-        /*state.update('$data', ($data) => {
-          $data.treeMap = treeMap;
-          $data.flatTreeMapById = flatTreeMapById;
-          $data.flatTreeMap = flatTreeMap;
-          return $data;
-        });*/
         state
             .multi()
             .update('$data.treeMap', treeMap)
@@ -5879,7 +5868,6 @@ function Main(vido, props = {}) {
         const configRows = state.get('config.list.rows');
         const rowsWithParentsExpanded = api.getRowsFromIds(api.getRowsWithParentsExpanded(state.get('$data.flatTreeMap'), state.get('$data.flatTreeMapById'), configRows), configRows);
         state.update('$data.list.rowsWithParentsExpanded', rowsWithParentsExpanded);
-        update();
     }
     onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;'], prepareExpanded, { bulk: true }));
     onDestroy(state.subscribeAll([
@@ -5887,11 +5875,19 @@ function Main(vido, props = {}) {
         'config.chart.items.*.height',
         'config.chart.items.*.rowId',
         'config.list.rows.*.height',
+        'config.scroll.vertical.area',
     ], () => {
-        rowsHeight = api.recalculateRowsHeights(state.get('$data.list.rowsWithParentsExpanded'));
-        state.update('$data.list.rowsHeight', rowsHeight);
+        let rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
+        rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
+        const verticalArea = state.get('config.scroll.vertical.area');
+        rowsWithParentsExpanded = api.recalculateRowsPercents(rowsWithParentsExpanded, verticalArea);
+        state
+            .multi()
+            .update('$data.list.rowsHeight', rowsHeight)
+            .update('$data.list.rowsWithParentsExpanded', rowsWithParentsExpanded)
+            .done();
     }, { bulk: true }));
-    let lastRowsHeight = 0;
+    let lastRowsHeight = -1;
     onDestroy(state.subscribeAll(['$data.innerHeight', '$data.list.rowsHeight'], () => {
         const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
         const rowsHeight = state.get('$data.list.rowsHeight');
@@ -6611,13 +6607,33 @@ function ScrollBar(vido, props) {
             }
         }));
     }
-    let working = false;
+    const cache = {
+        maxPosPx: 0,
+        innerSize: 0,
+        sub: 0,
+        scrollArea: 0,
+    };
+    function shouldUpdate(maxPosPx, innerSize, sub, scrollArea) {
+        const result = cache.maxPosPx !== maxPosPx ||
+            cache.innerSize !== innerSize ||
+            cache.sub !== sub ||
+            cache.scrollArea !== scrollArea;
+        if (result) {
+            cache.maxPosPx = maxPos;
+            cache.innerSize = innerSize;
+            cache.sub = sub;
+            cache.scrollArea = invSize;
+        }
+        return result;
+    }
     onDestroy(state.subscribeAll(props.type === 'horizontal'
         ? [`config.scroll.${props.type}`, '$data.chart.time']
-        : [`config.scroll.${props.type}`, '$data.innerHeight', '$data.list.rowsWithParentsExpanded'], () => {
-        if (working)
-            return;
-        working = true;
+        : [
+            `config.scroll.${props.type}`,
+            '$data.innerHeight',
+            '$data.list.rowsWithParentsExpanded;',
+            '$data.list.rowsHeight',
+        ], function scrollThing() {
         const time = state.get('$data.chart.time');
         const scroll = state.get(`config.scroll.${props.type}`);
         const chartWidth = state.get('$data.chart.dimensions.width');
@@ -6672,18 +6688,17 @@ function ScrollBar(vido, props) {
         }
         styleMapInner.style[invSizeProp] = innerSize + 'px';
         maxPos = Math.round(invSize - sub);
-        state.update(`config.scroll.${props.type}`, (scroll) => {
-            scroll.maxPosPx = maxPos;
-            scroll.innerSize = innerSize;
-            scroll.sub = sub;
-            scroll.scrollArea = invSize;
-            return scroll;
-        });
-        /*} else {
-          console.log('not updating');
-        }*/
+        if (shouldUpdate(maxPos, innerSize, sub, invSize)) {
+            // shouldUpdate prevent infinite loop
+            state.update(`config.scroll.${props.type}`, (scroll) => {
+                scroll.maxPosPx = maxPos;
+                scroll.innerSize = innerSize;
+                scroll.sub = sub;
+                scroll.scrollArea = invSize;
+                return scroll;
+            });
+        }
         update();
-        working = false;
     }));
     let oldPos = 0;
     onDestroy(state.subscribe(`config.scroll.${props.type}.posPx`, (position) => {
@@ -6708,7 +6723,7 @@ function ScrollBar(vido, props) {
             this.initialPos = 0;
             this.currentPos = 0;
             this.cumulation = 0;
-            this.lastData = 0;
+            this.lastDataIndex = 0;
             this.dataIndex = 0;
             state.update(`$data.elements.scroll-bar-inner--${props.type}`, element);
             this.bodyClassName = state.get('config.scroll.bodyClassName');
@@ -6716,7 +6731,7 @@ function ScrollBar(vido, props) {
             this.pointerUp = this.pointerUp.bind(this);
             const pointerMove = this.pointerMove.bind(this);
             this.pointerMove = schedule((ev) => pointerMove(ev));
-            this.unsub = state.subscribe(`config.scroll.${props.type}.dataIndex`, this.dataIndexChanged.bind(this));
+            this.unsub = state.subscribe(`config.scroll.${props.type}`, this.dataChanged.bind(this));
             element.addEventListener('pointerdown', this.pointerDown);
             window.addEventListener('pointermove', this.pointerMove, { passive: true });
             window.addEventListener('pointerup', this.pointerUp);
@@ -6727,14 +6742,26 @@ function ScrollBar(vido, props) {
             window.removeEventListener('pointermove', this.pointerMove);
             window.removeEventListener('pointerup', this.pointerUp);
         }
-        dataIndexChanged(dataIndex) {
-            if (dataIndex === this.dataIndex)
-                return;
+        dataChanged() {
+            const dataIndex = state.get(`config.scroll.${props.type}.dataIndex`);
+            this.lastDataIndex = dataIndex;
             if (props.type === 'horizontal' && allDates && allDates.length) {
                 const date = allDates[dataIndex];
                 if (!date)
                     return;
-                const pos = Math.round(date.leftPercent * (invSize - sub));
+                if (this.lastDate && this.lastDate.leftPercent === date.leftPercent)
+                    return;
+                const pos = this.limitPosition(date.leftPercent * (invSize - sub));
+                this.currentPos = pos;
+                update();
+            }
+            else if (props.type === 'vertical') {
+                const row = rows[dataIndex];
+                if (!row)
+                    return;
+                if (this.lastRow && this.lastRow.$data.topPercent === row.$data.topPercent)
+                    return;
+                const pos = Math.round(row.$data.topPercent * (invSize - sub));
                 this.currentPos = pos;
                 update();
             }
@@ -6792,15 +6819,17 @@ function ScrollBar(vido, props) {
                     dataIndex = 0;
                 this.dataIndex = dataIndex;
                 if (props.type === 'horizontal') {
+                    this.lastDate = allDates[dataIndex];
                     api.setScrollLeft(dataIndex);
                 }
                 else {
+                    this.lastRow = rows[dataIndex];
                     api.setScrollTop(dataIndex);
                 }
-                if (dataIndex !== this.lastData) {
+                if (dataIndex !== this.lastDataIndex) {
                     this.cumulation = 0;
                 }
-                this.lastData = dataIndex;
+                this.lastDataIndex = dataIndex;
             }
         }
     }
@@ -9288,9 +9317,6 @@ class Time {
                     date = dates[0];
                     left -= date.width;
                     if (left <= finalOffset) {
-                        let multi = this.state.multi();
-                        multi = multi.update('config.chart.time.finalFrom', date.leftGlobal);
-                        time = this.state.get('$data.chart.time');
                         return date.leftGlobal + (finalOffset - left) * time.timePerPixel;
                     }
                 }
@@ -9321,7 +9347,6 @@ class Time {
                     if (left >= finalOffset) {
                         if (previosDate)
                             date = previosDate;
-                        this.state.update('config.chart.time.finalTo', date.rightGlobal);
                         return date.rightGlobal - (left - finalOffset) * time.timePerPixel;
                     }
                 }
@@ -10824,29 +10849,14 @@ class Api {
         return { x, y, z, event };
     }
     scrollToTime(toTime, centered = true, time = this.state.get('$data.chart.time')) {
-        let pos = 0;
-        this.state.update('config.scroll.horizontal', (scrollHorizontal) => {
-            let leftGlobal = toTime;
-            if (centered) {
-                const chartWidth = this.state.get('$data.chart.dimensions.width');
-                const halfChartTime = (chartWidth / 2) * time.timePerPixel;
-                leftGlobal = toTime - halfChartTime;
-            }
-            scrollHorizontal.data = this.time.findDateAtTime(leftGlobal, time.allDates[time.level]);
-            let dataIndex = time.allDates[time.level].indexOf(scrollHorizontal.data);
-            const max = time.allDates[time.level].length - scrollHorizontal.lastPageCount;
-            if (dataIndex > max) {
-                dataIndex = max;
-            }
-            scrollHorizontal.dataIndex = dataIndex;
-            scrollHorizontal.posPx = this.time.calculateScrollPosPxFromTime(scrollHorizontal.data.leftGlobal, time, scrollHorizontal);
-            const maxPos = scrollHorizontal.maxPosPx - scrollHorizontal.innerSize;
-            if (scrollHorizontal.posPx > maxPos)
-                scrollHorizontal.posPx = maxPos;
-            pos = scrollHorizontal.posPx;
-            return scrollHorizontal;
-        });
-        return pos;
+        if (centered) {
+            const chartWidth = this.state.get('$data.chart.dimensions.width');
+            const halfChartTime = (chartWidth / 2) * time.timePerPixel;
+            toTime = toTime - halfChartTime;
+        }
+        const data = this.time.findDateAtTime(toTime, time.allDates[time.level]);
+        let dataIndex = time.allDates[time.level].indexOf(data);
+        return this.setScrollLeft(dataIndex, time).posPx;
     }
     setScrollLeft(dataIndex, time = this.state.get('$data.chart.time'), multi = undefined) {
         if (dataIndex === undefined) {
@@ -10863,16 +10873,25 @@ class Api {
         const date = allDates[dataIndex];
         if (!date)
             return;
+        let result;
         multi.update('config.scroll.horizontal', (scrollHorizontal) => {
             scrollHorizontal.data = Object.assign({}, date);
-            const time = this.state.get('$data.chart.time');
-            scrollHorizontal.posPx = this.time.calculateScrollPosPxFromTime(scrollHorizontal.data.leftGlobal, time, scrollHorizontal);
+            const max = time.allDates[time.level].length - scrollHorizontal.lastPageCount;
+            if (dataIndex > max) {
+                dataIndex = max;
+            }
             scrollHorizontal.dataIndex = dataIndex;
+            scrollHorizontal.posPx = this.time.calculateScrollPosPxFromTime(scrollHorizontal.data.leftGlobal, time, scrollHorizontal);
+            const maxPos = scrollHorizontal.maxPosPx - scrollHorizontal.innerSize;
+            if (scrollHorizontal.posPx > maxPos)
+                scrollHorizontal.posPx = maxPos;
+            result = scrollHorizontal;
             return scrollHorizontal;
         });
         if (hadMulti)
             return multi;
         multi.done();
+        return result;
     }
     getScrollLeft() {
         return this.state.get('config.scroll.horizontal');
@@ -10881,7 +10900,6 @@ class Api {
         if (dataIndex === undefined) {
             dataIndex = 0;
         }
-        const vertical = this.state.get('config.scroll.vertical');
         const rows = this.state.get('$data.list.rowsWithParentsExpanded');
         if (!rows[dataIndex])
             return;

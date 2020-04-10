@@ -213,9 +213,6 @@ export class Time {
           date = dates[0];
           left -= date.width;
           if (left <= finalOffset) {
-            let multi = this.state.multi();
-            multi = multi.update('config.chart.time.finalFrom', date.leftGlobal);
-            time = this.state.get('$data.chart.time') as DataChartTime;
             return date.leftGlobal + (finalOffset - left) * time.timePerPixel;
           }
         }
@@ -244,7 +241,6 @@ export class Time {
           left += date.width;
           if (left >= finalOffset) {
             if (previosDate) date = previosDate;
-            this.state.update('config.chart.time.finalTo', date.rightGlobal);
             return date.rightGlobal - (left - finalOffset) * time.timePerPixel;
           }
         }

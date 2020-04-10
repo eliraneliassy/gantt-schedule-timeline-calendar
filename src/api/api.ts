@@ -438,32 +438,14 @@ export class Api {
   }
 
   scrollToTime(toTime: number, centered = true, time: DataChartTime = this.state.get('$data.chart.time')): number {
-    let pos = 0;
-    this.state.update('config.scroll.horizontal', (scrollHorizontal: ScrollTypeHorizontal) => {
-      let leftGlobal = toTime;
-      if (centered) {
-        const chartWidth = this.state.get('$data.chart.dimensions.width');
-        const halfChartTime = (chartWidth / 2) * time.timePerPixel;
-        leftGlobal = toTime - halfChartTime;
-      }
-      scrollHorizontal.data = this.time.findDateAtTime(leftGlobal, time.allDates[time.level]);
-      let dataIndex = time.allDates[time.level].indexOf(scrollHorizontal.data);
-      const max = time.allDates[time.level].length - scrollHorizontal.lastPageCount;
-      if (dataIndex > max) {
-        dataIndex = max;
-      }
-      scrollHorizontal.dataIndex = dataIndex;
-      scrollHorizontal.posPx = this.time.calculateScrollPosPxFromTime(
-        scrollHorizontal.data.leftGlobal,
-        time,
-        scrollHorizontal
-      );
-      const maxPos = scrollHorizontal.maxPosPx - scrollHorizontal.innerSize;
-      if (scrollHorizontal.posPx > maxPos) scrollHorizontal.posPx = maxPos;
-      pos = scrollHorizontal.posPx;
-      return scrollHorizontal;
-    });
-    return pos;
+    if (centered) {
+      const chartWidth = this.state.get('$data.chart.dimensions.width');
+      const halfChartTime = (chartWidth / 2) * time.timePerPixel;
+      toTime = toTime - halfChartTime;
+    }
+    const data = this.time.findDateAtTime(toTime, time.allDates[time.level]);
+    let dataIndex = time.allDates[time.level].indexOf(data);
+    return this.setScrollLeft(dataIndex, time).posPx;
   }
 
   setScrollLeft(
@@ -483,19 +465,27 @@ export class Api {
     if (!allDates) return;
     const date: DataChartTimeLevelDate = allDates[dataIndex];
     if (!date) return;
+    let result;
     multi.update('config.scroll.horizontal', (scrollHorizontal: ScrollTypeHorizontal) => {
       scrollHorizontal.data = { ...date };
-      const time = this.state.get('$data.chart.time');
+      const max = time.allDates[time.level].length - scrollHorizontal.lastPageCount;
+      if (dataIndex > max) {
+        dataIndex = max;
+      }
+      scrollHorizontal.dataIndex = dataIndex;
       scrollHorizontal.posPx = this.time.calculateScrollPosPxFromTime(
         scrollHorizontal.data.leftGlobal,
         time,
         scrollHorizontal
       );
-      scrollHorizontal.dataIndex = dataIndex;
+      const maxPos = scrollHorizontal.maxPosPx - scrollHorizontal.innerSize;
+      if (scrollHorizontal.posPx > maxPos) scrollHorizontal.posPx = maxPos;
+      result = scrollHorizontal;
       return scrollHorizontal;
     });
     if (hadMulti) return multi;
     multi.done();
+    return result;
   }
 
   getScrollLeft(): ScrollTypeHorizontal {
@@ -506,7 +496,6 @@ export class Api {
     if (dataIndex === undefined) {
       dataIndex = 0;
     }
-    const vertical: ScrollTypeVertical = this.state.get('config.scroll.vertical');
     const rows: Row[] = this.state.get('$data.list.rowsWithParentsExpanded');
     if (!rows[dataIndex]) return;
     this.state.update('config.scroll.vertical', (scrollVertical: ScrollTypeVertical) => {

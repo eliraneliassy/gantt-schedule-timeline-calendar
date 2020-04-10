@@ -27,10 +27,8 @@ import {
   ItemData,
   Vido,
   Reason,
-  DataList,
 } from '../gstc';
 
-import { OpUnitType } from 'dayjs';
 import { Component, ComponentInstance } from '@neuronet.io/vido/vido';
 
 export default function Main(vido: Vido, props = {}) {
@@ -108,11 +106,6 @@ export default function Main(vido: Vido, props = {}) {
   }
   onDestroy(state.subscribe('$data.list.columns.resizer.active', resizerActiveChange));
 
-  /**
-   * Generate tree
-   * @param {object} bulk
-   * @param {object} eventInfo
-   */
   function generateTree(bulk, eventInfo) {
     if (state.get('$data.flatTreeMap').length && eventInfo.type === 'subscribe') {
       return;
@@ -132,12 +125,6 @@ export default function Main(vido: Vido, props = {}) {
     const treeMap = api.makeTreeMap(rows, items);
     const flatTreeMapById = api.getFlatTreeMapById(treeMap);
     const flatTreeMap = api.flattenTreeMap(treeMap);
-    /*state.update('$data', ($data) => {
-      $data.treeMap = treeMap;
-      $data.flatTreeMapById = flatTreeMapById;
-      $data.flatTreeMap = flatTreeMap;
-      return $data;
-    });*/
     state
       .multi()
       .update('$data.treeMap', treeMap)
@@ -159,7 +146,6 @@ export default function Main(vido: Vido, props = {}) {
       configRows
     );
     state.update('$data.list.rowsWithParentsExpanded', rowsWithParentsExpanded);
-    update();
   }
   onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;'], prepareExpanded, { bulk: true }));
 
@@ -170,16 +156,24 @@ export default function Main(vido: Vido, props = {}) {
         'config.chart.items.*.height',
         'config.chart.items.*.rowId',
         'config.list.rows.*.height',
+        'config.scroll.vertical.area',
       ],
       () => {
-        rowsHeight = api.recalculateRowsHeights(state.get('$data.list.rowsWithParentsExpanded'));
-        state.update('$data.list.rowsHeight', rowsHeight);
+        let rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
+        rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
+        const verticalArea: number = state.get('config.scroll.vertical.area');
+        rowsWithParentsExpanded = api.recalculateRowsPercents(rowsWithParentsExpanded, verticalArea);
+        state
+          .multi()
+          .update('$data.list.rowsHeight', rowsHeight)
+          .update('$data.list.rowsWithParentsExpanded', rowsWithParentsExpanded)
+          .done();
       },
       { bulk: true }
     )
   );
 
-  let lastRowsHeight = 0;
+  let lastRowsHeight = -1;
   onDestroy(
     state.subscribeAll(['$data.innerHeight', '$data.list.rowsHeight'], () => {
       const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');

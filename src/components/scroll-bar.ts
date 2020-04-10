@@ -9,7 +9,7 @@
  */
 
 import Action from '@neuronet.io/vido/Action';
-import { DataChartTimeLevelDate, ScrollTypeHorizontal, ScrollTypeVertical, ScrollType, Row, Vido } from '../gstc';
+import { ScrollType, Row, Vido, DataChartTimeLevelDate, DataChartTimeLevel } from '../gstc';
 
 export interface Props {
   type: 'horizontal' | 'vertical';
@@ -38,7 +38,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
   const styleMapOuter = new StyleMap({});
   const styleMapInner = new StyleMap({});
   let maxPos = 0;
-  let allDates = [];
+  let allDates: DataChartTimeLevelDate[] = [];
   let rows: Row[] = [];
   let innerSize = 0,
     invSize = 0,
@@ -89,23 +89,31 @@ export default function ScrollBar(vido: Vido, props: Props) {
     scrollArea: 0,
   };
   function shouldUpdate(maxPosPx, innerSize, sub, scrollArea) {
-    return (
+    const result =
       cache.maxPosPx !== maxPosPx ||
       cache.innerSize !== innerSize ||
       cache.sub !== sub ||
-      cache.scrollArea !== scrollArea
-    );
+      cache.scrollArea !== scrollArea;
+    if (result) {
+      cache.maxPosPx = maxPos;
+      cache.innerSize = innerSize;
+      cache.sub = sub;
+      cache.scrollArea = invSize;
+    }
+    return result;
   }
 
-  let working = false;
   onDestroy(
     state.subscribeAll(
       props.type === 'horizontal'
         ? [`config.scroll.${props.type}`, '$data.chart.time']
-        : [`config.scroll.${props.type}`, '$data.innerHeight', '$data.list.rowsWithParentsExpanded'],
-      () => {
-        if (working) return;
-        working = true;
+        : [
+            `config.scroll.${props.type}`,
+            '$data.innerHeight',
+            '$data.list.rowsWithParentsExpanded;',
+            '$data.list.rowsHeight',
+          ],
+      function scrollThing() {
         const time = state.get('$data.chart.time');
         const scroll = state.get(`config.scroll.${props.type}`);
         const chartWidth = state.get('$data.chart.dimensions.width');
@@ -156,23 +164,17 @@ export default function ScrollBar(vido: Vido, props: Props) {
 
         styleMapInner.style[invSizeProp] = innerSize + 'px';
         maxPos = Math.round(invSize - sub);
-        //if (shouldUpdate(maxPos, innerSize, sub, invSize)) {
-        cache.maxPosPx = maxPos;
-        cache.innerSize = innerSize;
-        cache.sub = sub;
-        cache.scrollArea = invSize;
-        state.update(`config.scroll.${props.type}`, (scroll: ScrollType) => {
-          scroll.maxPosPx = maxPos;
-          scroll.innerSize = innerSize;
-          scroll.sub = sub;
-          scroll.scrollArea = invSize;
-          return scroll;
-        });
-        /*} else {
-          console.log('not updating');
-        }*/
+        if (shouldUpdate(maxPos, innerSize, sub, invSize)) {
+          // shouldUpdate prevent infinite loop
+          state.update(`config.scroll.${props.type}`, (scroll: ScrollType) => {
+            scroll.maxPosPx = maxPos;
+            scroll.innerSize = innerSize;
+            scroll.sub = sub;
+            scroll.scrollArea = invSize;
+            return scroll;
+          });
+        }
         update();
-        working = false;
       }
     )
   );
@@ -202,8 +204,10 @@ export default function ScrollBar(vido: Vido, props: Props) {
     initialPos = 0;
     currentPos = 0;
     cumulation = 0;
-    lastData = 0;
+    lastDataIndex = 0;
     dataIndex = 0;
+    lastDate: DataChartTimeLevelDate;
+    lastRow: Row;
     bodyClassName: string;
     unsub: () => void;
 
@@ -215,7 +219,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
       this.pointerUp = this.pointerUp.bind(this);
       const pointerMove = this.pointerMove.bind(this);
       this.pointerMove = schedule((ev) => pointerMove(ev));
-      this.unsub = state.subscribe(`config.scroll.${props.type}.dataIndex`, this.dataIndexChanged.bind(this));
+      this.unsub = state.subscribe(`config.scroll.${props.type}`, this.dataChanged.bind(this));
       element.addEventListener('pointerdown', this.pointerDown);
       window.addEventListener('pointermove', this.pointerMove, { passive: true });
       window.addEventListener('pointerup', this.pointerUp);
@@ -228,12 +232,21 @@ export default function ScrollBar(vido: Vido, props: Props) {
       window.removeEventListener('pointerup', this.pointerUp);
     }
 
-    dataIndexChanged(dataIndex) {
-      if (dataIndex === this.dataIndex) return;
+    dataChanged() {
+      const dataIndex: number = state.get(`config.scroll.${props.type}.dataIndex`);
+      this.lastDataIndex = dataIndex;
       if (props.type === 'horizontal' && allDates && allDates.length) {
-        const date = allDates[dataIndex];
+        const date: DataChartTimeLevelDate = allDates[dataIndex];
         if (!date) return;
-        const pos = Math.round(date.leftPercent * (invSize - sub));
+        if (this.lastDate && this.lastDate.leftPercent === date.leftPercent) return;
+        const pos = this.limitPosition(date.leftPercent * (invSize - sub));
+        this.currentPos = pos;
+        update();
+      } else if (props.type === 'vertical') {
+        const row = rows[dataIndex];
+        if (!row) return;
+        if (this.lastRow && this.lastRow.$data.topPercent === row.$data.topPercent) return;
+        const pos = Math.round(row.$data.topPercent * (invSize - sub));
         this.currentPos = pos;
         update();
       }
@@ -291,14 +304,16 @@ export default function ScrollBar(vido: Vido, props: Props) {
         if (!dataIndex) dataIndex = 0;
         this.dataIndex = dataIndex;
         if (props.type === 'horizontal') {
+          this.lastDate = allDates[dataIndex];
           api.setScrollLeft(dataIndex);
         } else {
+          this.lastRow = rows[dataIndex];
           api.setScrollTop(dataIndex);
         }
-        if (dataIndex !== this.lastData) {
+        if (dataIndex !== this.lastDataIndex) {
           this.cumulation = 0;
         }
-        this.lastData = dataIndex;
+        this.lastDataIndex = dataIndex;
       }
     }
   }

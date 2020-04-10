@@ -67,7 +67,7 @@ function Plugin(options = defaultOptions) {
                     if (width >= diff.x)
                         break;
                 }
-                api.scrollToTime(allDates[i].leftGlobal, false);
+                api.setScrollLeft(i, time);
             }
             else if (diff.x < 0) {
                 // go forward - move dates backward
@@ -87,7 +87,7 @@ function Plugin(options = defaultOptions) {
                 if (i - 1 >= allDates.length - hScroll.lastPageCount) {
                     return;
                 }
-                api.scrollToTime(allDates[i].leftGlobal, false);
+                api.setScrollLeft(i, time);
             }
         }
         pointerMove(ev) {

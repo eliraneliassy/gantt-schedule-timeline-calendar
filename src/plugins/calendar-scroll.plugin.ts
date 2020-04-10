@@ -88,7 +88,7 @@ export function Plugin(options: Options = defaultOptions) {
           width += date.width;
           if (width >= diff.x) break;
         }
-        api.scrollToTime(allDates[i].leftGlobal, false);
+        api.setScrollLeft(i, time);
       } else if (diff.x < 0) {
         // go forward - move dates backward
         let i = this.initialDataIndex.x;
@@ -106,7 +106,7 @@ export function Plugin(options: Options = defaultOptions) {
         if (i - 1 >= allDates.length - hScroll.lastPageCount) {
           return;
         }
-        api.scrollToTime(allDates[i].leftGlobal, false);
+        api.setScrollLeft(i, time);
       }
     }
 
