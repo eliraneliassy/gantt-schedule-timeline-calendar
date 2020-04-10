@@ -5916,12 +5916,12 @@ function Main(vido, props = {}) {
         state.update('config.scroll.vertical.lastPageCount', count);
         return currentHeight;
     }
-    onDestroy(state.subscribeAll(['$data.list.rowsWithParentsExpanded;', '$data.innerHeight', '$data.list.rowsHeight'], () => {
+    onDestroy(state.subscribeAll(['$data.innerHeight', '$data.list.rowsHeight'], () => {
         const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
         const rowsHeight = state.get('$data.list.rowsHeight');
         const innerHeight = state.get('$data.innerHeight');
         const lastPageHeight = getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded);
-        state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight);
+        state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight, { queue: true });
     }));
     function generateVisibleRowsAndItems() {
         const visibleRows = api.getVisibleRows(state.get('$data.list.rowsWithParentsExpanded'));
