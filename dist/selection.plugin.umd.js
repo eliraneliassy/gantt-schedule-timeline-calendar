@@ -62,11 +62,13 @@
           this.vido = vido;
           this.state = vido.state;
           this.api = vido.api;
+          this.state.update(pluginPath, generateEmptyData(options));
           this.data = generateEmptyData(options);
           this.wrapperClassName = this.api.getClass('chart-selection');
           this.wrapperStyleMap = new vido.StyleMap({ display: 'none' });
           this.html = vido.html;
           this.wrapper = this.wrapper.bind(this);
+          this.setWrapper();
           this.unsub.push(this.state.subscribe('config.plugin.TimelinePointer', (timelinePointerData) => {
               this.poitnerData = timelinePointerData;
               this.onPointerData();
@@ -76,7 +78,16 @@
               this.data = value;
           }));
       }
+      setWrapper() {
+          this.state.update('config.wrappers.ChartTimelineItems', (oldWrapper) => {
+              if (!this.oldWrapper)
+                  this.oldWrapper = oldWrapper;
+              return this.wrapper;
+          });
+      }
       destroy() {
+          this.state.update('config.wrappers.ChartTimelineItems', this.oldWrapper);
+          this.oldWrapper = null;
           this.unsub.forEach((unsub) => unsub());
       }
       updateData() {
@@ -251,6 +262,8 @@
           this.updateData();
       }
       wrapper(input, props) {
+          if (!this.oldWrapper)
+              return input;
           const oldContent = this.oldWrapper(input, props);
           let shouldDetach = true;
           if (this.canSelect() && this.data.isSelecting && this.data.showOverlay) {
@@ -261,24 +274,14 @@
               this.wrapperStyleMap.style.height = this.data.selectionAreaLocal.height + 'px';
               shouldDetach = false;
           }
-          const detach = new this.vido.Detach(() => shouldDetach);
-          return this
-              .html ` ${oldContent}<div class=${this.wrapperClassName} detach=${detach} style=${this.wrapperStyleMap}></div>`;
-      }
-      getWrapper(oldWrapper) {
-          if (!this.oldWrapper)
-              this.oldWrapper = oldWrapper;
-          return this.wrapper;
+          const area = this.html `<div class=${this.wrapperClassName} style=${this.wrapperStyleMap}></div>`;
+          return this.html `${oldContent}${shouldDetach ? null : area}`;
       }
   }
   function Plugin(options = {}) {
       options = prepareOptions(options);
       return function initialize(vidoInstance) {
           const selectionPlugin = new SelectionPlugin(vidoInstance, options);
-          vidoInstance.state.update(pluginPath, generateEmptyData(options));
-          vidoInstance.state.update('config.wrappers.ChartTimelineItems', (oldWrapper) => {
-              return selectionPlugin.getWrapper(oldWrapper);
-          });
           return function destroy() {
               selectionPlugin.destroy();
           };

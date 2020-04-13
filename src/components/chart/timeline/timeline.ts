@@ -9,6 +9,7 @@
  */
 
 import { Vido } from '../../../gstc';
+import { ComponentInstance, Component } from '@neuronet.io/vido/vido';
 
 export default function ChartTimeline(vido: Vido, props) {
   const { api, state, onDestroy, Action, Actions, update, html, createComponent, StyleMap } = vido;
@@ -19,15 +20,31 @@ export default function ChartTimeline(vido: Vido, props) {
   let wrapper;
   onDestroy(state.subscribe('config.wrappers.ChartTimeline', (value) => (wrapper = value)));
 
-  const GridComponent = state.get('config.components.ChartTimelineGrid');
-  const ItemsComponent = state.get('config.components.ChartTimelineItems');
-  const ListToggleComponent = state.get('config.components.ListToggle');
-
-  const Grid = createComponent(GridComponent);
+  let Grid: ComponentInstance;
+  onDestroy(
+    state.subscribe('config.components.ChartTimelineGrid', (component: Component) => {
+      if (Grid) Grid.destroy();
+      Grid = createComponent(component);
+    })
+  );
   onDestroy(Grid.destroy);
-  const Items = createComponent(ItemsComponent);
+
+  let Items: ComponentInstance;
+  onDestroy(
+    state.subscribe('config.components.ChartTimelineItems', (component: Component) => {
+      if (Items) Items.destroy();
+      Items = createComponent(component);
+    })
+  );
   onDestroy(Items.destroy);
-  const ListToggle = createComponent(ListToggleComponent);
+
+  let ListToggle: ComponentInstance;
+  onDestroy(
+    state.subscribe('config.components.ListToggle', (component: Component) => {
+      if (ListToggle) ListToggle.destroy();
+      ListToggle = createComponent(component);
+    })
+  );
   onDestroy(ListToggle.destroy);
 
   let className, classNameInner;

@@ -10,7 +10,7 @@
 import 'pepjs';
 import Vido from '@neuronet.io/vido/vido';
 //import Vido from '../../vido/vido';
-import { publicApi, Api } from './api/api';
+import { publicApi, Api, stateFromConfig, prepareState } from './api/api';
 
 import { vido, lithtml, ComponentInstance } from '@neuronet.io/vido/vido.d';
 import { Dayjs, OpUnitType } from 'dayjs';
@@ -602,12 +602,12 @@ export interface GSTCResult {
   state: DeepState;
   api: Api;
   component: ComponentInstance;
+  destroy: () => void;
+  reload: () => void;
 }
 
-function GSTC(options: GSTCOptions): GSTCResult {
-  const state = options.state;
-  const api = new Api(state);
-  const $data: Data = {
+function getDefaultData(): Data {
+  return {
     treeMap: { id: '', $data: { children: [], parents: [], items: [] } },
     flatTreeMap: [],
     flatTreeMapById: {},
@@ -664,11 +664,16 @@ function GSTC(options: GSTCOptions): GSTCResult {
     elements: {},
     loaded: {},
   };
+}
+
+function GSTC(options: GSTCOptions): GSTCResult {
+  const state = options.state;
+  const api = new Api(state);
+  const $data: Data = getDefaultData();
   if (typeof options.debug === 'boolean' && options.debug) {
     // @ts-ignore
     window.state = state;
   }
-
   state.update('', (oldValue) => {
     return {
       config: oldValue.config,
@@ -681,7 +686,18 @@ function GSTC(options: GSTCOptions): GSTCResult {
   const Main = state.get('config.components.Main');
   const component = vido.createApp({ component: Main, props: {}, element: options.element });
   const internalApi = component.vidoInstance.api as Api;
-  return { state, api: internalApi, component };
+  function destroy() {
+    component.destroy();
+  }
+  const result = { state, api: internalApi, component, destroy, reload };
+  function reload() {
+    result.component.destroy();
+    const Main = state.get('config.components.Main');
+    result.component = vido.createApp({ component: Main, props: {}, element: options.element });
+    result.api = component.vidoInstance.api as Api;
+    result.component.update();
+  }
+  return result;
 }
 
 GSTC.api = publicApi;

@@ -4347,7 +4347,9 @@
 	                console.trace();
 	                console.groupEnd();
 	            }
-	            components.get(this.instance).change(newProps, options);
+	            const component = components.get(this.instance);
+	            if (component)
+	                component.change(newProps, options);
 	        }
 	        /**
 	         * Get component lit-html template
@@ -4694,7 +4696,7 @@
 	            let index = 0;
 	            for (const component of currentComponents) {
 	                const item = dataArray[index];
-	                if (!modified.includes(component.instance)) {
+	                if (!modified.includes(component.instance) && component) {
 	                    component.change(getProps(item), { leave: leave && index >= leaveStartingAt });
 	                }
 	                index++;
@@ -4735,6 +4737,8 @@
 	            }
 	            actionsByInstance.delete(instance);
 	            const component = components.get(instance);
+	            if (!component)
+	                return;
 	            component.update();
 	            component.destroy();
 	            components.delete(instance);
@@ -5791,7 +5795,7 @@
 	                    onDestroy(destroyPlugin);
 	                }
 	                else if (destroyPlugin && destroyPlugin.hasOwnProperty('destroy')) {
-	                    destroyPlugin.destroy();
+	                    onDestroy(destroyPlugin.destroy);
 	                }
 	            }
 	        }
@@ -6168,6 +6172,8 @@
 	    }
 	    function calculateRightGlobal(leftGlobal, chartWidth, allMainDates) {
 	        const date = api.time.findDateAtTime(leftGlobal, allMainDates);
+	        if (!date)
+	            return leftGlobal;
 	        let index = allMainDates.indexOf(date);
 	        let rightGlobal = date.leftGlobal;
 	        let width = 0;
@@ -6182,11 +6188,17 @@
 	    }
 	    function updateVisibleItems(time = state.get('$data.chart.time'), multi = state.multi()) {
 	        const visibleItems = state.get('$data.chart.visibleItems');
+	        if (!visibleItems)
+	            return multi;
 	        const rows = state.get('config.list.rows');
+	        if (!rows)
+	            return multi;
 	        if (!time.levels || !time.levels[time.level])
 	            return multi;
 	        for (const item of visibleItems) {
 	            const row = rows[item.rowId];
+	            if (!row || !row.$data)
+	                continue;
 	            const left = api.time.getViewOffsetPxFromDates(item.$data.time.startDate, false, time);
 	            const right = api.time.getViewOffsetPxFromDates(item.$data.time.endDate, false, time);
 	            const actualTop = item.$data.position.top + item.gap.top;
@@ -6261,7 +6273,8 @@
 	            if (oldTime.zoom !== time.zoom ||
 	                time.allDates.length === 0 ||
 	                reason.name === 'forceUpdate' ||
-	                reason.name === 'items') {
+	                reason.name === 'items' ||
+	                reason.name === 'reload') {
 	                scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
 	                calculateTotalViewDuration(time);
 	                const all = time.allDates[time.level];
@@ -6285,7 +6298,8 @@
 	            if (oldTime.zoom !== time.zoom ||
 	                time.allDates.length === 0 ||
 	                reason.name === 'forceUpdate' ||
-	                reason.name === 'items') {
+	                reason.name === 'items' ||
+	                reason.name === 'reload') {
 	                scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
 	                calculateTotalViewDuration(time);
 	                const all = time.allDates[time.level];
@@ -6444,6 +6458,9 @@
 	                to = item.time.end;
 	            recalculateTimes({ name: 'items', from, to });
 	        }
+	    }));
+	    onDestroy(state.subscribe('$data.list.treeMap;', () => {
+	        recalculateTimes({ name: 'reload' });
 	    }));
 	    try {
 	        const ignoreHosts = [
@@ -7964,14 +7981,26 @@
 	    const actionProps = Object.assign(Object.assign({}, props), { api, state });
 	    let wrapper;
 	    onDestroy(state.subscribe('config.wrappers.ChartTimeline', (value) => (wrapper = value)));
-	    const GridComponent = state.get('config.components.ChartTimelineGrid');
-	    const ItemsComponent = state.get('config.components.ChartTimelineItems');
-	    const ListToggleComponent = state.get('config.components.ListToggle');
-	    const Grid = createComponent(GridComponent);
+	    let Grid;
+	    onDestroy(state.subscribe('config.components.ChartTimelineGrid', (component) => {
+	        if (Grid)
+	            Grid.destroy();
+	        Grid = createComponent(component);
+	    }));
 	    onDestroy(Grid.destroy);
-	    const Items = createComponent(ItemsComponent);
+	    let Items;
+	    onDestroy(state.subscribe('config.components.ChartTimelineItems', (component) => {
+	        if (Items)
+	            Items.destroy();
+	        Items = createComponent(component);
+	    }));
 	    onDestroy(Items.destroy);
-	    const ListToggle = createComponent(ListToggleComponent);
+	    let ListToggle;
+	    onDestroy(state.subscribe('config.components.ListToggle', (component) => {
+	        if (ListToggle)
+	            ListToggle.destroy();
+	        ListToggle = createComponent(component);
+	    }));
 	    onDestroy(ListToggle.destroy);
 	    let className, classNameInner;
 	    onDestroy(state.subscribe('config.classNames', () => {
@@ -8361,9 +8390,10 @@
 	function ChartTimelineItems(vido, props = {}) {
 	    const { api, state, onDestroy, Actions, update, html, reuseComponents, StyleMap } = vido;
 	    const componentName = 'chart-timeline-items';
-	    const componentActions = api.getActions(componentName);
 	    let wrapper;
 	    onDestroy(state.subscribe('config.wrappers.ChartTimelineItems', (value) => (wrapper = value)));
+	    let componentActions;
+	    onDestroy(state.subscribe(`config.actions.${componentName}`, (actions) => (componentActions = actions)));
 	    let ItemsRowComponent;
 	    onDestroy(state.subscribe('config.components.ChartTimelineItemsRow', (value) => (ItemsRowComponent = value)));
 	    let className;
@@ -8381,11 +8411,11 @@
 	    onDestroy(state.subscribeAll(['$data.innerHeight', '$data.chart.dimensions.width'], calculateStyle));
 	    const rowsComponents = [];
 	    function createRowComponents() {
-	        const visibleRows = state.get('$data.list.visibleRows');
-	        reuseComponents(rowsComponents, visibleRows || [], (row) => ({ row }), ItemsRowComponent);
+	        const visibleRows = state.get('$data.list.visibleRows') || [];
+	        reuseComponents(rowsComponents, visibleRows, (row) => ({ row }), ItemsRowComponent);
 	        update();
 	    }
-	    onDestroy(state.subscribeAll(['$data.list.visibleRows;', 'config.chart.items'], createRowComponents));
+	    onDestroy(state.subscribeAll(['$data.list.visibleRows;', 'config.components.ChartTimelineItemsRow', 'config.chart.items'], createRowComponents));
 	    onDestroy(() => {
 	        rowsComponents.forEach((row) => row.destroy());
 	    });
@@ -10505,11 +10535,15 @@
 	    delete defaultConfig.actions;
 	    return actions;
 	}
-	function stateFromConfig(userConfig) {
+	function prepareState(userConfig) {
 	    const defaultConfig$1 = defaultConfig();
 	    const actions = mergeActions(userConfig, defaultConfig$1);
 	    const state = { config: mergeDeep$1({}, defaultConfig$1, userConfig) };
 	    state.config.actions = actions;
+	    return state;
+	}
+	function stateFromConfig(userConfig) {
+	    const state = prepareState(userConfig);
 	    // @ts-ignore
 	    return (this.state = new DeepState(state, { delimeter: '.', maxSimultaneousJobs: 1000 }));
 	}
@@ -10964,10 +10998,8 @@
 	 * @package   gantt-schedule-timeline-calendar
 	 * @license   AGPL-3.0
 	 */
-	function GSTC(options) {
-	    const state = options.state;
-	    const api = new Api(state);
-	    const $data = {
+	function getDefaultData() {
+	    return {
 	        treeMap: { id: '', $data: { children: [], parents: [], items: [] } },
 	        flatTreeMap: [],
 	        flatTreeMapById: {},
@@ -11024,6 +11056,11 @@
 	        elements: {},
 	        loaded: {},
 	    };
+	}
+	function GSTC(options) {
+	    const state = options.state;
+	    const api = new Api(state);
+	    const $data = getDefaultData();
 	    if (typeof options.debug === 'boolean' && options.debug) {
 	        // @ts-ignore
 	        window.state = state;
@@ -11039,7 +11076,18 @@
 	    const Main = state.get('config.components.Main');
 	    const component = vido.createApp({ component: Main, props: {}, element: options.element });
 	    const internalApi = component.vidoInstance.api;
-	    return { state, api: internalApi, component };
+	    function destroy() {
+	        component.destroy();
+	    }
+	    const result = { state, api: internalApi, component, destroy, reload };
+	    function reload() {
+	        result.component.destroy();
+	        const Main = state.get('config.components.Main');
+	        result.component = vido.createApp({ component: Main, props: {}, element: options.element });
+	        result.api = component.vidoInstance.api;
+	        result.component.update();
+	    }
+	    return result;
 	}
 	GSTC.api = publicApi;
 

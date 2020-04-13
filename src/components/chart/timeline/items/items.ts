@@ -13,9 +13,10 @@ import { Vido } from '../../../../gstc';
 export default function ChartTimelineItems(vido: Vido, props = {}) {
   const { api, state, onDestroy, Actions, update, html, reuseComponents, StyleMap } = vido;
   const componentName = 'chart-timeline-items';
-  const componentActions = api.getActions(componentName);
   let wrapper;
   onDestroy(state.subscribe('config.wrappers.ChartTimelineItems', (value) => (wrapper = value)));
+  let componentActions;
+  onDestroy(state.subscribe(`config.actions.${componentName}`, (actions) => (componentActions = actions)));
 
   let ItemsRowComponent;
   onDestroy(state.subscribe('config.components.ChartTimelineItemsRow', (value) => (ItemsRowComponent = value)));
@@ -38,11 +39,16 @@ export default function ChartTimelineItems(vido: Vido, props = {}) {
 
   const rowsComponents = [];
   function createRowComponents() {
-    const visibleRows = state.get('$data.list.visibleRows');
-    reuseComponents(rowsComponents, visibleRows || [], (row) => ({ row }), ItemsRowComponent);
+    const visibleRows = state.get('$data.list.visibleRows') || [];
+    reuseComponents(rowsComponents, visibleRows, (row) => ({ row }), ItemsRowComponent);
     update();
   }
-  onDestroy(state.subscribeAll(['$data.list.visibleRows;', 'config.chart.items'], createRowComponents));
+  onDestroy(
+    state.subscribeAll(
+      ['$data.list.visibleRows;', 'config.components.ChartTimelineItemsRow', 'config.chart.items'],
+      createRowComponents
+    )
+  );
   onDestroy(() => {
     rowsComponents.forEach((row) => row.destroy());
   });

@@ -44,7 +44,7 @@ export default function Main(vido: Vido, props = {}) {
           if (typeof destroyPlugin === 'function') {
             onDestroy(destroyPlugin);
           } else if (destroyPlugin && destroyPlugin.hasOwnProperty('destroy')) {
-            destroyPlugin.destroy();
+            onDestroy(destroyPlugin.destroy);
           }
         }
       }
@@ -479,6 +479,7 @@ export default function Main(vido: Vido, props = {}) {
     allMainDates: DataChartTimeLevelDate[]
   ): number {
     const date = api.time.findDateAtTime(leftGlobal, allMainDates);
+    if (!date) return leftGlobal;
     let index = allMainDates.indexOf(date);
     let rightGlobal = date.leftGlobal;
     let width = 0;
@@ -493,10 +494,13 @@ export default function Main(vido: Vido, props = {}) {
 
   function updateVisibleItems(time: DataChartTime = state.get('$data.chart.time'), multi = state.multi()) {
     const visibleItems: Item[] = state.get('$data.chart.visibleItems');
+    if (!visibleItems) return multi;
     const rows: Rows = state.get('config.list.rows');
+    if (!rows) return multi;
     if (!time.levels || !time.levels[time.level]) return multi;
     for (const item of visibleItems) {
       const row = rows[item.rowId];
+      if (!row || !row.$data) continue;
       const left = api.time.getViewOffsetPxFromDates(item.$data.time.startDate, false, time);
       const right = api.time.getViewOffsetPxFromDates(item.$data.time.endDate, false, time);
       const actualTop = item.$data.position.top + item.gap.top;
@@ -585,7 +589,8 @@ export default function Main(vido: Vido, props = {}) {
         oldTime.zoom !== time.zoom ||
         time.allDates.length === 0 ||
         reason.name === 'forceUpdate' ||
-        reason.name === 'items'
+        reason.name === 'items' ||
+        reason.name === 'reload'
       ) {
         scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
         calculateTotalViewDuration(time);
@@ -610,7 +615,8 @@ export default function Main(vido: Vido, props = {}) {
         oldTime.zoom !== time.zoom ||
         time.allDates.length === 0 ||
         reason.name === 'forceUpdate' ||
-        reason.name === 'items'
+        reason.name === 'items' ||
+        reason.name === 'reload'
       ) {
         scrollWidth = generateAllDates(time, calendar.levels, chartWidth);
         calculateTotalViewDuration(time);
@@ -780,6 +786,12 @@ export default function Main(vido: Vido, props = {}) {
         if (item.time.end > time.to) to = item.time.end;
         recalculateTimes({ name: 'items', from, to });
       }
+    })
+  );
+
+  onDestroy(
+    state.subscribe('$data.list.treeMap;', () => {
+      recalculateTimes({ name: 'reload' });
     })
   );
 

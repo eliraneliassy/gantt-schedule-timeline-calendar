@@ -58,11 +58,16 @@ function mergeActions(userConfig: Config, defaultConfig: Config) {
   return actions;
 }
 
-export function stateFromConfig(userConfig: Config) {
+export function prepareState(userConfig: Config) {
   const defaultConfig: Config = defaultConfigFn();
   const actions = mergeActions(userConfig, defaultConfig);
   const state = { config: mergeDeep({}, defaultConfig, userConfig) };
   state.config.actions = actions;
+  return state;
+}
+
+export function stateFromConfig(userConfig: Config) {
+  const state = prepareState(userConfig);
   // @ts-ignore
   return (this.state = new State(state, { delimeter: '.', maxSimultaneousJobs: 1000 }));
 }

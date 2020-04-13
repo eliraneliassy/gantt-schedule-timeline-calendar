@@ -1,5 +1,5 @@
 import 'pepjs';
-import { Api } from './api/api';
+import { Api, stateFromConfig } from './api/api';
 import { vido, lithtml, ComponentInstance } from '@neuronet.io/vido/vido.d';
 import { Dayjs, OpUnitType } from 'dayjs';
 import { Properties as CSSProps } from 'csstype';
@@ -501,12 +501,14 @@ export interface GSTCResult {
     state: DeepState;
     api: Api;
     component: ComponentInstance;
+    destroy: () => void;
+    reload: () => void;
 }
 declare function GSTC(options: GSTCOptions): GSTCResult;
 declare namespace GSTC {
     var api: {
         name: string;
-        stateFromConfig: typeof import("./api/api").stateFromConfig;
+        stateFromConfig: typeof stateFromConfig;
         mergeDeep: typeof import("@neuronet.io/vido/helpers").mergeDeep;
         date(time: any): Dayjs;
         setPeriod(period: OpUnitType): number;

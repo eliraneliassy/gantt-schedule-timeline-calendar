@@ -3,6 +3,9 @@ import DeepState from 'deep-state-observer';
 import dayjs from 'dayjs';
 import { Config, DataChartTime, ScrollTypeHorizontal, Row, Item, Vido, ScrollTypeVertical } from '../gstc';
 export declare function getClass(name: string): string;
+export declare function prepareState(userConfig: Config): {
+    config: any;
+};
 export declare function stateFromConfig(userConfig: Config): any;
 export declare const publicApi: {
     name: string;

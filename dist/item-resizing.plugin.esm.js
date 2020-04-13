@@ -1203,18 +1203,14 @@ class ItemResizing {
         if (this.data.handle.onlyWhenSelected) {
             visible = visible && item.selected;
         }
-        const detach = new this.vido.Detach(() => !visible);
         const rightStyleMap = this.getRightStyleMap(item, visible);
         const leftStyleMap = this.getLeftStyleMap(item, visible);
         const onRightPointerDown = {
             handleEvent: (ev) => this.onRightPointerDown(ev),
         };
-        return this
-            .html `${oldContent}<div detach=${detach} class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}>${this.data.content}</div>`;
-        /*
-        return this
-          .html`${oldContent}<div detach=${detach} class=${this.leftClassName} style=${leftStyleMap} @pointerdown=${onLeftPointerDown}>${this.data.content}</div><div detach=${detach} class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}>${this.data.content}</div>`;
-          */
+        const rightHandle = this
+            .html `<div class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}>${this.data.content}</div>`;
+        return this.html `${oldContent}${visible ? rightHandle : null}`;
     }
     getWrapper(oldWrapper) {
         if (!this.oldWrapper) {
