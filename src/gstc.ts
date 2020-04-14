@@ -394,7 +394,7 @@ export interface ChartCalendarFormatArguments {
   vido: any;
 }
 
-export type PeriodString = 'year' | 'month' | 'week' | 'day' | 'hour';
+export type PeriodString = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second' | 'millisecond';
 
 export type Period = PeriodString | OpUnitType;
 
@@ -530,6 +530,7 @@ export interface Config {
   locale?: Locale;
   utcMode?: boolean;
   usageStatistics?: boolean;
+  merge?: (target: object, source: object) => object;
 }
 
 export interface TreeMapData {

@@ -324,7 +324,7 @@ export interface ChartCalendarFormatArguments {
     props: any;
     vido: any;
 }
-export declare type PeriodString = 'year' | 'month' | 'week' | 'day' | 'hour';
+export declare type PeriodString = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second' | 'millisecond';
 export declare type Period = PeriodString | OpUnitType;
 export interface ChartCalendarFormat {
     zoomTo: number;
@@ -441,6 +441,7 @@ export interface Config {
     locale?: Locale;
     utcMode?: boolean;
     usageStatistics?: boolean;
+    merge?: (target: object, source: object) => object;
 }
 export interface TreeMapData {
     parents: string[];
@@ -506,7 +507,7 @@ declare namespace GSTC {
     var api: {
         name: string;
         stateFromConfig: typeof stateFromConfig;
-        mergeDeep: typeof import("@neuronet.io/vido/helpers").mergeDeep;
+        merge: typeof import("@neuronet.io/vido/helpers").mergeDeep;
         date(time: any): Dayjs;
         setPeriod(period: OpUnitType): number;
         dayjs: typeof import("dayjs");

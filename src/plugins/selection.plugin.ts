@@ -167,6 +167,13 @@ class SelectionPlugin {
         this.data = value;
       })
     );
+    // watch and update items that are inside selection
+    this.unsub.push(
+      this.state.subscribe('config.chart.items', (items: Items) => {
+        this.data.selected[ITEM] = this.data.selected[ITEM].map((item) => items[item.id]);
+      })
+    );
+    // TODO: watch and update cells that are inside selection
   }
 
   private setWrapper() {
@@ -314,7 +321,7 @@ class SelectionPlugin {
     this.updateData();
   }
 
-  private selectCellsAndItems() {
+  private selectMultipleCellsAndItems() {
     if (!this.canSelect()) return;
     if (!this.data.multipleSelection) {
       this.deselectItems();
@@ -339,7 +346,7 @@ class SelectionPlugin {
     // TODO save selected cells
   }
 
-  private selectItems() {
+  private selectItemsIndividually() {
     this.data.isSelecting = false;
     this.data.selectionAreaLocal = this.getSelectionAreaLocal();
     this.data.currentPosition = this.poitnerData.currentPosition;
@@ -357,9 +364,9 @@ class SelectionPlugin {
 
   private onPointerData() {
     if (this.poitnerData.isMoving && this.poitnerData.targetType === CELL) {
-      this.selectCellsAndItems();
+      this.selectMultipleCellsAndItems();
     } else if (this.poitnerData.isMoving && this.poitnerData.targetType === ITEM) {
-      this.selectItems();
+      this.selectItemsIndividually();
     } else if (!this.poitnerData.isMoving) {
       this.data.isSelecting = false;
     }

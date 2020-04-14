@@ -4517,7 +4517,7 @@
 	 * Merge deep - helper function which will merge objects recursively - creating brand new one - like clone
 	 *
 	 * @param {object} target
-	 * @params {object} sources
+	 * @params {[object]} sources
 	 * @returns {object}
 	 */
 	function mergeDeep(target, ...sources) {
@@ -4525,19 +4525,32 @@
 	    if (isObject(target) && isObject(source)) {
 	        for (const key in source) {
 	            if (isObject(source[key])) {
-	                if (typeof target[key] === 'undefined') {
-	                    target[key] = {};
+	                if (typeof source[key].clone === 'function') {
+	                    target[key] = source[key].clone();
 	                }
-	                target[key] = mergeDeep(target[key], source[key]);
+	                else {
+	                    if (typeof target[key] === 'undefined') {
+	                        target[key] = {};
+	                    }
+	                    target[key] = mergeDeep(target[key], source[key]);
+	                }
 	            }
 	            else if (Array.isArray(source[key])) {
-	                target[key] = [];
+	                target[key] = new Array(source[key].length);
+	                let index = 0;
 	                for (let item of source[key]) {
 	                    if (isObject(item)) {
-	                        target[key].push(mergeDeep({}, item));
-	                        continue;
+	                        if (typeof item.clone === 'function') {
+	                            target[key][index] = item.clone();
+	                        }
+	                        else {
+	                            target[key][index] = mergeDeep({}, item);
+	                        }
 	                    }
-	                    target[key].push(item);
+	                    else {
+	                        target[key][index] = item;
+	                    }
+	                    index++;
 	                }
 	            }
 	            else {
@@ -9185,6 +9198,9 @@
 	        },
 	        utcMode: false,
 	        usageStatistics: true,
+	        merge(target, source) {
+	            return helpers.mergeDeep({}, target, source);
+	        },
 	    };
 	}
 
@@ -9558,6 +9574,46 @@
 	        if (!level.length)
 	            return null;
 	        return level[level.length - 1];
+	    }
+	    getLowerPeriod(period) {
+	        switch (period) {
+	            case 'year':
+	                return 'month';
+	            case 'month':
+	                return 'week';
+	            case 'week':
+	                return 'day';
+	            case 'day':
+	                return 'hour';
+	            case 'hour':
+	                return 'minute';
+	            case 'minute':
+	                return 'second';
+	            case 'second':
+	                return 'millisecond';
+	            default:
+	                return period;
+	        }
+	    }
+	    getHigherPeriod(period) {
+	        switch (period) {
+	            case 'month':
+	                return 'year';
+	            case 'week':
+	                return 'month';
+	            case 'day':
+	                return 'week';
+	            case 'hour':
+	                return 'day';
+	            case 'minute':
+	                return 'hour';
+	            case 'second':
+	                return 'minute';
+	            case 'millisecond':
+	                return 'second';
+	            default:
+	                return period;
+	        }
 	    }
 	}
 
@@ -10539,9 +10595,9 @@
 	    }
 	    return simple;
 	}
-	function mergeActions(userConfig, defaultConfig) {
-	    const defaultConfigActions = mergeDeep$1({}, defaultConfig.actions);
-	    const userActions = mergeDeep$1({}, userConfig.actions);
+	function mergeActions(userConfig, defaultConfig, merge) {
+	    const defaultConfigActions = merge({}, defaultConfig.actions);
+	    const userActions = merge({}, userConfig.actions);
 	    let allActionNames = [...Object.keys(defaultConfigActions), ...Object.keys(userActions)];
 	    allActionNames = allActionNames.filter((i) => allActionNames.includes(i));
 	    const actions = {};
@@ -10559,21 +10615,25 @@
 	    return actions;
 	}
 	function prepareState(userConfig) {
+	    let merge = function merge(target, source) {
+	        return helpers.mergeDeep(target, source);
+	    };
+	    if (typeof userConfig.merge === 'function')
+	        merge = userConfig.merge;
 	    const defaultConfig$1 = defaultConfig();
-	    const actions = mergeActions(userConfig, defaultConfig$1);
-	    const state = { config: mergeDeep$1({}, defaultConfig$1, userConfig) };
+	    const actions = mergeActions(userConfig, defaultConfig$1, merge);
+	    const state = { config: merge(defaultConfig$1, userConfig) };
 	    state.config.actions = actions;
 	    return state;
 	}
 	function stateFromConfig(userConfig) {
-	    const state = prepareState(userConfig);
 	    // @ts-ignore
-	    return (this.state = new DeepState(state, { delimeter: '.', maxSimultaneousJobs: 1000 }));
+	    return (this.state = new DeepState(prepareState(userConfig), { delimeter: '.', maxSimultaneousJobs: 1000 }));
 	}
 	const publicApi = {
 	    name: lib,
 	    stateFromConfig,
-	    mergeDeep: mergeDeep$1,
+	    merge: mergeDeep$1,
 	    date(time) {
 	        return time ? dayjs_min(time) : dayjs_min();
 	    },

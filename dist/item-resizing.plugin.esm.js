@@ -1159,7 +1159,7 @@ class ItemResizing {
         for (let i = 0, len = selected.length; i < len; i++) {
             const item = selected[i];
             item.$data.width = this.data.itemsInitial[i].width + movement;
-            if (item.$data.width < item.minWidth && item.$data.width)
+            if (item.$data.width < item.minWidth)
                 item.$data.width = item.minWidth;
             const diff = item.$data.position.actualLeft === item.$data.position.left ? 0 : item.$data.position.left;
             item.$data.actualWidth = item.$data.width + diff;

@@ -420,4 +420,46 @@ export class Time {
     if (!level.length) return null;
     return level[level.length - 1];
   }
+
+  getLowerPeriod(period: Period): Period {
+    switch (period) {
+      case 'year':
+        return 'month';
+      case 'month':
+        return 'week';
+      case 'week':
+        return 'day';
+      case 'day':
+        return 'hour';
+      case 'hour':
+        return 'minute';
+      case 'minute':
+        return 'second';
+      case 'second':
+        return 'millisecond';
+      default:
+        return period;
+    }
+  }
+
+  getHigherPeriod(period: Period): Period {
+    switch (period) {
+      case 'month':
+        return 'year';
+      case 'week':
+        return 'month';
+      case 'day':
+        return 'week';
+      case 'hour':
+        return 'day';
+      case 'minute':
+        return 'hour';
+      case 'second':
+        return 'minute';
+      case 'millisecond':
+        return 'second';
+      default:
+        return period;
+    }
+  }
 }

@@ -7,6 +7,7 @@
  * @license   AGPL-3.0
  */
 
+import helpers from '@neuronet.io/vido/helpers';
 import Main from './components/main';
 import ScrollBar from './components/scroll-bar';
 import List from './components/list/list';
@@ -493,6 +494,9 @@ function defaultConfig(): Config {
     },
     utcMode: false,
     usageStatistics: true,
+    merge(target: object, source: object) {
+      return helpers.mergeDeep({}, target, source);
+    },
   };
 }
 

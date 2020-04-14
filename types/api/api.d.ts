@@ -10,7 +10,7 @@ export declare function stateFromConfig(userConfig: Config): any;
 export declare const publicApi: {
     name: string;
     stateFromConfig: typeof stateFromConfig;
-    mergeDeep: typeof import("@neuronet.io/vido/helpers").mergeDeep;
+    merge: typeof import("@neuronet.io/vido/helpers").mergeDeep;
     date(time: any): dayjs.Dayjs;
     setPeriod(period: dayjs.OpUnitType): number;
     dayjs: typeof dayjs;

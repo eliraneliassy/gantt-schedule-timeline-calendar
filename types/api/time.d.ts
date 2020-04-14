@@ -44,5 +44,7 @@ export declare class Time {
     getDatesDiffPx(fromTime: Dayjs, toTime: Dayjs, time: DataChartTime): number;
     getLeftViewDate(time?: DataChartTime): ChartTimeDate | null;
     getRightViewDate(time?: DataChartTime): ChartTimeDate | null;
+    getLowerPeriod(period: Period): Period;
+    getHigherPeriod(period: Period): Period;
 }
 //# sourceMappingURL=time.d.ts.map

@@ -38,9 +38,9 @@ export function getClass(name: string) {
   return simple;
 }
 
-function mergeActions(userConfig: Config, defaultConfig: Config) {
-  const defaultConfigActions = mergeDeep({}, defaultConfig.actions);
-  const userActions = mergeDeep({}, userConfig.actions);
+function mergeActions(userConfig: Config, defaultConfig: Config, merge) {
+  const defaultConfigActions = merge({}, defaultConfig.actions);
+  const userActions = merge({}, userConfig.actions);
   let allActionNames = [...Object.keys(defaultConfigActions), ...Object.keys(userActions)];
   allActionNames = allActionNames.filter((i) => allActionNames.includes(i));
   const actions = {};
@@ -59,23 +59,26 @@ function mergeActions(userConfig: Config, defaultConfig: Config) {
 }
 
 export function prepareState(userConfig: Config) {
+  let merge = function merge(target: object, source: object) {
+    return helpers.mergeDeep(target, source);
+  };
+  if (typeof userConfig.merge === 'function') merge = userConfig.merge;
   const defaultConfig: Config = defaultConfigFn();
-  const actions = mergeActions(userConfig, defaultConfig);
-  const state = { config: mergeDeep({}, defaultConfig, userConfig) };
+  const actions = mergeActions(userConfig, defaultConfig, merge);
+  const state = { config: merge(defaultConfig, userConfig) };
   state.config.actions = actions;
   return state;
 }
 
 export function stateFromConfig(userConfig: Config) {
-  const state = prepareState(userConfig);
   // @ts-ignore
-  return (this.state = new State(state, { delimeter: '.', maxSimultaneousJobs: 1000 }));
+  return (this.state = new State(prepareState(userConfig), { delimeter: '.', maxSimultaneousJobs: 1000 }));
 }
 
 export const publicApi = {
   name: lib,
   stateFromConfig,
-  mergeDeep,
+  merge: mergeDeep,
   date(time) {
     return time ? dayjs(time) : dayjs();
   },
