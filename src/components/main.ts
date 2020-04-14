@@ -70,11 +70,15 @@ export default function Main(vido: Vido, props = {}) {
   let wrapper;
   onDestroy(state.subscribe('config.wrappers.Main', (value) => (wrapper = value)));
 
-  const componentActions = api.getActions('main');
+  let componentActions;
+  onDestroy(state.subscribe('config.actions.main', (actions) => (componentActions = actions)));
+
   let className;
   const styleMap = new StyleMap({});
   let rowsHeight = 0;
   let resizerActive = false;
+  let lastRowsHeight = -1;
+  let timeLoadedEventFired = false;
 
   function updateClassNames() {
     className = api.getClass(componentName);
@@ -108,7 +112,6 @@ export default function Main(vido: Vido, props = {}) {
   onDestroy(state.subscribe('$data.list.columns.resizer.active', resizerActiveChange));
 
   function generateTree(bulk = null, eventInfo = null) {
-    //if (state.get('$data.flatTreeMap').length) return;
     if (eventInfo && eventInfo.type === 'subscribe') return;
     const configRows = state.get('config.list.rows');
     const rows = [];
@@ -134,9 +137,10 @@ export default function Main(vido: Vido, props = {}) {
     update();
   }
 
-  let lastRowsHeight = -1;
+  let rowsAndItems = 0;
   onDestroy(
-    state.subscribeAll(['config.chart.items;', 'config.list.rows;'], () => {
+    state.subscribeAll(['config.chart.items;', 'config.list.rows;'], (bulk, eventInfo) => {
+      ++rowsAndItems;
       generateTree();
       prepareExpanded();
       calculateHeightRelatedThings();
@@ -150,7 +154,13 @@ export default function Main(vido: Vido, props = {}) {
         scroll.vertical.posPx = 0;
         return scroll;
       });
+      if (rowsAndItems === 2 && eventInfo.type !== 'subscribe') {
+        timeLoadedEventFired = false;
+      }
       recalculateTimes({ name: 'reload' });
+      if (rowsAndItems === 2) {
+        rowsAndItems = 0;
+      }
     })
   );
   onDestroy(
@@ -330,14 +340,15 @@ export default function Main(vido: Vido, props = {}) {
   }
 
   function triggerLoadedEvent() {
-    if (state.get('$data.loadedEventTriggered')) return;
+    if (timeLoadedEventFired) return;
     Promise.resolve().then(() => {
+      console.log('trigger!');
       const element = state.get('$data.elements.main');
       const parent = element.parentNode;
       const event = new Event('gstc-loaded');
       element.dispatchEvent(event);
       parent.dispatchEvent(event);
-      state.update('$data.loadedEventTriggered', true);
+      timeLoadedEventFired = true;
     });
   }
 
@@ -564,11 +575,12 @@ export default function Main(vido: Vido, props = {}) {
     )
   );
 
-  let timeLoadedEventFired = false;
-
   function recalculateTimes(reason: Reason) {
+    console.log(reason);
     const chartWidth: number = state.get('$data.chart.dimensions.width');
-    if (!chartWidth) return;
+    if (!chartWidth) {
+      return;
+    }
     const configTime: ChartTime = state.get('config.chart.time');
     const calendar: ChartCalendar = state.get('config.chart.calendar');
     const oldTime: DataChartTime = { ...state.get('$data.chart.time') };
@@ -727,11 +739,9 @@ export default function Main(vido: Vido, props = {}) {
       });
     multi = updateVisibleItems(time, multi);
     multi.done();
-
-    update().then(() => {
+    update(() => {
       if (!timeLoadedEventFired) {
-        state.update('$data.loaded.time', true);
-        timeLoadedEventFired = true;
+        setTimeout(triggerLoadedEvent, 0);
       }
     });
   }
@@ -892,22 +902,7 @@ export default function Main(vido: Vido, props = {}) {
     ro.disconnect();
   });
 
-  onDestroy(
-    state.subscribeAll(['$data.loaded', '$data.chart.time.totalViewDurationPx'], () => {
-      if (state.get('$data.loadedEventTriggered')) return;
-      const loaded = state.get('$data.loaded');
-      if (loaded.main && loaded.chart && loaded.time) {
-        setTimeout(triggerLoadedEvent, 0);
-      }
-    })
-  );
-
   function onWheel(ev) {}
-
-  function LoadedEventAction() {
-    state.update('$data.loaded.main', true);
-  }
-  if (!componentActions.includes(LoadedEventAction)) componentActions.push(LoadedEventAction);
 
   const actionProps = { ...props, api, state };
   const mainActions = Actions.create(componentActions, actionProps);

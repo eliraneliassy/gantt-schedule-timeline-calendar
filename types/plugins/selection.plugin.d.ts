@@ -7,6 +7,7 @@ export interface Options {
     items?: boolean;
     rows?: boolean;
     showOverlay?: boolean;
+    multipleSelection?: boolean;
     selectKey?: ModKey;
     multiKey?: ModKey;
     canSelect?: (type: any, state: any, all: any) => any[];

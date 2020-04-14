@@ -31,6 +31,7 @@ export interface Options {
   items?: boolean;
   rows?: boolean;
   showOverlay?: boolean;
+  multipleSelection?: boolean;
   selectKey?: ModKey;
   multiKey?: ModKey;
   canSelect?: (type, state, all) => any[];
@@ -53,6 +54,7 @@ function prepareOptions(options: Options) {
     items: true,
     rows: false,
     showOverlay: true,
+    multipleSelection: true,
     canSelect(type, currently, all) {
       return currently;
     },
@@ -107,6 +109,7 @@ function generateEmptyData(options: Options): PluginData {
     pointerState: 'up',
     selectKey: '',
     multiKey: 'shift',
+    multipleSelection: true,
     targetType: '',
     initialPosition: { x: 0, y: 0 },
     currentPosition: { x: 0, y: 0 },
@@ -305,8 +308,18 @@ class SelectionPlugin {
     return selected;
   }
 
+  private deselectItems() {
+    this.state.update(`config.chart.items.*.selected`, false);
+    this.data.selected[ITEM] = [];
+    this.updateData();
+  }
+
   private selectCellsAndItems() {
     if (!this.canSelect()) return;
+    if (!this.data.multipleSelection) {
+      this.deselectItems();
+      return;
+    }
     this.data.isSelecting = true;
     this.data.selectionAreaLocal = this.getSelectionAreaLocal();
     this.data.selectionAreaGlobal = this.translateAreaLocalToGlobal(this.data.selectionAreaLocal);
@@ -350,6 +363,9 @@ class SelectionPlugin {
     } else if (!this.poitnerData.isMoving) {
       this.data.isSelecting = false;
     }
+    if (this.poitnerData.isMoving && this.poitnerData.targetType !== CELL && this.poitnerData.targetType !== ITEM) {
+      this.deselectItems();
+    }
     this.data.events = this.poitnerData.events;
     this.data.pointerState = this.poitnerData.pointerState;
     this.data.targetType = this.poitnerData.targetType;
@@ -360,7 +376,7 @@ class SelectionPlugin {
     if (!this.oldWrapper) return input;
     const oldContent = this.oldWrapper(input, props);
     let shouldDetach = true;
-    if (this.canSelect() && this.data.isSelecting && this.data.showOverlay) {
+    if (this.canSelect() && this.data.isSelecting && this.data.showOverlay && this.data.multipleSelection) {
       this.wrapperStyleMap.style.display = 'block';
       this.wrapperStyleMap.style.left = this.data.selectionAreaLocal.x + 'px';
       this.wrapperStyleMap.style.top = this.data.selectionAreaLocal.y + 'px';

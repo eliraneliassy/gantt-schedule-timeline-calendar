@@ -459,6 +459,7 @@ export class Api {
     }
     const data = this.time.findDateAtTime(toTime, time.allDates[time.level]);
     let dataIndex = time.allDates[time.level].indexOf(data);
+    if (dataIndex === -1) return 0;
     return this.setScrollLeft(dataIndex, time).posPx;
   }
 

@@ -4327,14 +4327,14 @@
 	        /**
 	         * Update template - trigger rendering process
 	         */
-	        update() {
+	        update(callback = undefined) {
 	            if (this.vidoInstance.debug) {
 	                console.groupCollapsed(`updating component ${this.instance}`);
 	                console.log(clone({ components: components.keys(), actionsByInstance }));
 	                console.trace();
 	                console.groupEnd();
 	            }
-	            return this.vidoInstance.updateTemplate(this.vidoInstance);
+	            return this.vidoInstance.updateTemplate(callback);
 	        }
 	        /**
 	         * Change component input properties
@@ -4583,6 +4583,7 @@
 	    let actionsByInstance = new Map();
 	    let app, element;
 	    let shouldUpdateCount = 0;
+	    const afterUpdateCallbacks = [];
 	    const resolved = Promise.resolve();
 	    const additionalMethods = {};
 	    const ActionsCollector = getActionsCollector(actionsByInstance);
@@ -4794,7 +4795,9 @@
 	                }
 	            }
 	        }
-	        updateTemplate(callback) {
+	        updateTemplate(callback = undefined) {
+	            if (callback)
+	                afterUpdateCallbacks.push(callback);
 	            return new Promise((resolve) => {
 	                const currentShouldUpdateCount = ++shouldUpdateCount;
 	                const self = this;
@@ -4802,8 +4805,10 @@
 	                    if (currentShouldUpdateCount === shouldUpdateCount) {
 	                        shouldUpdateCount = 0;
 	                        self.render();
-	                        if (typeof callback === 'function')
-	                            callback();
+	                        for (const cb of afterUpdateCallbacks) {
+	                            cb();
+	                        }
+	                        afterUpdateCallbacks.length = 0;
 	                        resolve();
 	                    }
 	                }
@@ -5814,11 +5819,14 @@
 	    });
 	    let wrapper;
 	    onDestroy(state.subscribe('config.wrappers.Main', (value) => (wrapper = value)));
-	    const componentActions = api.getActions('main');
+	    let componentActions;
+	    onDestroy(state.subscribe('config.actions.main', (actions) => (componentActions = actions)));
 	    let className;
 	    const styleMap = new StyleMap({});
 	    let rowsHeight = 0;
 	    let resizerActive = false;
+	    let lastRowsHeight = -1;
+	    let timeLoadedEventFired = false;
 	    function updateClassNames() {
 	        className = api.getClass(componentName);
 	        if (resizerActive) {
@@ -5846,7 +5854,6 @@
 	    }
 	    onDestroy(state.subscribe('$data.list.columns.resizer.active', resizerActiveChange));
 	    function generateTree(bulk = null, eventInfo = null) {
-	        //if (state.get('$data.flatTreeMap').length) return;
 	        if (eventInfo && eventInfo.type === 'subscribe')
 	            return;
 	        const configRows = state.get('config.list.rows');
@@ -5872,8 +5879,9 @@
 	            .done();
 	        update();
 	    }
-	    let lastRowsHeight = -1;
-	    onDestroy(state.subscribeAll(['config.chart.items;', 'config.list.rows;'], () => {
+	    let rowsAndItems = 0;
+	    onDestroy(state.subscribeAll(['config.chart.items;', 'config.list.rows;'], (bulk, eventInfo) => {
+	        ++rowsAndItems;
 	        generateTree();
 	        prepareExpanded();
 	        calculateHeightRelatedThings();
@@ -5887,7 +5895,13 @@
 	            scroll.vertical.posPx = 0;
 	            return scroll;
 	        });
+	        if (rowsAndItems === 2 && eventInfo.type !== 'subscribe') {
+	            timeLoadedEventFired = false;
+	        }
 	        recalculateTimes({ name: 'reload' });
+	        if (rowsAndItems === 2) {
+	            rowsAndItems = 0;
+	        }
 	    }));
 	    onDestroy(state.subscribeAll(['config.list.rows.*.parentId', 'config.chart.items.*.rowId'], generateTree, { bulk: true }));
 	    function prepareExpanded() {
@@ -6033,15 +6047,16 @@
 	        return dates;
 	    }
 	    function triggerLoadedEvent() {
-	        if (state.get('$data.loadedEventTriggered'))
+	        if (timeLoadedEventFired)
 	            return;
 	        Promise.resolve().then(() => {
+	            console.log('trigger!');
 	            const element = state.get('$data.elements.main');
 	            const parent = element.parentNode;
 	            const event = new Event('gstc-loaded');
 	            element.dispatchEvent(event);
 	            parent.dispatchEvent(event);
-	            state.update('$data.loadedEventTriggered', true);
+	            timeLoadedEventFired = true;
 	        });
 	    }
 	    function limitGlobalAndSetCenter(time, updateCenter = true, oldTime, reason) {
@@ -6253,11 +6268,12 @@
 	    ], () => {
 	        updateVisibleItems().done();
 	    }));
-	    let timeLoadedEventFired = false;
 	    function recalculateTimes(reason) {
+	        console.log(reason);
 	        const chartWidth = state.get('$data.chart.dimensions.width');
-	        if (!chartWidth)
+	        if (!chartWidth) {
 	            return;
+	        }
 	        const configTime = state.get('config.chart.time');
 	        const calendar = state.get('config.chart.calendar');
 	        const oldTime = Object.assign({}, state.get('$data.chart.time'));
@@ -6404,10 +6420,9 @@
 	        });
 	        multi = updateVisibleItems(time, multi);
 	        multi.done();
-	        update().then(() => {
+	        update(() => {
 	            if (!timeLoadedEventFired) {
-	                state.update('$data.loaded.time', true);
-	                timeLoadedEventFired = true;
+	                setTimeout(triggerLoadedEvent, 0);
 	            }
 	        });
 	    }
@@ -6562,20 +6577,7 @@
 	    onDestroy(() => {
 	        ro.disconnect();
 	    });
-	    onDestroy(state.subscribeAll(['$data.loaded', '$data.chart.time.totalViewDurationPx'], () => {
-	        if (state.get('$data.loadedEventTriggered'))
-	            return;
-	        const loaded = state.get('$data.loaded');
-	        if (loaded.main && loaded.chart && loaded.time) {
-	            setTimeout(triggerLoadedEvent, 0);
-	        }
-	    }));
 	    function onWheel(ev) { }
-	    function LoadedEventAction() {
-	        state.update('$data.loaded.main', true);
-	    }
-	    if (!componentActions.includes(LoadedEventAction))
-	        componentActions.push(LoadedEventAction);
 	    const actionProps = Object.assign(Object.assign({}, props), { api, state });
 	    const mainActions = Actions.create(componentActions, actionProps);
 	    return (templateProps) => wrapper(html `
@@ -7735,14 +7737,12 @@
 	    });
 	    let wrapper;
 	    onDestroy(state.subscribe('config.wrappers.Chart', (value) => (wrapper = value)));
-	    let className, classNameScroll, classNameScrollInner;
+	    let className;
 	    const componentActions = api.getActions(componentName);
 	    let calculatedZoomMode = false;
 	    onDestroy(state.subscribe('config.chart.time.calculatedZoomMode', (zoomMode) => (calculatedZoomMode = zoomMode)));
 	    onDestroy(state.subscribe('config.classNames', () => {
 	        className = api.getClass(componentName);
-	        classNameScroll = api.getClass('horizontal-scroll');
-	        classNameScrollInner = api.getClass('horizontal-scroll-inner');
 	        update();
 	    }));
 	    function onWheelHandler(event) {
@@ -7768,7 +7768,6 @@
 	            });
 	            ro.observe(element);
 	            state.update('$data.elements.chart', element);
-	            state.update('$data.loaded.chart', true);
 	        }
 	    });
 	    onDestroy(() => {
@@ -10935,6 +10934,8 @@
 	        }
 	        const data = this.time.findDateAtTime(toTime, time.allDates[time.level]);
 	        let dataIndex = time.allDates[time.level].indexOf(data);
+	        if (dataIndex === -1)
+	            return 0;
 	        return this.setScrollLeft(dataIndex, time).posPx;
 	    }
 	    setScrollLeft(dataIndex, time = this.state.get('$data.chart.time'), multi = undefined) {
@@ -11078,7 +11079,6 @@
 	            },
 	        },
 	        elements: {},
-	        loaded: {},
 	    };
 	}
 	function GSTC(options) {

@@ -472,9 +472,6 @@ export interface DataChart {
 export interface DataElements {
     [key: string]: HTMLElement;
 }
-export interface DataLoaded {
-    [key: string]: boolean;
-}
 export interface Data {
     treeMap: TreeMap;
     flatTreeMap: string[];
@@ -483,7 +480,6 @@ export interface Data {
     dimensions: Dimensions;
     chart: DataChart;
     elements: DataElements;
-    loaded: DataLoaded;
 }
 export interface Reason {
     name: string;

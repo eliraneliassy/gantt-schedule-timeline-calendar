@@ -1645,6 +1645,7 @@ function prepareOptions$1(options) {
         items: true,
         rows: false,
         showOverlay: true,
+        multipleSelection: true,
         canSelect(type, currently, all) {
             return currently;
         },
@@ -1657,7 +1658,7 @@ function prepareOptions$1(options) {
 }
 const pluginPath$1 = 'config.plugin.Selection';
 function generateEmptyData$1(options) {
-    return Object.assign({ enabled: true, showOverlay: true, isSelecting: false, pointerState: 'up', selectKey: '', multiKey: 'shift', targetType: '', initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, selectionAreaLocal: { x: 0, y: 0, width: 0, height: 0 }, selectionAreaGlobal: { x: 0, y: 0, width: 0, height: 0 }, selecting: {
+    return Object.assign({ enabled: true, showOverlay: true, isSelecting: false, pointerState: 'up', selectKey: '', multiKey: 'shift', multipleSelection: true, targetType: '', initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, selectionAreaLocal: { x: 0, y: 0, width: 0, height: 0 }, selectionAreaGlobal: { x: 0, y: 0, width: 0, height: 0 }, selecting: {
             [ITEM]: [],
             [CELL]: [],
         }, selected: {
@@ -1822,9 +1823,18 @@ class SelectionPlugin {
         }
         return selected;
     }
+    deselectItems() {
+        this.state.update(`config.chart.items.*.selected`, false);
+        this.data.selected[ITEM] = [];
+        this.updateData();
+    }
     selectCellsAndItems() {
         if (!this.canSelect())
             return;
+        if (!this.data.multipleSelection) {
+            this.deselectItems();
+            return;
+        }
         this.data.isSelecting = true;
         this.data.selectionAreaLocal = this.getSelectionAreaLocal();
         this.data.selectionAreaGlobal = this.translateAreaLocalToGlobal(this.data.selectionAreaLocal);
@@ -1869,6 +1879,9 @@ class SelectionPlugin {
         else if (!this.poitnerData.isMoving) {
             this.data.isSelecting = false;
         }
+        if (this.poitnerData.isMoving && this.poitnerData.targetType !== CELL && this.poitnerData.targetType !== ITEM) {
+            this.deselectItems();
+        }
         this.data.events = this.poitnerData.events;
         this.data.pointerState = this.poitnerData.pointerState;
         this.data.targetType = this.poitnerData.targetType;
@@ -1879,7 +1892,7 @@ class SelectionPlugin {
             return input;
         const oldContent = this.oldWrapper(input, props);
         let shouldDetach = true;
-        if (this.canSelect() && this.data.isSelecting && this.data.showOverlay) {
+        if (this.canSelect() && this.data.isSelecting && this.data.showOverlay && this.data.multipleSelection) {
             this.wrapperStyleMap.style.display = 'block';
             this.wrapperStyleMap.style.left = this.data.selectionAreaLocal.x + 'px';
             this.wrapperStyleMap.style.top = this.data.selectionAreaLocal.y + 'px';

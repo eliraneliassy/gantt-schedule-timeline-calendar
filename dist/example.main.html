@@ -277,8 +277,8 @@
               label: 'new item 1',
               rowId: 'row_1',
               time: {
-                start: new Date('2020-01-01').getTime(),
-                end: new Date('2020-01-05').getTime(),
+                start: new Date().getTime(),
+                end: gstc.api.time.date().add(2, 'day').valueOf(),
               },
             },
             item_2: {
@@ -286,8 +286,8 @@
               label: 'new item 2',
               rowId: 'row_2',
               time: {
-                start: new Date('2020-01-01').getTime(),
-                end: new Date('2020-01-05').getTime(),
+                start: gstc.api.time.date().subtract(2, 'day').valueOf(),
+                end: new Date().getTime(),
               },
             },
           },
@@ -295,8 +295,8 @@
         GSTCState.update('config', (config) => {
           config.list.rows = data.rows;
           config.chart.items = data.items;
-          config.chart.time.from = new Date('2020-01-01').getTime();
-          config.chart.time.to = new Date('2020-01-31').getTime();
+          config.chart.time.from = gstc.api.time.date().startOf('month').valueOf();
+          config.chart.time.to = gstc.api.time.date().add(20, 'day').valueOf();
           return { ...config };
         });
       }

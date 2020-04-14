@@ -39,7 +39,7 @@ export default function Chart(vido: Vido, props = {}) {
   let wrapper;
   onDestroy(state.subscribe('config.wrappers.Chart', (value) => (wrapper = value)));
 
-  let className, classNameScroll, classNameScrollInner, scrollElement, scrollInnerElement;
+  let className;
   const componentActions = api.getActions(componentName);
 
   let calculatedZoomMode = false;
@@ -48,8 +48,6 @@ export default function Chart(vido: Vido, props = {}) {
   onDestroy(
     state.subscribe('config.classNames', () => {
       className = api.getClass(componentName);
-      classNameScroll = api.getClass('horizontal-scroll');
-      classNameScrollInner = api.getClass('horizontal-scroll-inner');
       update();
     })
   );
@@ -81,7 +79,6 @@ export default function Chart(vido: Vido, props = {}) {
       });
       ro.observe(element);
       state.update('$data.elements.chart', element);
-      state.update('$data.loaded.chart', true);
     }
   });
 
