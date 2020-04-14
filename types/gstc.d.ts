@@ -315,6 +315,7 @@ export interface DataChartTime extends ChartTime {
     onCurrentViewLevelDates?: ChartTimeOnLevelDates[];
     allDates?: ChartTimeDates[];
     forceUpdate?: boolean;
+    recalculateTimesLastReason?: string;
 }
 export interface ChartCalendarFormatArguments {
     timeStart: Dayjs;

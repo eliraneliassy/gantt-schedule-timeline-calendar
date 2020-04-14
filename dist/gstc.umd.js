@@ -10743,7 +10743,8 @@
 	    }
 	    itemOverlapsWithOthers(item, items) {
 	        for (const item2 of items) {
-	            if (item.id !== item2.id && this.itemsOverlaps(item, item2))
+	            const nonZeroTime = item2.time.start && item.time.start && item2.time.end && item.time.end;
+	            if (item.id !== item2.id && this.itemsOverlaps(item, item2) && nonZeroTime)
 	                return true;
 	        }
 	        return false;
