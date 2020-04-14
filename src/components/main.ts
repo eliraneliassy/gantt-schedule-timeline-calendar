@@ -27,6 +27,7 @@ import {
   ItemData,
   Vido,
   Reason,
+  Scroll,
 } from '../gstc';
 
 import { Component, ComponentInstance } from '@neuronet.io/vido/vido';
@@ -106,10 +107,9 @@ export default function Main(vido: Vido, props = {}) {
   }
   onDestroy(state.subscribe('$data.list.columns.resizer.active', resizerActiveChange));
 
-  function generateTree(bulk, eventInfo) {
-    if (state.get('$data.flatTreeMap').length && eventInfo.type === 'subscribe') {
-      return;
-    }
+  function generateTree(bulk = null, eventInfo = null) {
+    //if (state.get('$data.flatTreeMap').length) return;
+    if (eventInfo && eventInfo.type === 'subscribe') return;
     const configRows = state.get('config.list.rows');
     const rows = [];
     for (const rowId in configRows) {
@@ -134,7 +134,25 @@ export default function Main(vido: Vido, props = {}) {
     update();
   }
 
-  onDestroy(state.subscribeAll(['config.list.rows;', 'config.chart.items;'], generateTree));
+  let lastRowsHeight = -1;
+  onDestroy(
+    state.subscribeAll(['config.chart.items;', 'config.list.rows;'], () => {
+      generateTree();
+      prepareExpanded();
+      calculateHeightRelatedThings();
+      calculateVisibleRowsHeights();
+      state.update('config.scroll', (scroll: Scroll) => {
+        scroll.horizontal.dataIndex = 0;
+        scroll.horizontal.data = null;
+        scroll.horizontal.posPx = 0;
+        scroll.vertical.dataIndex = 0;
+        scroll.vertical.data = null;
+        scroll.vertical.posPx = 0;
+        return scroll;
+      });
+      recalculateTimes({ name: 'reload' });
+    })
+  );
   onDestroy(
     state.subscribeAll(['config.list.rows.*.parentId', 'config.chart.items.*.rowId'], generateTree, { bulk: true })
   );
@@ -149,55 +167,58 @@ export default function Main(vido: Vido, props = {}) {
   }
   onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;'], prepareExpanded, { bulk: true }));
 
+  function rowsWithParentsExpandedAndRowsHeight() {
+    let rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
+    rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
+    const verticalArea: number = state.get('config.scroll.vertical.area');
+    rowsWithParentsExpanded = api.recalculateRowsPercents(rowsWithParentsExpanded, verticalArea);
+    state
+      .multi()
+      .update('$data.list.rowsHeight', rowsHeight)
+      .update('$data.list.rowsWithParentsExpanded', rowsWithParentsExpanded)
+      .done();
+  }
   onDestroy(
     state.subscribeAll(
       [
-        '$data.list.rowsWithParetnsExpanded;',
+        'config.list.rows.*.expanded',
         'config.chart.items.*.height',
         'config.chart.items.*.rowId',
         'config.list.rows.*.height',
+        'config.list.rows;',
         'config.scroll.vertical.area',
       ],
-      () => {
-        let rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
-        rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
-        const verticalArea: number = state.get('config.scroll.vertical.area');
-        rowsWithParentsExpanded = api.recalculateRowsPercents(rowsWithParentsExpanded, verticalArea);
-        state
-          .multi()
-          .update('$data.list.rowsHeight', rowsHeight)
-          .update('$data.list.rowsWithParentsExpanded', rowsWithParentsExpanded)
-          .done();
-      },
+      rowsWithParentsExpandedAndRowsHeight,
       { bulk: true }
     )
   );
 
-  let lastRowsHeight = -1;
-  onDestroy(
-    state.subscribeAll(['$data.innerHeight', '$data.list.rowsHeight'], () => {
-      const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
-      const rowsHeight = state.get('$data.list.rowsHeight');
-      if (rowsHeight === lastRowsHeight) return;
-      lastRowsHeight = rowsHeight;
-      const innerHeight = state.get('$data.innerHeight');
-      const lastPageHeight = getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded);
-      state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight);
-    })
-  );
+  function calculateHeightRelatedThings() {
+    const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
+    const rowsHeight = state.get('$data.list.rowsHeight');
+    if (rowsHeight === lastRowsHeight) return;
+    lastRowsHeight = rowsHeight;
+    const innerHeight = state.get('$data.innerHeight');
+    const lastPageHeight = getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded);
+    state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight);
+  }
+  onDestroy(state.subscribeAll(['$data.innerHeight', '$data.list.rowsHeight'], calculateHeightRelatedThings));
 
+  function calculateVisibleRowsHeights() {
+    const visibleRows: Row[] = state.get('$data.list.visibleRows');
+    let height = 0;
+    for (const row of visibleRows) {
+      height += api.recalculateRowHeight(row);
+    }
+    state.update('$data.list.visibleRowsHeight', height);
+  }
   onDestroy(
     state.subscribeAll(
-      ['config.chart.items.*.time', 'config.chart.items.*.$data.position'],
-      () => {
-        const visibleRows = state.get('$data.list.visibleRows') as Row[];
-        let height = 0;
-        for (const row of visibleRows) {
-          height += api.recalculateRowHeight(row);
-        }
-        state.update('$data.list.visibleRowsHeight', height);
-      },
-      { bulk: true }
+      ['config.chart.items.*.time', 'config.chart.items.*.$data.position', '$data.list.visibleRows'],
+      calculateVisibleRowsHeights,
+      {
+        bulk: true,
+      }
     )
   );
 
@@ -276,12 +297,12 @@ export default function Main(vido: Vido, props = {}) {
     return currentWidth;
   }
 
-  const generatePeriodDates = (
+  function generatePeriodDates(
     formatting: ChartCalendarFormat,
     time: DataChartTime,
     level: ChartCalendarLevel,
     levelIndex: number
-  ): DataChartTimeLevel => {
+  ): DataChartTimeLevel {
     const period = formatting.period;
     let from = time.from;
     let leftDate = api.time.date(from).startOf(period);
@@ -307,7 +328,7 @@ export default function Main(vido: Vido, props = {}) {
       });
     }
     return dates;
-  };
+  }
 
   function triggerLoadedEvent() {
     if (state.get('$data.loadedEventTriggered')) return;
@@ -317,8 +338,8 @@ export default function Main(vido: Vido, props = {}) {
       const event = new Event('gstc-loaded');
       element.dispatchEvent(event);
       parent.dispatchEvent(event);
+      state.update('$data.loadedEventTriggered', true);
     });
-    state.update('$data.loadedEventTriggered', true);
   }
 
   function limitGlobalAndSetCenter(time: DataChartTime, updateCenter = true, oldTime: DataChartTime, reason) {
@@ -789,12 +810,6 @@ export default function Main(vido: Vido, props = {}) {
     })
   );
 
-  onDestroy(
-    state.subscribe('$data.list.treeMap;', () => {
-      recalculateTimes({ name: 'reload' });
-    })
-  );
-
   try {
     const ignoreHosts = [
       'stackblitz.io',
@@ -882,12 +897,8 @@ export default function Main(vido: Vido, props = {}) {
     state.subscribeAll(['$data.loaded', '$data.chart.time.totalViewDurationPx'], () => {
       if (state.get('$data.loadedEventTriggered')) return;
       const loaded = state.get('$data.loaded');
-      if (loaded.main && loaded.chart && loaded.time && loaded['horizontal-scroll-inner']) {
-        const scroll = state.get('$data.elements.horizontal-scroll-inner');
-        const width = state.get('$data.chart.time.totalViewDurationPx');
-        if (scroll && scroll.clientWidth === Math.round(width)) {
-          setTimeout(triggerLoadedEvent, 0);
-        }
+      if (loaded.main && loaded.chart && loaded.time) {
+        setTimeout(triggerLoadedEvent, 0);
       }
     })
   );

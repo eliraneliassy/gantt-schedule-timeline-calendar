@@ -40,7 +40,7 @@ export default function ChartTimelineItems(vido: Vido, props = {}) {
   const rowsComponents = [];
   function createRowComponents() {
     const visibleRows = state.get('$data.list.visibleRows') || [];
-    reuseComponents(rowsComponents, visibleRows, (row) => ({ row }), ItemsRowComponent);
+    reuseComponents(rowsComponents, visibleRows, (row) => ({ row }), ItemsRowComponent, false);
     update();
   }
   onDestroy(

@@ -67,7 +67,6 @@ export default function ChartTimelineGridRow(vido: Vido, props: RowWithCells) {
     {
       width: props.width + 'px',
       height: props.row.height + 'px',
-      overflow: 'hidden',
     },
     true
   );
@@ -79,13 +78,13 @@ export default function ChartTimelineGridRow(vido: Vido, props: RowWithCells) {
   onChange(function onPropsChange(changedProps, options) {
     if (options.leave || changedProps.row === undefined) {
       shouldDetach = true;
-      reuseComponents(rowsCellsComponents, [], (cell) => cell, GridCellComponent);
+      reuseComponents(rowsCellsComponents, [], (cell) => cell, GridCellComponent, false);
       update();
       return;
     }
     shouldDetach = false;
     props = changedProps;
-    reuseComponents(rowsCellsComponents, props.cells, (cell) => cell, GridCellComponent);
+    reuseComponents(rowsCellsComponents, props.cells, (cell) => cell, GridCellComponent, false);
     styleMap.setStyle({});
     styleMap.style.height = props.row.$data.outerHeight + 'px';
     styleMap.style.width = props.width + 'px';

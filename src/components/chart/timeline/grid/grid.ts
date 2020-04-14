@@ -113,7 +113,7 @@ export default function ChartTimelineGrid(vido: Vido, props) {
    * @param {array} rowsWithCells
    */
   function generateRowsComponents(rowsWithCells: RowWithCells[]) {
-    reuseComponents(rowsComponents, rowsWithCells || [], (row) => row, GridRowComponent);
+    reuseComponents(rowsComponents, rowsWithCells || [], (row) => row, GridRowComponent, false);
     update();
   }
   onDestroy(state.subscribe('$data.chart.grid.rowsWithCells;', generateRowsComponents));

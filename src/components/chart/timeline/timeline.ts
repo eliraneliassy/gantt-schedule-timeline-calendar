@@ -64,7 +64,7 @@ export default function ChartTimeline(vido: Vido, props) {
 
   function calculateStyle() {
     const width = state.get('$data.chart.dimensions.width');
-    const height = state.get('$data.list.rowsHeight');
+    const height = state.get('$data.list.visibleRowsHeight');
     styleMap.style.height = state.get('$data.innerHeight') + 'px';
     styleMap.style['--height'] = styleMap.style.height;
     if (width) {
@@ -85,7 +85,12 @@ export default function ChartTimeline(vido: Vido, props) {
 
   onDestroy(
     state.subscribeAll(
-      ['$data.innerHeight', '$data.chart.dimensions.width', '$data.list.rowsHeight', '$data.chart.time.dates.day'],
+      [
+        '$data.innerHeight',
+        '$data.chart.dimensions.width',
+        '$data.list.visibleRowsHeight',
+        '$data.chart.time.dates.day',
+      ],
       calculateStyle
     )
   );

@@ -5845,10 +5845,10 @@
 	        update();
 	    }
 	    onDestroy(state.subscribe('$data.list.columns.resizer.active', resizerActiveChange));
-	    function generateTree(bulk, eventInfo) {
-	        if (state.get('$data.flatTreeMap').length && eventInfo.type === 'subscribe') {
+	    function generateTree(bulk = null, eventInfo = null) {
+	        //if (state.get('$data.flatTreeMap').length) return;
+	        if (eventInfo && eventInfo.type === 'subscribe')
 	            return;
-	        }
 	        const configRows = state.get('config.list.rows');
 	        const rows = [];
 	        for (const rowId in configRows) {
@@ -5872,7 +5872,23 @@
 	            .done();
 	        update();
 	    }
-	    onDestroy(state.subscribeAll(['config.list.rows;', 'config.chart.items;'], generateTree));
+	    let lastRowsHeight = -1;
+	    onDestroy(state.subscribeAll(['config.chart.items;', 'config.list.rows;'], () => {
+	        generateTree();
+	        prepareExpanded();
+	        calculateHeightRelatedThings();
+	        calculateVisibleRowsHeights();
+	        state.update('config.scroll', (scroll) => {
+	            scroll.horizontal.dataIndex = 0;
+	            scroll.horizontal.data = null;
+	            scroll.horizontal.posPx = 0;
+	            scroll.vertical.dataIndex = 0;
+	            scroll.vertical.data = null;
+	            scroll.vertical.posPx = 0;
+	            return scroll;
+	        });
+	        recalculateTimes({ name: 'reload' });
+	    }));
 	    onDestroy(state.subscribeAll(['config.list.rows.*.parentId', 'config.chart.items.*.rowId'], generateTree, { bulk: true }));
 	    function prepareExpanded() {
 	        const configRows = state.get('config.list.rows');
@@ -5880,13 +5896,7 @@
 	        state.update('$data.list.rowsWithParentsExpanded', rowsWithParentsExpanded);
 	    }
 	    onDestroy(state.subscribeAll(['config.list.rows.*.expanded', '$data.treeMap;'], prepareExpanded, { bulk: true }));
-	    onDestroy(state.subscribeAll([
-	        '$data.list.rowsWithParetnsExpanded;',
-	        'config.chart.items.*.height',
-	        'config.chart.items.*.rowId',
-	        'config.list.rows.*.height',
-	        'config.scroll.vertical.area',
-	    ], () => {
+	    function rowsWithParentsExpandedAndRowsHeight() {
 	        let rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
 	        rowsHeight = api.recalculateRowsHeights(rowsWithParentsExpanded);
 	        const verticalArea = state.get('config.scroll.vertical.area');
@@ -5896,9 +5906,16 @@
 	            .update('$data.list.rowsHeight', rowsHeight)
 	            .update('$data.list.rowsWithParentsExpanded', rowsWithParentsExpanded)
 	            .done();
-	    }, { bulk: true }));
-	    let lastRowsHeight = -1;
-	    onDestroy(state.subscribeAll(['$data.innerHeight', '$data.list.rowsHeight'], () => {
+	    }
+	    onDestroy(state.subscribeAll([
+	        'config.list.rows.*.expanded',
+	        'config.chart.items.*.height',
+	        'config.chart.items.*.rowId',
+	        'config.list.rows.*.height',
+	        'config.list.rows;',
+	        'config.scroll.vertical.area',
+	    ], rowsWithParentsExpandedAndRowsHeight, { bulk: true }));
+	    function calculateHeightRelatedThings() {
 	        const rowsWithParentsExpanded = state.get('$data.list.rowsWithParentsExpanded');
 	        const rowsHeight = state.get('$data.list.rowsHeight');
 	        if (rowsHeight === lastRowsHeight)
@@ -5907,15 +5924,19 @@
 	        const innerHeight = state.get('$data.innerHeight');
 	        const lastPageHeight = getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded);
 	        state.update('config.scroll.vertical.area', rowsHeight - lastPageHeight);
-	    }));
-	    onDestroy(state.subscribeAll(['config.chart.items.*.time', 'config.chart.items.*.$data.position'], () => {
+	    }
+	    onDestroy(state.subscribeAll(['$data.innerHeight', '$data.list.rowsHeight'], calculateHeightRelatedThings));
+	    function calculateVisibleRowsHeights() {
 	        const visibleRows = state.get('$data.list.visibleRows');
 	        let height = 0;
 	        for (const row of visibleRows) {
 	            height += api.recalculateRowHeight(row);
 	        }
 	        state.update('$data.list.visibleRowsHeight', height);
-	    }, { bulk: true }));
+	    }
+	    onDestroy(state.subscribeAll(['config.chart.items.*.time', 'config.chart.items.*.$data.position', '$data.list.visibleRows'], calculateVisibleRowsHeights, {
+	        bulk: true,
+	    }));
 	    function getLastPageRowsHeight(innerHeight, rowsWithParentsExpanded) {
 	        if (rowsWithParentsExpanded.length === 0)
 	            return 0;
@@ -5985,7 +6006,7 @@
 	        });
 	        return currentWidth;
 	    }
-	    const generatePeriodDates = (formatting, time, level, levelIndex) => {
+	    function generatePeriodDates(formatting, time, level, levelIndex) {
 	        const period = formatting.period;
 	        let from = time.from;
 	        let leftDate = api.time.date(from).startOf(period);
@@ -6011,7 +6032,7 @@
 	            });
 	        }
 	        return dates;
-	    };
+	    }
 	    function triggerLoadedEvent() {
 	        if (state.get('$data.loadedEventTriggered'))
 	            return;
@@ -6021,8 +6042,8 @@
 	            const event = new Event('gstc-loaded');
 	            element.dispatchEvent(event);
 	            parent.dispatchEvent(event);
+	            state.update('$data.loadedEventTriggered', true);
 	        });
-	        state.update('$data.loadedEventTriggered', true);
 	    }
 	    function limitGlobalAndSetCenter(time, updateCenter = true, oldTime, reason) {
 	        if (time.leftGlobal < time.from)
@@ -6459,9 +6480,6 @@
 	            recalculateTimes({ name: 'items', from, to });
 	        }
 	    }));
-	    onDestroy(state.subscribe('$data.list.treeMap;', () => {
-	        recalculateTimes({ name: 'reload' });
-	    }));
 	    try {
 	        const ignoreHosts = [
 	            'stackblitz.io',
@@ -6549,12 +6567,8 @@
 	        if (state.get('$data.loadedEventTriggered'))
 	            return;
 	        const loaded = state.get('$data.loaded');
-	        if (loaded.main && loaded.chart && loaded.time && loaded['horizontal-scroll-inner']) {
-	            const scroll = state.get('$data.elements.horizontal-scroll-inner');
-	            const width = state.get('$data.chart.time.totalViewDurationPx');
-	            if (scroll && scroll.clientWidth === Math.round(width)) {
-	                setTimeout(triggerLoadedEvent, 0);
-	            }
+	        if (loaded.main && loaded.chart && loaded.time) {
+	            setTimeout(triggerLoadedEvent, 0);
 	        }
 	    }));
 	    function onWheel(ev) { }
@@ -8013,7 +8027,7 @@
 	    const styleMap = new StyleMap({}), innerStyleMap = new StyleMap({});
 	    function calculateStyle() {
 	        const width = state.get('$data.chart.dimensions.width');
-	        const height = state.get('$data.list.rowsHeight');
+	        const height = state.get('$data.list.visibleRowsHeight');
 	        styleMap.style.height = state.get('$data.innerHeight') + 'px';
 	        styleMap.style['--height'] = styleMap.style.height;
 	        if (width) {
@@ -8033,7 +8047,12 @@
 	        }
 	        update();
 	    }
-	    onDestroy(state.subscribeAll(['$data.innerHeight', '$data.chart.dimensions.width', '$data.list.rowsHeight', '$data.chart.time.dates.day'], calculateStyle));
+	    onDestroy(state.subscribeAll([
+	        '$data.innerHeight',
+	        '$data.chart.dimensions.width',
+	        '$data.list.visibleRowsHeight',
+	        '$data.chart.time.dates.day',
+	    ], calculateStyle));
 	    let componentActions = [];
 	    onDestroy(state.subscribe('config.actions.chart-timeline', (actions) => {
 	        componentActions = actions;
@@ -8154,7 +8173,7 @@
 	     * @param {array} rowsWithCells
 	     */
 	    function generateRowsComponents(rowsWithCells) {
-	        reuseComponents(rowsComponents, rowsWithCells || [], (row) => row, GridRowComponent);
+	        reuseComponents(rowsComponents, rowsWithCells || [], (row) => row, GridRowComponent, false);
 	        update();
 	    }
 	    onDestroy(state.subscribe('$data.chart.grid.rowsWithCells;', generateRowsComponents));
@@ -8223,7 +8242,6 @@
 	    const styleMap = new StyleMap({
 	        width: props.width + 'px',
 	        height: props.row.height + 'px',
-	        overflow: 'hidden',
 	    }, true);
 	    let shouldDetach = false;
 	    const detach = new Detach(() => shouldDetach);
@@ -8232,13 +8250,13 @@
 	        var _a, _b, _c, _d, _e, _f, _g;
 	        if (options.leave || changedProps.row === undefined) {
 	            shouldDetach = true;
-	            reuseComponents(rowsCellsComponents, [], (cell) => cell, GridCellComponent);
+	            reuseComponents(rowsCellsComponents, [], (cell) => cell, GridCellComponent, false);
 	            update();
 	            return;
 	        }
 	        shouldDetach = false;
 	        props = changedProps;
-	        reuseComponents(rowsCellsComponents, props.cells, (cell) => cell, GridCellComponent);
+	        reuseComponents(rowsCellsComponents, props.cells, (cell) => cell, GridCellComponent, false);
 	        styleMap.setStyle({});
 	        styleMap.style.height = props.row.$data.outerHeight + 'px';
 	        styleMap.style.width = props.width + 'px';
@@ -8412,7 +8430,7 @@
 	    const rowsComponents = [];
 	    function createRowComponents() {
 	        const visibleRows = state.get('$data.list.visibleRows') || [];
-	        reuseComponents(rowsComponents, visibleRows, (row) => ({ row }), ItemsRowComponent);
+	        reuseComponents(rowsComponents, visibleRows, (row) => ({ row }), ItemsRowComponent, false);
 	        update();
 	    }
 	    onDestroy(state.subscribeAll(['$data.list.visibleRows;', 'config.components.ChartTimelineItemsRow', 'config.chart.items'], createRowComponents));
@@ -8526,7 +8544,7 @@
 	    onChange((changedProps, options) => {
 	        if (options.leave || changedProps.row === undefined) {
 	            shouldDetach = true;
-	            reuseComponents(itemComponents, [], (item) => ({ row: undefined, item }), ItemComponent);
+	            reuseComponents(itemComponents, [], () => ({ row: undefined, item: undefined }), ItemComponent, false);
 	            return update();
 	        }
 	        props = changedProps;

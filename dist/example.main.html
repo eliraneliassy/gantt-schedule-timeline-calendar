@@ -179,12 +179,12 @@
       let selectionApi;
       const config = {
         plugins: [
-          // HighlightWeekends.Plugin(),
+          HighlightWeekends.Plugin(),
           TimelinePointer.Plugin(),
           Selection.Plugin(),
           ItemMovement.Plugin(),
           ItemResizing.Plugin(),
-          // CalendarScroll.Plugin(),
+          CalendarScroll.Plugin(),
         ],
         height: 523,
         list: {
@@ -206,13 +206,14 @@
         state.update(`config.chart.items.${itemMovement.item.id}.isResizing`, itemMovement.item.resizing);
       });
 
-      GSTCState.subscribe('_internal.chart.time.format.period', (period) => {
-        //document.getElementById('period').innerText = period;
+      GSTCState.subscribe('$data.chart.time.format.period', (period) => {
+        document.getElementById('period').innerText = period;
       });
 
       const element = document.getElementById('app');
       element.addEventListener('gstc-loaded', () => {
-        //gstc.api.scrollToTime(new Date().getTime());
+        console.log('gstc loaded');
+        gstc.api.scrollToTime(new Date().getTime());
       });
       const gstc = GSTC({
         element,
@@ -296,7 +297,7 @@
           config.chart.items = data.items;
           config.chart.time.from = new Date('2020-01-01').getTime();
           config.chart.time.to = new Date('2020-01-31').getTime();
-          return config;
+          return { ...config };
         });
       }
 

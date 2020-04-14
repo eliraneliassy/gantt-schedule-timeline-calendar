@@ -111,7 +111,6 @@ body.gstc-scrolling *
       height: var(--height)
       width: calc(var(--expander-padding-width) + var(--expander-size))
       flex-shrink: 0
-      will-change: opacity
       &-toggle
         padding-left: var(--expander-padding-width)
         display: block
@@ -121,11 +120,11 @@ body.gstc-scrolling *
         overflow: hidden
         text-align: center
         margin: 0 auto
-        will-change: opacity
+        //will-change: opacity
         img
           width: 16px
           height: 16px
-          will-change: contents
+          //will-change: contents
         &-child
           cursor: default
         &-open
@@ -157,7 +156,7 @@ body.gstc-scrolling *
       border-bottom: $grid
       border-right: $grid
       width: var(--width)
-      will-change: height
+      //will-change: height
       &-content
         width: calc( var(--width) - var(--expander-padding-width) - var(--expander-size) )
         height: var(--height)
@@ -315,7 +314,6 @@ body.gstc-scrolling *
       overflow: hidden
       position: relative
       &-inner
-        will-change: transform
         overflow: hidden
       &-grid
         overflow: hidden
@@ -326,7 +324,7 @@ body.gstc-scrolling *
           text-align:center
           user-select: none
           pointer-events: all
-          will-change: height
+          //will-change: height
           &-cell
             pointer-events: all
             flex-grow: 0
@@ -385,7 +383,7 @@ body.gstc-scrolling *
           overflow: hidden
           position: relative
           pointer-events: none !important
-          will-change: opacity, height
+          //will-change: opacity, height
           touch-action: none
           &-item
             touch-action: none
