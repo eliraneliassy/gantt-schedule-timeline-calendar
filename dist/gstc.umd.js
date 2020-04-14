@@ -6050,7 +6050,6 @@
 	        if (timeLoadedEventFired)
 	            return;
 	        Promise.resolve().then(() => {
-	            console.log('trigger!');
 	            const element = state.get('$data.elements.main');
 	            const parent = element.parentNode;
 	            const event = new Event('gstc-loaded');
@@ -6269,7 +6268,6 @@
 	        updateVisibleItems().done();
 	    }));
 	    function recalculateTimes(reason) {
-	        console.log(reason);
 	        const chartWidth = state.get('$data.chart.dimensions.width');
 	        if (!chartWidth) {
 	            return;

@@ -342,7 +342,6 @@ export default function Main(vido: Vido, props = {}) {
   function triggerLoadedEvent() {
     if (timeLoadedEventFired) return;
     Promise.resolve().then(() => {
-      console.log('trigger!');
       const element = state.get('$data.elements.main');
       const parent = element.parentNode;
       const event = new Event('gstc-loaded');
@@ -576,7 +575,6 @@ export default function Main(vido: Vido, props = {}) {
   );
 
   function recalculateTimes(reason: Reason) {
-    console.log(reason);
     const chartWidth: number = state.get('$data.chart.dimensions.width');
     if (!chartWidth) {
       return;
