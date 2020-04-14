@@ -67,7 +67,7 @@ export default function ListColumnRow(vido: Vido, props: Props) {
     state.subscribe('config.components.ListColumnRowExpander', (value) => (ListColumnRowExpanderComponent = value))
   );
 
-  let rowPath = `$data.flatTreeMapById.${props.rowId}`,
+  let rowPath = `config.list.rows.${props.rowId}`,
     row: Row = state.get(rowPath);
   let colPath = `config.list.columns.data.${props.columnId}`,
     column: ColumnData = state.get(colPath);
@@ -116,14 +116,14 @@ export default function ListColumnRow(vido: Vido, props: Props) {
     const columnId = props.columnId;
     if (rowSub) rowSub();
     if (colSub) colSub();
-    rowPath = `$data.flatTreeMapById.${rowId}`;
+    rowPath = `config.list.rows.${rowId}`;
     colPath = `config.list.columns.data.${columnId}`;
     rowSub = state.subscribeAll(
       [rowPath, colPath, 'config.list.expander'],
       (bulk) => {
         column = state.get(colPath);
         row = state.get(rowPath);
-        if (column === undefined || row === undefined) {
+        if (!column || !row || !row.$data) {
           shouldDetach = true;
           update();
           return;

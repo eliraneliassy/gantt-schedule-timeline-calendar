@@ -185,7 +185,6 @@ export default function Main(vido: Vido, props = {}) {
         'config.chart.items.*.height',
         'config.chart.items.*.rowId',
         'config.list.rows.*.height',
-        'config.list.rows;',
         'config.scroll.vertical.area',
       ],
       rowsWithParentsExpandedAndRowsHeight,

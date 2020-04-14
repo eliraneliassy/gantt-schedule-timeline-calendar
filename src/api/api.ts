@@ -300,7 +300,11 @@ export class Api {
   recalculateRowsPercents(rows: Row[], verticalAreaHeight: number): Row[] {
     let top = 0;
     for (const row of rows) {
-      row.$data.position.topPercent = top ? top / verticalAreaHeight : 0;
+      if (verticalAreaHeight <= 0) {
+        row.$data.position.topPercent = 0;
+      } else {
+        row.$data.position.topPercent = top ? top / verticalAreaHeight : 0;
+      }
       top += row.$data.outerHeight;
     }
     return rows;

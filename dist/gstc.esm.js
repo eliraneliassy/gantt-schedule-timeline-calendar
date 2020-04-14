@@ -5906,7 +5906,6 @@ function Main(vido, props = {}) {
         'config.chart.items.*.height',
         'config.chart.items.*.rowId',
         'config.list.rows.*.height',
-        'config.list.rows;',
         'config.scroll.vertical.area',
     ], rowsWithParentsExpandedAndRowsHeight, { bulk: true }));
     function calculateHeightRelatedThings() {
@@ -7074,6 +7073,7 @@ function ListColumn(vido, props) {
         '$data.chart.dimensions.width',
         '$data.innerHeight',
         '$data.list.width',
+        '$data.list.visibleRowsHeight',
     ], calculateStyle, { bulk: true });
     const ListColumnHeader = createComponent(ListColumnHeaderComponent, { columnId: props.columnId });
     onDestroy(ListColumnHeader.destroy);
@@ -7099,6 +7099,7 @@ function ListColumn(vido, props) {
             '$data.chart.dimensions.width',
             '$data.innerHeight',
             '$data.list.width',
+            '$data.list.visibleRowsHeight',
         ], calculateStyle, { bulk: true });
         ListColumnHeader.change(props);
     });
@@ -7114,7 +7115,7 @@ function ListColumn(vido, props) {
     const visibleRows = [];
     function visibleRowsChange() {
         const val = state.get('$data.list.visibleRows') || [];
-        return reuseComponents(visibleRows, val, (row) => row && { columnId: props.columnId, rowId: row.id, width }, ListColumnRowComponent);
+        reuseComponents(visibleRows, val, (row) => row && { columnId: props.columnId, rowId: row.id, width }, ListColumnRowComponent, false);
     }
     onDestroy(state.subscribeAll(['$data.list.visibleRows;', '$data.list.visibleRowsHeight'], visibleRowsChange));
     onDestroy(() => {
@@ -7361,7 +7362,7 @@ function ListColumnRow(vido, props) {
     onDestroy(state.subscribe('config.wrappers.ListColumnRow', (value) => (wrapper = value)));
     let ListColumnRowExpanderComponent;
     onDestroy(state.subscribe('config.components.ListColumnRowExpander', (value) => (ListColumnRowExpanderComponent = value)));
-    let rowPath = `$data.flatTreeMapById.${props.rowId}`, row = state.get(rowPath);
+    let rowPath = `config.list.rows.${props.rowId}`, row = state.get(rowPath);
     let colPath = `config.list.columns.data.${props.columnId}`, column = state.get(colPath);
     const styleMap = new StyleMap(column.expander
         ? {
@@ -7405,12 +7406,12 @@ function ListColumnRow(vido, props) {
             rowSub();
         if (colSub)
             colSub();
-        rowPath = `$data.flatTreeMapById.${rowId}`;
+        rowPath = `config.list.rows.${rowId}`;
         colPath = `config.list.columns.data.${columnId}`;
         rowSub = state.subscribeAll([rowPath, colPath, 'config.list.expander'], (bulk) => {
             column = state.get(colPath);
             row = state.get(rowPath);
-            if (column === undefined || row === undefined) {
+            if (!column || !row || !row.$data) {
                 shouldDetach = true;
                 update();
                 return;
@@ -10777,7 +10778,12 @@ class Api {
     recalculateRowsPercents(rows, verticalAreaHeight) {
         let top = 0;
         for (const row of rows) {
-            row.$data.position.topPercent = top ? top / verticalAreaHeight : 0;
+            if (verticalAreaHeight <= 0) {
+                row.$data.position.topPercent = 0;
+            }
+            else {
+                row.$data.position.topPercent = top ? top / verticalAreaHeight : 0;
+            }
             top += row.$data.outerHeight;
         }
         return rows;

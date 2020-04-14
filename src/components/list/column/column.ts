@@ -8,7 +8,7 @@
  * @link      https://github.com/neuronetio/gantt-schedule-timeline-calendar
  */
 
-import { Vido } from '../../../gstc';
+import { Vido, Row } from '../../../gstc';
 
 /**
  * Bind element action
@@ -89,6 +89,7 @@ export default function ListColumn(vido: Vido, props: Props) {
       '$data.chart.dimensions.width',
       '$data.innerHeight',
       '$data.list.width',
+      '$data.list.visibleRowsHeight',
     ],
     calculateStyle,
     { bulk: true }
@@ -119,6 +120,7 @@ export default function ListColumn(vido: Vido, props: Props) {
         '$data.chart.dimensions.width',
         '$data.innerHeight',
         '$data.list.width',
+        '$data.list.visibleRowsHeight',
       ],
       calculateStyle,
       { bulk: true }
@@ -142,12 +144,13 @@ export default function ListColumn(vido: Vido, props: Props) {
 
   const visibleRows = [];
   function visibleRowsChange() {
-    const val = state.get('$data.list.visibleRows') || [];
-    return reuseComponents(
+    const val: Row[] = state.get('$data.list.visibleRows') || [];
+    reuseComponents(
       visibleRows,
       val,
       (row) => row && { columnId: props.columnId, rowId: row.id, width },
-      ListColumnRowComponent
+      ListColumnRowComponent,
+      false
     );
   }
   onDestroy(state.subscribeAll(['$data.list.visibleRows;', '$data.list.visibleRowsHeight'], visibleRowsChange));
