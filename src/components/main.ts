@@ -351,46 +351,26 @@ export default function Main(vido: Vido, props = {}) {
     });
   }
 
-  function limitGlobalAndSetCenter(time: DataChartTime, updateCenter = true, oldTime: DataChartTime, reason) {
+  function limitGlobal(time: DataChartTime, oldTime: DataChartTime, reason) {
     if (time.leftGlobal < time.from) time.leftGlobal = time.from;
     if (time.rightGlobal > time.to) time.rightGlobal = time.to;
     time.leftGlobalDate = api.time.date(time.leftGlobal).startOf(time.period);
     time.leftGlobal = time.leftGlobalDate.valueOf();
     time.rightGlobalDate = api.time.date(time.rightGlobal).endOf(time.period);
     time.rightGlobal = time.rightGlobalDate.valueOf();
-    /*if (updateCenter) {
-      const diffPeriod = Math.floor(time.rightGlobalDate.diff(time.leftGlobalDate, time.period, true) / 2);
-      let amount = 0,
-        period = 'day';
-      switch (time.period) {
-        case 'year':
-          amount = 6;
-          period = 'month';
-          break;
-        case 'month':
-          amount = 15;
-          period = 'day';
-          break;
-        case 'week':
-          amount = 3;
-          period = 'day';
-          break;
-        case 'day':
-          amount = 12;
-          period = 'hour';
-          break;
-        case 'hour':
-          amount = 30;
-          period = 'minute';
-          break;
-      }
-      time.centerGlobalDate = time.leftGlobalDate.add(diffPeriod, time.period).add(amount, period as OpUnitType);
-      time.centerGlobal = time.centerGlobalDate.valueOf();
-    } else {
-      time.centerGlobal = oldTime.centerGlobal;
-      time.centerGlobalDate = oldTime.centerGlobalDate;
-    }*/
+    time.centerGlobal = oldTime.centerGlobal;
+    time.centerGlobalDate = oldTime.centerGlobalDate;
     return time;
+  }
+
+  function setCenter(time: DataChartTime) {
+    let diff = Math.floor(time.rightGlobalDate.diff(time.leftGlobalDate, 'millisecond', true) / 2);
+    const lastViewDate = api.time.getRightViewDate(time);
+    if (lastViewDate.width !== lastViewDate.currentView.width) {
+      diff -= (lastViewDate.width - lastViewDate.currentView.width) * time.timePerPixel;
+    }
+    time.centerGlobalDate = time.leftGlobalDate.add(diff, 'millisecond');
+    time.centerGlobal = time.centerGlobalDate.valueOf();
   }
 
   function guessPeriod(time: DataChartTime, levels: ChartCalendarLevel[]) {
@@ -455,7 +435,8 @@ export default function Main(vido: Vido, props = {}) {
     }
 
     let leftPx = 0;
-    return filtered.map((date) => {
+    const filteredLastIndex = filtered.length - 1;
+    return filtered.map((date: ChartTimeDate, index: number) => {
       date.currentView = {
         leftPx,
         rightPx: date.rightPx,
@@ -468,6 +449,10 @@ export default function Main(vido: Vido, props = {}) {
       }
       date.currentView.rightPx = date.currentView.leftPx + date.currentView.width;
       leftPx += date.currentView.width;
+      if (index === filteredLastIndex && date.currentView.rightPx > time.width) {
+        date.currentView.rightPx = time.width;
+        date.currentView.width = date.currentView.rightPx - date.currentView.leftPx;
+      }
       return date;
     });
   }
@@ -668,6 +653,7 @@ export default function Main(vido: Vido, props = {}) {
     const allMainDates = time.allDates[mainLevelIndex];
 
     let updateCenter = false;
+    const recalculateTimesLastReason: string = state.get('$data.chart.time.recalculateTimesLastReason') || '';
 
     if (!time.calculatedZoomMode) {
       // If time.zoom (or time.period) has been changed
@@ -699,19 +685,23 @@ export default function Main(vido: Vido, props = {}) {
         time.rightGlobal = calculateRightGlobal(time.leftGlobal, chartWidth, allMainDates);
         time.rightGlobalDate = api.time.date(time.rightGlobal).endOf(time.period);
         time.rightGlobal = time.rightGlobal.valueOf();
-        updateCenter = reason.name === 'scroll';
+        updateCenter =
+          recalculateTimesLastReason !== 'zoom' &&
+          recalculateTimesLastReason !== 'period' &&
+          recalculateTimesLastReason !== 'time';
       }
     }
 
-    limitGlobalAndSetCenter(time, updateCenter, oldTime, reason);
+    limitGlobal(time, oldTime, reason);
 
     time.leftInner = time.leftGlobal - time.from;
     time.rightInner = time.rightGlobal - time.from;
-
-    updateLevels(time, calendar.levels);
     time.leftPx = 0;
     time.rightPx = chartWidth;
     time.width = chartWidth;
+
+    updateLevels(time, calendar.levels);
+    if (updateCenter) setCenter(time);
     const mainLevelDates = time.levels[time.level];
     if (mainLevelDates && mainLevelDates.length) {
       time.leftPx = mainLevelDates[0].leftPx;
@@ -736,6 +726,7 @@ export default function Main(vido: Vido, props = {}) {
         return configTime;
       });
     multi = updateVisibleItems(time, multi);
+    multi = multi.update('$data.chart.time.recalculateTimesLastReason', reason.name);
     multi.done();
     update(() => {
       if (!timeLoadedEventFired) {

@@ -42,5 +42,7 @@ export declare class Time {
         callOnLevelDates: boolean;
     }): DataChartTimeLevelDate[];
     getDatesDiffPx(fromTime: Dayjs, toTime: Dayjs, time: DataChartTime): number;
+    getLeftViewDate(time?: DataChartTime): ChartTimeDate | null;
+    getRightViewDate(time?: DataChartTime): ChartTimeDate | null;
 }
 //# sourceMappingURL=time.d.ts.map

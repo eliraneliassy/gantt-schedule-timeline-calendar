@@ -61,7 +61,7 @@ export declare class Api {
     getVisibleRows(rowsWithParentsExpanded: Row[]): Row[];
     normalizeMouseWheelEvent(event: MouseWheelEvent): WheelResult;
     scrollToTime(toTime: number, centered?: boolean, time?: DataChartTime): number;
-    setScrollLeft(dataIndex: number | undefined, time?: DataChartTime, multi?: any): any;
+    setScrollLeft(dataIndex: number | undefined, time?: DataChartTime, multi?: any, recalculateTimesLastReason?: string): any;
     getScrollLeft(): ScrollTypeHorizontal;
     setScrollTop(dataIndex: number | undefined): void;
     getScrollTop(): ScrollTypeVertical;

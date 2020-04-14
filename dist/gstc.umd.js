@@ -6058,7 +6058,7 @@
 	            timeLoadedEventFired = true;
 	        });
 	    }
-	    function limitGlobalAndSetCenter(time, updateCenter = true, oldTime, reason) {
+	    function limitGlobal(time, oldTime, reason) {
 	        if (time.leftGlobal < time.from)
 	            time.leftGlobal = time.from;
 	        if (time.rightGlobal > time.to)
@@ -6067,39 +6067,18 @@
 	        time.leftGlobal = time.leftGlobalDate.valueOf();
 	        time.rightGlobalDate = api.time.date(time.rightGlobal).endOf(time.period);
 	        time.rightGlobal = time.rightGlobalDate.valueOf();
-	        /*if (updateCenter) {
-	          const diffPeriod = Math.floor(time.rightGlobalDate.diff(time.leftGlobalDate, time.period, true) / 2);
-	          let amount = 0,
-	            period = 'day';
-	          switch (time.period) {
-	            case 'year':
-	              amount = 6;
-	              period = 'month';
-	              break;
-	            case 'month':
-	              amount = 15;
-	              period = 'day';
-	              break;
-	            case 'week':
-	              amount = 3;
-	              period = 'day';
-	              break;
-	            case 'day':
-	              amount = 12;
-	              period = 'hour';
-	              break;
-	            case 'hour':
-	              amount = 30;
-	              period = 'minute';
-	              break;
-	          }
-	          time.centerGlobalDate = time.leftGlobalDate.add(diffPeriod, time.period).add(amount, period as OpUnitType);
-	          time.centerGlobal = time.centerGlobalDate.valueOf();
-	        } else {
-	          time.centerGlobal = oldTime.centerGlobal;
-	          time.centerGlobalDate = oldTime.centerGlobalDate;
-	        }*/
+	        time.centerGlobal = oldTime.centerGlobal;
+	        time.centerGlobalDate = oldTime.centerGlobalDate;
 	        return time;
+	    }
+	    function setCenter(time) {
+	        let diff = Math.floor(time.rightGlobalDate.diff(time.leftGlobalDate, 'millisecond', true) / 2);
+	        const lastViewDate = api.time.getRightViewDate(time);
+	        if (lastViewDate.width !== lastViewDate.currentView.width) {
+	            diff -= (lastViewDate.width - lastViewDate.currentView.width) * time.timePerPixel;
+	        }
+	        time.centerGlobalDate = time.leftGlobalDate.add(diff, 'millisecond');
+	        time.centerGlobal = time.centerGlobalDate.valueOf();
 	    }
 	    function guessPeriod(time, levels) {
 	        if (!time.zoom)
@@ -6159,7 +6138,8 @@
 	            firstLeftDiff = api.time.getDatesDiffPx(time.leftGlobalDate, filtered[0].leftGlobalDate, time);
 	        }
 	        let leftPx = 0;
-	        return filtered.map((date) => {
+	        const filteredLastIndex = filtered.length - 1;
+	        return filtered.map((date, index) => {
 	            date.currentView = {
 	                leftPx,
 	                rightPx: date.rightPx,
@@ -6172,6 +6152,10 @@
 	            }
 	            date.currentView.rightPx = date.currentView.leftPx + date.currentView.width;
 	            leftPx += date.currentView.width;
+	            if (index === filteredLastIndex && date.currentView.rightPx > time.width) {
+	                date.currentView.rightPx = time.width;
+	                date.currentView.width = date.currentView.rightPx - date.currentView.leftPx;
+	            }
 	            return date;
 	        });
 	    }
@@ -6353,6 +6337,7 @@
 	        }
 	        const allMainDates = time.allDates[mainLevelIndex];
 	        let updateCenter = false;
+	        const recalculateTimesLastReason = state.get('$data.chart.time.recalculateTimesLastReason') || '';
 	        if (!time.calculatedZoomMode) {
 	            // If time.zoom (or time.period) has been changed
 	            // then we need to recalculate basing on time.centerGlobal
@@ -6384,16 +6369,21 @@
 	                time.rightGlobal = calculateRightGlobal(time.leftGlobal, chartWidth, allMainDates);
 	                time.rightGlobalDate = api.time.date(time.rightGlobal).endOf(time.period);
 	                time.rightGlobal = time.rightGlobal.valueOf();
-	                updateCenter = reason.name === 'scroll';
+	                updateCenter =
+	                    recalculateTimesLastReason !== 'zoom' &&
+	                        recalculateTimesLastReason !== 'period' &&
+	                        recalculateTimesLastReason !== 'time';
 	            }
 	        }
-	        limitGlobalAndSetCenter(time, updateCenter);
+	        limitGlobal(time, oldTime);
 	        time.leftInner = time.leftGlobal - time.from;
 	        time.rightInner = time.rightGlobal - time.from;
-	        updateLevels(time, calendar.levels);
 	        time.leftPx = 0;
 	        time.rightPx = chartWidth;
 	        time.width = chartWidth;
+	        updateLevels(time, calendar.levels);
+	        if (updateCenter)
+	            setCenter(time);
 	        const mainLevelDates = time.levels[time.level];
 	        if (mainLevelDates && mainLevelDates.length) {
 	            time.leftPx = mainLevelDates[0].leftPx;
@@ -6417,6 +6407,7 @@
 	            return configTime;
 	        });
 	        multi = updateVisibleItems(time, multi);
+	        multi = multi.update('$data.chart.time.recalculateTimesLastReason', reason.name);
 	        multi.done();
 	        update(() => {
 	            if (!timeLoadedEventFired) {
@@ -6649,7 +6640,7 @@
 	                if (dataIndex > dates.length - lastPageCount) {
 	                    dataIndex = dates.length - lastPageCount;
 	                }
-	                api.setScrollLeft(dataIndex, time);
+	                api.setScrollLeft(dataIndex, time, undefined, 'time');
 	            }
 	        }));
 	    }
@@ -6866,7 +6857,7 @@
 	                this.dataIndex = dataIndex;
 	                if (props.type === 'horizontal') {
 	                    this.lastDate = allDates[dataIndex];
-	                    api.setScrollLeft(dataIndex);
+	                    api.setScrollLeft(dataIndex, undefined, undefined, undefined);
 	                }
 	                else {
 	                    this.lastRow = rows[dataIndex];
@@ -9552,6 +9543,22 @@
 	        }
 	        return inverse ? -width : width;
 	    }
+	    getLeftViewDate(time = this.state.get('$data.chart.time')) {
+	        if (!time.levels || !time.levels.length)
+	            return null;
+	        const level = time.levels[time.level];
+	        if (!level.length)
+	            return null;
+	        return level[0];
+	    }
+	    getRightViewDate(time = this.state.get('$data.chart.time')) {
+	        if (!time.levels || !time.levels.length || !time.levels[time.level])
+	            return null;
+	        const level = time.levels[time.level];
+	        if (!level.length)
+	            return null;
+	        return level[level.length - 1];
+	    }
 	}
 
 	// forked from https://github.com/joonhocho/superwild
@@ -10936,7 +10943,7 @@
 	            return 0;
 	        return this.setScrollLeft(dataIndex, time).posPx;
 	    }
-	    setScrollLeft(dataIndex, time = this.state.get('$data.chart.time'), multi = undefined) {
+	    setScrollLeft(dataIndex, time = this.state.get('$data.chart.time'), multi = undefined, recalculateTimesLastReason = 'scroll') {
 	        if (dataIndex === undefined) {
 	            dataIndex = 0;
 	        }
@@ -10952,7 +10959,7 @@
 	        if (!date)
 	            return;
 	        let result;
-	        multi.update('config.scroll.horizontal', (scrollHorizontal) => {
+	        multi = multi.update('config.scroll.horizontal', (scrollHorizontal) => {
 	            scrollHorizontal.data = Object.assign({}, date);
 	            const max = time.allDates[time.level].length - scrollHorizontal.lastPageCount;
 	            if (dataIndex > max) {
@@ -10966,6 +10973,9 @@
 	            result = scrollHorizontal;
 	            return scrollHorizontal;
 	        });
+	        if (recalculateTimesLastReason) {
+	            multi = multi.update('$data.chart.time.recalculateTimesLastReason', recalculateTimesLastReason);
+	        }
 	        if (hadMulti)
 	            return multi;
 	        multi.done();

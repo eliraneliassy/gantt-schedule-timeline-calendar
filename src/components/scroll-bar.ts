@@ -76,7 +76,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
           if (dataIndex > dates.length - lastPageCount) {
             dataIndex = dates.length - lastPageCount;
           }
-          api.setScrollLeft(dataIndex, time);
+          api.setScrollLeft(dataIndex, time, undefined, 'time');
         }
       })
     );
@@ -305,7 +305,7 @@ export default function ScrollBar(vido: Vido, props: Props) {
         this.dataIndex = dataIndex;
         if (props.type === 'horizontal') {
           this.lastDate = allDates[dataIndex];
-          api.setScrollLeft(dataIndex);
+          api.setScrollLeft(dataIndex, undefined, undefined, undefined);
         } else {
           this.lastRow = rows[dataIndex];
           api.setScrollTop(dataIndex);

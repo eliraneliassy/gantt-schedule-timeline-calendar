@@ -466,7 +466,8 @@ export class Api {
   setScrollLeft(
     dataIndex: number | undefined,
     time: DataChartTime = this.state.get('$data.chart.time'),
-    multi = undefined
+    multi = undefined,
+    recalculateTimesLastReason = 'scroll'
   ) {
     if (dataIndex === undefined) {
       dataIndex = 0;
@@ -481,7 +482,7 @@ export class Api {
     const date: DataChartTimeLevelDate = allDates[dataIndex];
     if (!date) return;
     let result;
-    multi.update('config.scroll.horizontal', (scrollHorizontal: ScrollTypeHorizontal) => {
+    multi = multi.update('config.scroll.horizontal', (scrollHorizontal: ScrollTypeHorizontal) => {
       scrollHorizontal.data = { ...date };
       const max = time.allDates[time.level].length - scrollHorizontal.lastPageCount;
       if (dataIndex > max) {
@@ -498,6 +499,9 @@ export class Api {
       result = scrollHorizontal;
       return scrollHorizontal;
     });
+    if (recalculateTimesLastReason) {
+      multi = multi.update('$data.chart.time.recalculateTimesLastReason', recalculateTimesLastReason);
+    }
     if (hadMulti) return multi;
     multi.done();
     return result;

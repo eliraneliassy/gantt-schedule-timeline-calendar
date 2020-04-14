@@ -406,4 +406,18 @@ export class Time {
     }
     return inverse ? -width : width;
   }
+
+  getLeftViewDate(time: DataChartTime = this.state.get('$data.chart.time')): ChartTimeDate | null {
+    if (!time.levels || !time.levels.length) return null;
+    const level = time.levels[time.level];
+    if (!level.length) return null;
+    return level[0];
+  }
+
+  getRightViewDate(time: DataChartTime = this.state.get('$data.chart.time')): ChartTimeDate | null {
+    if (!time.levels || !time.levels.length || !time.levels[time.level]) return null;
+    const level = time.levels[time.level];
+    if (!level.length) return null;
+    return level[level.length - 1];
+  }
 }
