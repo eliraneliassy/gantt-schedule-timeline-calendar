@@ -19,6 +19,10 @@ export interface OnArg {
     time: DataChartTime;
     movement: Movement;
 }
+export interface SnapToTime {
+    start?: (snapStartArgs: SnapStartArg) => Dayjs;
+    end?: (snapEndArgs: SnapEndArg) => Dayjs;
+}
 export interface Options {
     enabled?: boolean;
     className?: string;
@@ -27,9 +31,8 @@ export interface Options {
     onStart?: (onArg: OnArg) => boolean;
     onMove?: (onArg: OnArg) => boolean;
     onEnd?: (onArg: OnArg) => boolean;
-    snapStart?: (snapStartArgs: SnapStartArg) => Dayjs;
-    snapEnd?: (snapEndArgs: SnapEndArg) => Dayjs;
     onRowChange?: (item: Item, newRow: Row) => boolean;
+    snapToTime?: SnapToTime;
 }
 export interface MovementResult {
     horizontal: number;

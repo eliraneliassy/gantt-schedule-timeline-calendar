@@ -37,6 +37,11 @@ export interface OnArg {
   movement: Movement;
 }
 
+export interface SnapToTime {
+  start?: (snapStartArgs: SnapStartArg) => Dayjs;
+  end?: (snapEndArgs: SnapEndArg) => Dayjs;
+}
+
 export interface Options {
   enabled?: boolean;
   className?: string;
@@ -45,9 +50,8 @@ export interface Options {
   onStart?: (onArg: OnArg) => boolean;
   onMove?: (onArg: OnArg) => boolean;
   onEnd?: (onArg: OnArg) => boolean;
-  snapStart?: (snapStartArgs: SnapStartArg) => Dayjs;
-  snapEnd?: (snapEndArgs: SnapEndArg) => Dayjs;
   onRowChange?: (item: Item, newRow: Row) => boolean;
+  snapToTime?: SnapToTime;
 }
 
 export interface MovementResult {
@@ -119,14 +123,16 @@ function gemerateEmptyPluginData(options: Options): PluginData {
     onEnd() {
       return true;
     },
-    snapStart({ startTime, time }) {
-      return startTime.startOf(time.period);
-    },
-    snapEnd({ endTime, time }) {
-      return endTime.endOf(time.period);
-    },
     onRowChange() {
       return true;
+    },
+    snapToTime: {
+      start({ startTime, time }) {
+        return startTime.startOf(time.period);
+      },
+      end({ endTime, time }) {
+        return endTime.endOf(time.period);
+      },
     },
     ...options,
   };
@@ -189,10 +195,10 @@ class ItemMovement {
     const horizontal = this.data.movement.px.horizontal;
     const positionLeft = this.api.time.getViewOffsetPxFromDates(item.$data.time.startDate, false, time);
     const x = positionLeft + horizontal + this.getStartCumulationForItem(item);
-    let leftGlobal = this.api.time.getTimeFromViewOffsetPx(x, time);
-    let startTime = this.data.snapStart({
-      item,
+    const leftGlobal = this.api.time.getTimeFromViewOffsetPx(x, time);
+    const startTime = this.data.snapToTime.start({
       startTime: this.api.time.date(leftGlobal),
+      item,
       time,
       movement: this.data.movement,
       vido: this.vido,
@@ -200,13 +206,21 @@ class ItemMovement {
     const snapStartPxDiff = this.api.time.getDatesDiffPx(startTime, this.api.time.date(leftGlobal), time, true);
     this.setStartCumulationForItem(item, snapStartPxDiff);
     const startEndTimeDiff = item.$data.time.endDate.diff(item.$data.time.startDate, 'millisecond');
-    let rightGlobal = startTime.add(startEndTimeDiff, 'millisecond').valueOf();
-    let endTime = this.data.snapEnd({
+    // diff could be too much if we are in the middle of european summer time (daylight-saving time)
+    const rightGlobal = startTime.add(startEndTimeDiff, 'millisecond').valueOf();
+    const rightGlobalDate = this.api.time.date(rightGlobal);
+    /* // summer time / daylight saving time bug
+    const leftFmt = rightGlobalDate.format('YYYY-MM-DD HH:mm:ss');
+    const rightFmt = rightGlobalDate.endOf(time.period).format('YYYY-MM-DD HH:mm:ss');
+    if (leftFmt !== rightFmt) {
+      console.log('no match', leftFmt, rightFmt);
+    }*/
+    const endTime = this.data.snapToTime.end({
+      endTime: rightGlobalDate,
       item,
       time,
       movement: this.data.movement,
       vido: this.vido,
-      endTime: this.api.time.date(rightGlobal),
     });
     return { startTime, endTime };
   }

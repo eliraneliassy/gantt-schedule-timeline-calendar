@@ -182,12 +182,14 @@
           HighlightWeekends.Plugin(),
           TimelinePointer.Plugin(),
           Selection.Plugin(),
-          ItemMovement.Plugin({
-            snapStart({ startTime }) {
-              return startTime;
-            },
-            snapEnd({ endTime }) {
-              return endTime;
+          ItemMovement.Plugin(/*{
+            snapping: {
+              start({ startTime }) {
+                return startTime;
+              },
+              end({ endTime }) {
+                return endTime;
+              },
             },
             onEnd({ items, time }) {
               for (const item of items) {
@@ -201,7 +203,7 @@
               }
               return true;
             },
-          }),
+          }*/),
           ItemResizing.Plugin(),
           CalendarScroll.Plugin(),
         ],

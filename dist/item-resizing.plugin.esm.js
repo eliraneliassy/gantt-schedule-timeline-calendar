@@ -991,7 +991,25 @@ function generateEmptyData(options = {}) {
             verticalMargin: 0,
             outside: false,
             onlyWhenSelected: true,
-        }, content: null, bodyClass: 'gstc-item-resizing', bodyClassLeft: 'gstc-items-resizing-left', bodyClassRight: 'gstc-items-resizing-right', initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, movement: 0, itemsInitial: [], leftIsMoving: false, rightIsMoving: false }, options);
+        }, content: null, bodyClass: 'gstc-item-resizing', bodyClassLeft: 'gstc-items-resizing-left', bodyClassRight: 'gstc-items-resizing-right', initialPosition: { x: 0, y: 0 }, currentPosition: { x: 0, y: 0 }, movement: {
+            px: 0,
+            time: 0,
+        }, initialItems: [], leftIsMoving: false, rightIsMoving: false, onStart() {
+            return true;
+        },
+        onMove() {
+            return true;
+        },
+        onEnd() {
+            return true;
+        }, snapToTime: {
+            start({ startTime, time }) {
+                return startTime.startOf(time.period);
+            },
+            end({ endTime, time }) {
+                return endTime.endOf(time.period);
+            },
+        } }, options);
     if (options.handle)
         result.handle = Object.assign(Object.assign({}, result.handle), options.handle);
     return result;
@@ -1004,6 +1022,7 @@ class ItemResizing {
         this.state = vido.state;
         this.api = vido.api;
         this.data = generateEmptyData(options);
+        this.merge = this.state.get('config.merge');
         this.minWidth = this.data.handle.width * 2;
         this.state.update('config.chart.item.minWidth', this.minWidth);
         this.state.update('config.chart.items.*.minWidth', this.minWidth);
@@ -1084,13 +1103,7 @@ class ItemResizing {
     onPointerDown(ev) {
         ev.preventDefault();
         ev.stopPropagation();
-        this.data.itemsInitial = this.getSelectedItems().map((item) => {
-            return {
-                id: item.id,
-                left: item.$data.position.left,
-                width: item.$data.width,
-            };
-        });
+        this.data.initialItems = this.getSelectedItems().map((item) => this.merge({}, item));
         this.data.initialPosition = {
             x: ev.screenX,
             y: ev.screenY,
@@ -1118,7 +1131,7 @@ class ItemResizing {
         ev.preventDefault();
         this.data.currentPosition.x = ev.screenX;
         this.data.currentPosition.y = ev.screenY;
-        this.data.movement = this.data.currentPosition.x - this.data.initialPosition.x;
+        this.data.movement.px = this.data.currentPosition.x - this.data.initialPosition.x;
     }
     onLeftPointerMove(ev) {
         if (!this.data.enabled || !this.data.leftIsMoving)
@@ -1130,7 +1143,7 @@ class ItemResizing {
         let multi = this.state.multi();
         for (let i = 0, len = selected.length; i < len; i++) {
             const item = selected[i];
-            item.$data.position.left = this.data.itemsInitial[i].left + movement;
+            item.$data.position.left = this.data.initialItems[i].$data.position.left + movement.px;
             if (item.$data.position.left > item.$data.position.right)
                 item.$data.position.left = item.$data.position.right;
             item.$data.position.actualLeft = item.$data.position.left;
@@ -1138,9 +1151,16 @@ class ItemResizing {
             if (item.$data.width < item.minWidth)
                 item.$data.width = item.minWidth;
             item.$data.actualWidth = item.$data.width;
-            const leftGlobal = this.api.time.getTimeFromViewOffsetPx(item.$data.position.left, time);
-            item.time.start = leftGlobal;
-            item.$data.time.startDate = this.api.time.date(leftGlobal);
+            const leftGlobal = this.api.time.getTimeFromViewOffsetPx(item.$data.position.left, time, true);
+            const finalLeftGlobalDate = this.data.snapToTime.start({
+                startTime: this.api.time.date(leftGlobal),
+                item,
+                time,
+                movement: this.data.movement,
+                vido: this.vido,
+            });
+            item.time.start = finalLeftGlobalDate.valueOf();
+            item.$data.time.startDate = finalLeftGlobalDate;
             multi = multi
                 .update(`config.chart.items.${item.id}.time`, item.time)
                 .update(`config.chart.items.${item.id}.$data`, item.$data);
@@ -1158,17 +1178,24 @@ class ItemResizing {
         let multi = this.state.multi();
         for (let i = 0, len = selected.length; i < len; i++) {
             const item = selected[i];
-            item.$data.width = this.data.itemsInitial[i].width + movement;
+            item.$data.width = this.data.initialItems[i].$data.width + movement.px;
             if (item.$data.width < item.minWidth)
                 item.$data.width = item.minWidth;
             const diff = item.$data.position.actualLeft === item.$data.position.left ? 0 : item.$data.position.left;
             item.$data.actualWidth = item.$data.width + diff;
-            const right = item.$data.position.left + item.$data.width;
+            let right = item.$data.position.left + item.$data.width;
             item.$data.position.right = right;
             item.$data.position.actualRight = right;
-            const rightGlobal = this.api.time.getTimeFromViewOffsetPx(right, time);
-            item.time.end = rightGlobal;
-            item.$data.time.endDate = this.api.time.date(rightGlobal);
+            const rightGlobal = this.api.time.getTimeFromViewOffsetPx(right, time, false);
+            const finalRightGlobalDate = this.data.snapToTime.end({
+                endTime: this.api.time.date(rightGlobal),
+                item,
+                time,
+                movement: this.data.movement,
+                vido: this.vido,
+            });
+            item.time.end = finalRightGlobalDate.valueOf();
+            item.$data.time.endDate = finalRightGlobalDate;
             multi = multi
                 .update(`config.chart.items.${item.id}.time`, item.time)
                 .update(`config.chart.items.${item.id}.$data`, item.$data);
@@ -1208,6 +1235,11 @@ class ItemResizing {
         const onRightPointerDown = {
             handleEvent: (ev) => this.onRightPointerDown(ev),
         };
+        /*const leftHandle = this
+          .html`<div class=${this.leftClassName} style=${leftStyleMap} @pointerdown=${onLeftPointerDown}>${this.data.content}</div>`;
+        const rightHandle = this
+          .html`<div class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}>${this.data.content}</div>`;
+        return this.html`${visible ? leftHandle : null}${oldContent}${visible ? rightHandle : null}`;*/
         const rightHandle = this
             .html `<div class=${this.rightClassName} style=${rightStyleMap} @pointerdown=${onRightPointerDown}>${this.data.content}</div>`;
         return this.html `${oldContent}${visible ? rightHandle : null}`;
