@@ -30,14 +30,21 @@ export interface SnapEndArg extends SnapArg {
   endTime: Dayjs;
 }
 
+export interface OnArg {
+  items: Item[];
+  vido: Vido;
+  time: DataChartTime;
+  movement: Movement;
+}
+
 export interface Options {
   enabled?: boolean;
   className?: string;
   bodyClass?: string;
   bodyClassMoving?: string;
-  onStart?: (items: Item[]) => boolean;
-  onMove?: (items: Item[]) => boolean;
-  onEnd?: (items: Item[]) => boolean;
+  onStart?: (onArg: OnArg) => boolean;
+  onMove?: (onArg: OnArg) => boolean;
+  onEnd?: (onArg: OnArg) => boolean;
   snapStart?: (snapStartArgs: SnapStartArg) => Dayjs;
   snapEnd?: (snapEndArgs: SnapEndArg) => Dayjs;
   onRowChange?: (item: Item, newRow: Row) => boolean;
@@ -58,19 +65,26 @@ export interface PluginData extends Options {
   initialItems: Item[];
   movement: Movement;
   lastPosition: Point;
-  state: 'up' | 'down' | 'move';
+  pointerState: 'up' | 'down' | 'move';
+  state: State;
   pointerMoved: boolean;
 }
 
-export interface MovingTime {
-  time: Dayjs;
-  position: number;
-  width: number;
-  snapTimeDiff: number;
-  snapPxDiff: number;
+export interface MovingTimes {
+  startTime: Dayjs;
+  endTime: Dayjs;
 }
 
 export type State = '' | 'start' | 'end' | 'move';
+
+export interface Cumulation {
+  start: number;
+  end: number;
+}
+
+export interface Cumulations {
+  [key: string]: Cumulation;
+}
 
 function prepareOptions(options: Options): Options {
   return {
@@ -88,8 +102,9 @@ function gemerateEmptyPluginData(options: Options): PluginData {
   return {
     moving: [],
     initialItems: [],
-    state: 'up',
+    pointerState: 'up',
     pointerMoved: false,
+    state: '',
     lastPosition: { x: 0, y: 0 },
     movement: {
       px: { horizontal: 0, vertical: 0 },
@@ -104,8 +119,8 @@ function gemerateEmptyPluginData(options: Options): PluginData {
     onEnd() {
       return true;
     },
-    snapStart({ startTime, time, vido }) {
-      return startTime.startOf(vido.api.time.getLowerPeriod(time.period));
+    snapStart({ startTime, time }) {
+      return startTime.startOf(time.period);
     },
     snapEnd({ endTime, time }) {
       return endTime.endOf(time.period);
@@ -124,6 +139,7 @@ class ItemMovement {
   private onDestroy = [];
   private selection: SelectionPluginData;
   private data: PluginData;
+  private cumulations: Cumulations = {};
   private merge: (target: object, source: object) => object;
 
   constructor(vido: Vido) {
@@ -154,32 +170,45 @@ class ItemMovement {
     this.state.update(pluginPath, this.data);
   }
 
-  private getItemMovingAttrs(item: Item, time: DataChartTime, isStart: boolean = false): MovingTime {
+  private clearCumulationsForItems() {
+    this.cumulations = {};
+  }
+
+  private setStartCumulationForItem(item: Item, cumulation: number) {
+    if (!this.cumulations[item.id]) {
+      this.cumulations[item.id] = { start: 0, end: 0 };
+    }
+    this.cumulations[item.id].start = cumulation;
+  }
+
+  private getStartCumulationForItem(item: Item): number {
+    return this.cumulations[item.id]?.start || 0;
+  }
+
+  private getItemMovingTimes(item: Item, time: DataChartTime): MovingTimes {
     const horizontal = this.data.movement.px.horizontal;
     const positionLeft = this.api.time.getViewOffsetPxFromDates(item.$data.time.startDate, false, time);
-    const x = positionLeft + horizontal;
+    const x = positionLeft + horizontal + this.getStartCumulationForItem(item);
     let leftGlobal = this.api.time.getTimeFromViewOffsetPx(x, time);
-    let leftGlobalDate = this.api.time.date(leftGlobal);
-    /*if (isStart) {
-      leftGlobalDate = this.data.snapStart({
-        item,
-        startTime: leftGlobalDate,
-        time,
-        movement: this.data.movement,
-        vido: this.vido,
-      });
-    }*/
-    const snapTimeDiff = leftGlobalDate.valueOf() - leftGlobal;
-    const snapPxDiff = this.api.time.getDatesDiffPx(this.api.time.date(leftGlobal), leftGlobalDate, time);
-    //console.log({ snapPxDiff });
-    const rightPx = this.api.time.getViewOffsetPxFromDates(item.$data.time.endDate);
-    return {
-      time: leftGlobalDate,
-      position: x,
-      width: rightPx - x,
-      snapTimeDiff,
-      snapPxDiff,
-    };
+    let startTime = this.data.snapStart({
+      item,
+      startTime: this.api.time.date(leftGlobal),
+      time,
+      movement: this.data.movement,
+      vido: this.vido,
+    });
+    const snapStartPxDiff = this.api.time.getDatesDiffPx(startTime, this.api.time.date(leftGlobal), time, true);
+    this.setStartCumulationForItem(item, snapStartPxDiff);
+    const startEndTimeDiff = item.$data.time.endDate.diff(item.$data.time.startDate, 'millisecond');
+    let rightGlobal = startTime.add(startEndTimeDiff, 'millisecond').valueOf();
+    let endTime = this.data.snapEnd({
+      item,
+      time,
+      movement: this.data.movement,
+      vido: this.vido,
+      endTime: this.api.time.date(rightGlobal),
+    });
+    return { startTime, endTime };
   }
 
   private moveItemVertically(item: Item): Item {
@@ -190,19 +219,17 @@ class ItemMovement {
     const time: DataChartTime = this.state.get('$data.chart.time');
     let multi = this.state.multi();
     for (let item of this.data.moving) {
-      const newItemMovingAttrs = this.getItemMovingAttrs(item, time, true);
+      const newItemTimes = this.getItemMovingTimes(item, time);
       item = this.moveItemVertically(item);
       multi = multi
         .update(`config.chart.items.${item.id}.time`, (itemTime: ItemTime) => {
-          const newStartTime = newItemMovingAttrs.time.valueOf();
-          const diff = newStartTime - itemTime.start;
-          itemTime.start = newStartTime;
-          itemTime.end += diff;
+          itemTime.start = newItemTimes.startTime.valueOf();
+          itemTime.end = newItemTimes.endTime.valueOf();
           return itemTime;
         })
         .update(`config.chart.items.${item.id}.$data.time`, (dataTime: ItemDataTime) => {
-          dataTime.startDate = this.api.time.date(item.time.start);
-          dataTime.endDate = this.api.time.date(item.time.end);
+          dataTime.startDate = newItemTimes.startTime;
+          dataTime.endDate = newItemTimes.endTime;
           return dataTime;
         });
     }
@@ -215,11 +242,12 @@ class ItemMovement {
     this.data.movement.px.horizontal = 0;
     this.data.movement.px.vertical = 0;
     this.data.movement.time = 0;
-    this.data.state = 'up';
+    this.data.pointerState = 'up';
     this.data.pointerMoved = false;
   }
 
   private onStart() {
+    this.clearCumulationsForItems();
     document.body.classList.add(this.data.bodyClassMoving);
     this.data.lastPosition = { ...this.selection.currentPosition };
   }
@@ -238,14 +266,14 @@ class ItemMovement {
     this.updateData();
   }
 
-  private canMove(state: State): boolean {
+  private canMove(state: State, onArg: OnArg): boolean {
     switch (state) {
       case 'start':
-        return this.data.onStart(this.data.moving);
+        return this.data.onStart(onArg);
       case 'move':
-        return this.data.onMove(this.data.moving);
+        return this.data.onMove(onArg);
       case 'end':
-        return this.data.onEnd(this.data.moving);
+        return this.data.onEnd(onArg);
     }
     return true;
   }
@@ -265,28 +293,30 @@ class ItemMovement {
       this.selection.events.down.stopPropagation();
     }
 
-    let state: State = '';
-    if (this.data.state === 'up' && this.selection.pointerState === 'down') {
-      state = 'start';
-    } else if ((this.data.state === 'down' || this.data.state === 'move') && this.selection.pointerState === 'up') {
-      state = 'end';
-    } else if (this.data.state === 'move' && this.selection.pointerState === 'move') {
-      state = 'move';
+    if (this.data.pointerState === 'up' && this.selection.pointerState === 'down') {
+      this.data.state = 'start';
     } else if (
-      this.data.state === 'up' &&
+      (this.data.pointerState === 'down' || this.data.pointerState === 'move') &&
+      this.selection.pointerState === 'up'
+    ) {
+      this.data.state = 'end';
+    } else if (this.data.pointerState === 'move' && this.selection.pointerState === 'move') {
+      this.data.state = 'move';
+    } else if (
+      this.data.pointerState === 'up' &&
       (this.selection.pointerState === 'move' || this.selection.pointerState === 'up')
     ) {
       // do nothing because movement was rejected
       return;
     }
 
-    this.data.state = this.selection.pointerState;
+    this.data.pointerState = this.selection.pointerState;
     this.data.moving = [...this.selection.selected[ITEM]];
-    if (state === 'start') {
+    if (this.data.state === 'start') {
       this.data.initialItems = this.data.moving.map((item) => this.merge({}, item) as Item);
     }
 
-    switch (state) {
+    switch (this.data.state) {
       case 'start':
         this.onStart();
         break;
@@ -300,11 +330,17 @@ class ItemMovement {
     this.data.lastPosition.x = this.selection.currentPosition.x;
     this.data.lastPosition.y = this.selection.currentPosition.y;
 
-    if (this.canMove(state)) {
+    const onArg: OnArg = {
+      items: this.data.moving,
+      vido: this.vido,
+      movement: this.data.movement,
+      time: this.state.get('$data.chart.time'),
+    };
+    if (this.canMove(this.data.state, onArg)) {
       this.moveItems();
     } else {
-      this.data.state = 'up';
-      if (state === 'end') {
+      this.data.pointerState = 'up';
+      if (this.data.state === 'end') {
         this.restoreInitialItems();
       }
     }

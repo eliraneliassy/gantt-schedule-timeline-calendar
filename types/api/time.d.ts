@@ -28,7 +28,7 @@ export declare class Time {
     limitOffsetPxToView(x: number, time?: DataChartTime): number;
     findDateAtOffsetPx(offsetPx: number, allPeriodDates: ChartTimeDate[]): ChartTimeDate | undefined;
     findDateAtTime(milliseconds: number, allPeriodDates: ChartTimeDate[]): ChartTimeDate | undefined;
-    getTimeFromViewOffsetPx(offsetPx: number, time: DataChartTime): number;
+    getTimeFromViewOffsetPx(offsetPx: number, time: DataChartTime, snapToStartOf?: boolean): number;
     calculateScrollPosPxFromTime(milliseconds: number, time: DataChartTime | undefined, scroll: ScrollTypeHorizontal | undefined): number;
     getCurrentFormatForLevel(level: ChartCalendarLevel, time: DataChartTime): ChartCalendarFormat;
     generatePeriodDates({ leftDate, rightDate, period, level, levelIndex, time, callOnDate, callOnLevelDates, }: {
@@ -41,7 +41,7 @@ export declare class Time {
         callOnDate: boolean;
         callOnLevelDates: boolean;
     }): DataChartTimeLevelDate[];
-    getDatesDiffPx(fromTime: Dayjs, toTime: Dayjs, time: DataChartTime): number;
+    getDatesDiffPx(fromTime: Dayjs, toTime: Dayjs, time: DataChartTime, accurate?: boolean): number;
     getLeftViewDate(time?: DataChartTime): ChartTimeDate | null;
     getRightViewDate(time?: DataChartTime): ChartTimeDate | null;
     getLowerPeriod(period: Period): Period;

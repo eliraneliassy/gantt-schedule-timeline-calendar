@@ -13,14 +13,20 @@ export interface SnapStartArg extends SnapArg {
 export interface SnapEndArg extends SnapArg {
     endTime: Dayjs;
 }
+export interface OnArg {
+    items: Item[];
+    vido: Vido;
+    time: DataChartTime;
+    movement: Movement;
+}
 export interface Options {
     enabled?: boolean;
     className?: string;
     bodyClass?: string;
     bodyClassMoving?: string;
-    onStart?: (items: Item[]) => boolean;
-    onMove?: (items: Item[]) => boolean;
-    onEnd?: (items: Item[]) => boolean;
+    onStart?: (onArg: OnArg) => boolean;
+    onMove?: (onArg: OnArg) => boolean;
+    onEnd?: (onArg: OnArg) => boolean;
     snapStart?: (snapStartArgs: SnapStartArg) => Dayjs;
     snapEnd?: (snapEndArgs: SnapEndArg) => Dayjs;
     onRowChange?: (item: Item, newRow: Row) => boolean;
@@ -38,16 +44,21 @@ export interface PluginData extends Options {
     initialItems: Item[];
     movement: Movement;
     lastPosition: Point;
-    state: 'up' | 'down' | 'move';
+    pointerState: 'up' | 'down' | 'move';
+    state: State;
     pointerMoved: boolean;
 }
-export interface MovingTime {
-    time: Dayjs;
-    position: number;
-    width: number;
-    snapTimeDiff: number;
-    snapPxDiff: number;
+export interface MovingTimes {
+    startTime: Dayjs;
+    endTime: Dayjs;
 }
 export declare type State = '' | 'start' | 'end' | 'move';
+export interface Cumulation {
+    start: number;
+    end: number;
+}
+export interface Cumulations {
+    [key: string]: Cumulation;
+}
 export declare function Plugin(options?: Options): (vidoInstance: Vido) => void;
 //# sourceMappingURL=item-movement.plugin.d.ts.map

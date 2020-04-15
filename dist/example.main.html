@@ -182,7 +182,26 @@
           HighlightWeekends.Plugin(),
           TimelinePointer.Plugin(),
           Selection.Plugin(),
-          ItemMovement.Plugin(),
+          ItemMovement.Plugin({
+            snapStart({ startTime }) {
+              return startTime;
+            },
+            snapEnd({ endTime }) {
+              return endTime;
+            },
+            onEnd({ items, time }) {
+              for (const item of items) {
+                const startEndDiff = item.$data.time.endDate.diff(item.$data.time.startDate, 'millisecond');
+                const startDate = item.$data.time.startDate.startOf(time.period);
+                item.time.start = startDate.valueOf();
+                item.$data.time.startDate = startDate;
+                const endDate = item.$data.time.startDate.add(startEndDiff, 'millisecond');
+                item.time.end = endDate.valueOf();
+                item.$data.time.endDate = endDate;
+              }
+              return true;
+            },
+          }),
           ItemResizing.Plugin(),
           CalendarScroll.Plugin(),
         ],

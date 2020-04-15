@@ -189,7 +189,7 @@ export class Time {
     return allPeriodDates.find((date) => date.rightGlobal >= milliseconds);
   }
 
-  public getTimeFromViewOffsetPx(offsetPx: number, time: DataChartTime): number {
+  public getTimeFromViewOffsetPx(offsetPx: number, time: DataChartTime, snapToStartOf = true): number {
     const finalOffset = offsetPx + time.leftPx;
     let dates: DataChartTimeLevelDate[] = time.allDates[time.level];
     if (finalOffset < 0) {
@@ -251,10 +251,11 @@ export class Time {
     for (let i = 0, len = dates.length; i < len; i++) {
       let date = dates[i];
       if (date.rightPx >= finalOffset) {
-        return date.rightGlobal - Math.round((date.rightPx - finalOffset) * time.timePerPixel);
+        const result = date.rightGlobal - Math.round((date.rightPx - finalOffset) * time.timePerPixel);
+        return snapToStartOf ? result + 1 : result;
       }
     }
-    return -1;
+    return 0;
   }
 
   public calculateScrollPosPxFromTime(
@@ -336,14 +337,13 @@ export class Time {
     return dates;
   }
 
-  public getDatesDiffPx(fromTime: Dayjs, toTime: Dayjs, time: DataChartTime): number {
-    if (fromTime === toTime) return 0;
+  public getDatesDiffPx(fromTime: Dayjs, toTime: Dayjs, time: DataChartTime, accurate = true): number {
+    if (fromTime.valueOf() === toTime.valueOf()) return 0;
     const mainDates = time.allDates[time.level];
     if (mainDates.length === 0) return 0;
     let width = 0;
-    let startCounting = false;
     let inverse = false;
-    if (toTime < fromTime) {
+    if (toTime.valueOf() < fromTime.valueOf()) {
       const initialFrom = fromTime;
       fromTime = toTime;
       toTime = initialFrom;
@@ -395,14 +395,26 @@ export class Time {
       dates = onLevelDates({ dates, time, format, level, levelIndex: time.level });
     }
 
-    for (const date of dates) {
+    let date, fromDate;
+    let startCounting = false;
+    for (date of dates) {
       if (date.leftGlobal >= fromTime.valueOf()) {
         startCounting = true;
+        fromDate = date;
       }
       if (date.rightGlobal >= toTime.valueOf()) {
         break;
       }
       if (startCounting) width += date.width;
+    }
+    if (accurate) {
+      let fromDiff = (fromTime.valueOf() - date.leftGlobal) / time.timePerPixel;
+      if (fromDate) {
+        fromDiff = (fromTime.valueOf() - fromDate.leftGlobal) / time.timePerPixel;
+      }
+      const toDiff = (toTime.valueOf() - date.leftGlobal) / time.timePerPixel;
+      const diff = toDiff - fromDiff;
+      return inverse ? -width - diff : width + diff;
     }
     return inverse ? -width : width;
   }

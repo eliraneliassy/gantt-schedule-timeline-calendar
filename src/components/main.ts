@@ -431,7 +431,7 @@ export default function Main(vido: Vido, props = {}) {
     if (!filtered.length) return [];
     let firstLeftDiff = 0;
     if (filtered[0].period !== time.period && time.leftGlobal > filtered[0].leftGlobal) {
-      firstLeftDiff = api.time.getDatesDiffPx(time.leftGlobalDate, filtered[0].leftGlobalDate, time);
+      firstLeftDiff = api.time.getDatesDiffPx(time.leftGlobalDate, filtered[0].leftGlobalDate, time, false);
     }
 
     let leftPx = 0;
